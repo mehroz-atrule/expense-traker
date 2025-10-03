@@ -1,0 +1,1 @@
+// ReceiptUploader component placeholder
