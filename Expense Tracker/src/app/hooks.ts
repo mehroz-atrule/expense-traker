@@ -1,0 +1,1 @@
+// Custom typed hooks for Redux placeholder
