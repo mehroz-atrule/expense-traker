@@ -18,6 +18,7 @@ const QucikViewDashboard: React.FC = () => {
           <>
             <QuickCreateButton label="Manage Users" onClick={() => navigate('/admin/users')} />
             <QuickCreateButton label="Manage Offices" onClick={() => navigate('/admin/offices')} />
+            <QuickCreateButton label="Manage Vendors" onClick={() => navigate('/admin/vendors')} />
           </>
         )}
       </div>

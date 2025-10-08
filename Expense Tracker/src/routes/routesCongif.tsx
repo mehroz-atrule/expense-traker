@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { 
   Home, FileText, ClipboardList, Eye, CheckCircle, 
-  CreditCard, BarChart, Users, Settings, 
+  CreditCard, BarChart, Users, Settings, Building2,
 } from "lucide-react";
 
 export interface RouteItem {
@@ -39,6 +39,7 @@ import Reports from "../pages/Finance/Reports";
 import UserManagement from "../pages/Admin/UserManagement";
 import SystemSettings from "../pages/Admin/SystemSettings";
 import OfficeManagement from "../pages/Admin/OfficeManagement";
+import VendorManagement from "../pages/Admin/VendorManagement";
 import SubmitterDashboard from "../pages/Dashboard/SubmitterDashboard";
 import OperatorDashboard from "../pages/Dashboard/OperatorDashboard";
 import FinanceDashboard from "../pages/Dashboard/FinanceDashboard";
@@ -178,6 +179,14 @@ const routesConfig: RoutesConfig = {
         icon: <Users size={18} />,
         tooltip: "Manage offices",
         navbar: { title: "Office Management" }
+      },
+      {
+        path: "vendors",
+        element: <VendorManagement />,
+        label: "Vendors",
+        icon: <Building2 size={18} />,
+        tooltip: "Manage vendors",
+        navbar: { title: "Vendor Management" }
       },
       { 
         path: "settings", 
