@@ -36,7 +36,7 @@ const initialState: SubmitterState = {
 
 export const fetchExpenses = createAsyncThunk('submitter/fetchExpenses', async (params: Record<string, unknown> = {}) => {
   const res = await listExpenses(params);
-  return res as Expense[];
+  return res.data as any[];
 });
 
 export const createExpense = createAsyncThunk('submitter/createExpense', async (payload: Expense) => {
@@ -68,9 +68,9 @@ const submitterSlice = createSlice({
       .addCase(createExpense.rejected, (state, action) => { state.loading = false; state.error = action.error.message; });
     builder
       .addCase(UpdateExpense.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(UpdateExpense.fulfilled, (state, action: PayloadAction<Expense>) => { state.loading = false; state.expenses = state.expenses.map(e => e._id === action.payload._id ? action.payload : e); })
+      .addCase(UpdateExpense.fulfilled, (state, action: PayloadAction<Expense>) => { state.loading = false; state.expenses = state.expenses.map(e => e.id === action.payload.id ? action.payload : e); })
       .addCase(UpdateExpense.rejected, (state, action) => { state.loading = false; state.error = action.error.message; })
-      .addCase(removeExpense.fulfilled, (state, action: PayloadAction<number | string>) => { state.expenses = state.expenses.filter(e => e._id !== action.payload); });
+      .addCase(removeExpense.fulfilled, (state, action: PayloadAction<number | string>) => { state.expenses = state.expenses.filter(e => e.id !== action.payload); });
   }
 });
 

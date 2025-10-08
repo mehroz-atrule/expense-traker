@@ -19,7 +19,7 @@ const MyExpenses: React.FC = () => {
     dispatch(fetchExpenses({}));
   }, [dispatch]);
 
-  const categoryOptions = ['all', ...Array.from(new Set(expenses.map(e => e.category || 'other')))].filter(Boolean);
+  const categoryOptions = ['all', ...Array.from(new Set(expenses?.map(e => e.category || 'other')))].filter(Boolean);
   const statusOptions = ['all', 'New', 'WaitingForApproval', 'Approved', 'InReviewByFinance', 'Paid', 'Rejected'];
 
   const formatDate = (d?: string | Date) => {

@@ -17,16 +17,16 @@ export class Expense extends Document {
 
   // 👇 Relation with Office
   @Prop({ type: Types.ObjectId, ref: 'Office', required: true })
-  officeId: Types.ObjectId;
+  office: Types.ObjectId;
 
   @Prop({ required: true, enum: ['Cash', 'Cheque', 'BankTransfer', 'Card'] })
-  paymentMethod: 'Cash' | 'Cheque' | 'BankTransfer' | 'Card';
+  payment: 'Cash' | 'Cheque' | 'BankTransfer' | 'Card';
 
   @Prop()
   description?: string;
 
   @Prop()
-  receiptUrl?: string;
+  image?: string;
 
   // Link to Budget if exists
   @Prop({ type: Types.ObjectId, ref: 'Budget' })

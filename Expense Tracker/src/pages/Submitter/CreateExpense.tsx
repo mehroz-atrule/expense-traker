@@ -20,7 +20,7 @@ interface Option {
 interface FormData {
   title: string;
   date: string;
-  amount: string;
+  amount: number;
   category: string;
   office: string;
   vendor: string;
@@ -33,7 +33,7 @@ const CreateExpenseView: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     date: "",
-    amount: "",
+    amount: 0,
     category: "",
     office: "",
     vendor: "",
@@ -64,8 +64,9 @@ const CreateExpenseView: React.FC = () => {
 
   const paymentOptions: Option[] = [
     { value: "Cash", label: "Cash" },
-    { value: "Bank Transfer", label: "Bank Transfer" },
-    { value: "Credit Card", label: "Credit Card" },
+    { value: "BankTransfer", label: "Bank Transfer" },
+    { value: "Card", label: "Credit Card" },
+    { value: "Cheque", label: "Cheque" },
   ];
 
   useEffect(() => {
@@ -91,7 +92,7 @@ const CreateExpenseView: React.FC = () => {
           (viewExpense.createdAt
             ? new Date(viewExpense.createdAt).toISOString().slice(0, 10)
             : ""),
-        amount: viewExpense.amount ? String(viewExpense.amount) : "",
+        amount: viewExpense.amount ?? 0 ,
         category: viewExpense.category || "",
         office: viewExpense.officeId || "",
         vendor: viewExpense.vendor || "",

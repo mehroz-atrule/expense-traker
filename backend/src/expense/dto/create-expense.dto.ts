@@ -8,11 +8,35 @@ export enum PaymentMethod {
   Card = 'Card',
 }
 
+
+// New 
+// Waiting for Approval
+// Approved 
+// In Review by Finance
+// Preparing for payment
+// Ready for payment
+// Paid
+export enum Status {
+  New = 'New',
+  WaitingForApproval = 'WaitingForApproval',
+  Approved = 'Approved',
+  InReviewByFinance = 'InReviewByFinance',
+  PreparingForPayment = 'PreparingForPayment',
+  ReadyForPayment = 'ReadyForPayment',
+  Paid = 'Paid',
+
+}
+
 export class CreateExpenseDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   title: string;
+
+  @ApiProperty({ enum: Status })
+  @IsEnum(Status)
+  @IsNotEmpty()
+  status: Status;
 
   // image handled as file via multipart, not validated here
 
