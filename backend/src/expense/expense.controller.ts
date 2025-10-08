@@ -55,8 +55,13 @@ export class ExpenseController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateExpenseDto: UpdateExpenseDto) {
-    return this.expenseService.update(id, updateExpenseDto);
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  update(
+    @Param('id') id: string,
+    @Body() updateExpenseDto: UpdateExpenseDto,
+    @UploadedFile() image?: any,
+  ) {
+    return this.expenseService.update(id, updateExpenseDto, image);
   }
 
   @Delete(':id')

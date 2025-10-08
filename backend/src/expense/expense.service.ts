@@ -38,7 +38,7 @@ export class ExpenseService {
         office: new Types.ObjectId(createExpenseDto.office),
         payment: createExpenseDto.payment,
         description: createExpenseDto.description,
-        image,
+        image: receiptUrl,
         date: new Date(createExpenseDto.date),
         status: Status.New
       });
@@ -62,7 +62,11 @@ export class ExpenseService {
         if (!Types.ObjectId.isValid(query.office)) {
           throw new BadRequestException('Invalid office id');
         }
-        filter.officeId = new Types.ObjectId(query.office);
+        // support both field names depending on schema
+        filter.$or = [
+          { office: new Types.ObjectId(query.office) },
+          { officeId: new Types.ObjectId(query.office) },
+        ];
       }
       if (query?.vendor) {
         filter.vendor = query.vendor;
@@ -113,7 +117,7 @@ export class ExpenseService {
     }
   }
 
-  async update(id: string, updateExpenseDto: UpdateExpenseDto) {
+  async update(id: string, updateExpenseDto: UpdateExpenseDto, image?: any) {
     try {
       if (!Types.ObjectId.isValid(id)) {
         throw new BadRequestException('Invalid expense id');
@@ -125,7 +129,37 @@ export class ExpenseService {
         throw new BadRequestException('Amount must be a number');
       }
 
-      const updated = await this.expenseModel.findByIdAndUpdate(id, updateExpenseDto, { new: true, runValidators: true }).exec();
+      // Fetch existing expense for image handling
+      const existing = await this.expenseModel.findById(id).exec();
+      if (!existing) {
+        throw new NotFoundException('Expense not found');
+      }
+
+      const updatePayload: Record<string, any> = { ...updateExpenseDto };
+
+      // If a new image is provided, delete previous and upload new
+      if (image?.buffer) {
+        if (existing.image) {
+          await this.cloudinary.deleteByUrl(existing.image as unknown as string).catch(() => undefined);
+        }
+        const uploaded = await this.cloudinary.uploadBuffer(image.buffer, 'expenses');
+        updatePayload.image = uploaded.secure_url;
+      }
+
+      // Normalize amount and office if present
+      if (updatePayload['amount'] !== undefined) {
+        updatePayload['amount'] = Number(updatePayload['amount']);
+      }
+      if (updatePayload['office']) {
+        updatePayload['office'] = new Types.ObjectId(updatePayload['office'] as string);
+      }
+      if (updatePayload['date']) {
+        updatePayload['date'] = new Date(updatePayload['date'] as string);
+      }
+
+      const updated = await this.expenseModel
+        .findByIdAndUpdate(id, updatePayload, { new: true, runValidators: true })
+        .exec();
       if (!updated) {
         throw new NotFoundException('Expense not found');
       }
