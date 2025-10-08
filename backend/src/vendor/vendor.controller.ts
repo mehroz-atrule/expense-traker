@@ -17,7 +17,9 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/types/roles.enum';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Query } from '@nestjs/common';
+import { QueryVendorDto } from './dto/query-vendor.dto';
 
 @ApiTags('Vendors')
 @ApiBearerAuth()
@@ -37,10 +39,10 @@ export class VendorController {
 
   @Get()
   // @Roles(Role.Admin)
-  @ApiOperation({ summary: 'Get all vendors' })
+  @ApiOperation({ summary: 'Get all vendors (searchable)' })
   @ApiResponse({ status: 200, description: 'List of all vendors' })
-  findAll() {
-    return this.vendorService.findAll();
+  findAll(@Query() query: QueryVendorDto) {
+    return this.vendorService.findAll(query);
   }
 
   @Get(':id')

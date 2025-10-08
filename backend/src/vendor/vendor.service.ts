@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, FilterQuery } from 'mongoose';
 import { Vendor } from './schemas/vendor.schema';
 import { CreateVendorDto } from './dto/create-vendor.dto';
 import { UpdateVendorDto } from './dto/update-vendor.dto';
+import { QueryVendorDto } from './dto/query-vendor.dto';
 
 @Injectable()
 export class VendorService {
@@ -21,8 +26,40 @@ export class VendorService {
     return vendor.save();
   }
 
-  async findAll(): Promise<Vendor[]> {
-    return this.vendorModel.find().exec();
+  async findAll(
+    query: QueryVendorDto,
+  ): Promise<{ data: Vendor[]; total: number; page: number; limit: number }> {
+    const { q, customerId } = query;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    const filter: FilterQuery<Vendor> = {};
+
+    if (customerId) {
+      filter.customerId = customerId;
+    }
+
+    if (q) {
+      const regex = new RegExp(q, 'i');
+      filter.$or = [
+        { vendorName: regex },
+        { location: regex },
+        { vendorAccountTitle: regex },
+        { preferredBankName: regex },
+        { vendorIban: regex },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.vendorModel
+        .find(filter)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.vendorModel.countDocuments(filter).exec(),
+    ]);
+
+    return { data, total, page, limit };
   }
 
   async findOne(id: string): Promise<Vendor> {
@@ -33,7 +70,10 @@ export class VendorService {
 
   async update(id: string, updateVendorDto: UpdateVendorDto): Promise<Vendor> {
     const updated = await this.vendorModel
-      .findByIdAndUpdate(id, updateVendorDto, { new: true, runValidators: true })
+      .findByIdAndUpdate(id, updateVendorDto, {
+        new: true,
+        runValidators: true,
+      })
       .exec();
     if (!updated) throw new NotFoundException('Vendor not found');
     return updated;

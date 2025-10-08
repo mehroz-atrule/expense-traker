@@ -17,106 +17,106 @@ export class OfficeService {
   constructor(@InjectModel(Office.name) private officeModel: Model<Office>) { }
 
   async create(createOfficeDto: CreateOfficeDto): Promise<Office> {
-  
-      this.logger.log('Creating new office', { name: createOfficeDto.name });
 
-      // Check if office with same name already exists
-      const existingOffice = await this.officeModel.findOne({
-        name: createOfficeDto.name,
-      });
+    this.logger.log('Creating new office', { name: createOfficeDto.name });
 
-      if (existingOffice) {
-        throw new ConflictException('Office with this name already exists');
-      }
+    // Check if office with same name already exists
+    const existingOffice = await this.officeModel.findOne({
+      name: createOfficeDto.name,
+    });
 
-      const office = new this.officeModel(createOfficeDto);
-      const savedOffice = await office.save();
+    if (existingOffice) {
+      throw new ConflictException('Office with this name already exists');
+    }
 
-      this.logger.log('Office created successfully', {
-        officeId: savedOffice._id,
-      });
-      return savedOffice;
-    
+    const office = new this.officeModel(createOfficeDto);
+    const savedOffice = await office.save();
+
+    this.logger.log('Office created successfully', {
+      officeId: savedOffice._id,
+    });
+    return savedOffice;
+
   }
 
   async findAll(): Promise<Office[]> {
-   
-      this.logger.log('Fetching all offices');
-      const offices = await this.officeModel.find({ isActive: true }).exec();
-      this.logger.log(`Found ${offices.length} offices`);
-      return offices;
+
+    this.logger.log('Fetching all offices');
+    const offices = await this.officeModel.find().exec();
+    this.logger.log(`Found ${offices.length} offices`);
+    return offices;
 
   }
 
   async findOne(id: string): Promise<Office> {
-   
-      this.logger.log('Fetching office', { officeId: id });
-      const office = await this.officeModel.findById(id).exec();
 
-      if (!office) {
-        throw new NotFoundException('Office not found');
-      }
+    this.logger.log('Fetching office', { officeId: id });
+    const office = await this.officeModel.findById(id).exec();
 
-      return office;
-   
+    if (!office) {
+      throw new NotFoundException('Office not found');
+    }
+
+    return office;
+
   }
 
   async update(id: string, updateOfficeDto: UpdateOfficeDto): Promise<Office> {
-  
-      this.logger.log('Updating office', { officeId: id });
 
-      // Check if office exists
-      const existingOffice = await this.officeModel.findById(id);
-      if (!existingOffice) {
-        throw new NotFoundException('Office not found');
+    this.logger.log('Updating office', { officeId: id });
+
+    // Check if office exists
+    const existingOffice = await this.officeModel.findById(id);
+    if (!existingOffice) {
+      throw new NotFoundException('Office not found');
+    }
+
+    // If updating name, check for conflicts
+    if (
+      updateOfficeDto.name &&
+      updateOfficeDto.name !== existingOffice.name
+    ) {
+      const nameConflict = await this.officeModel.findOne({
+        name: updateOfficeDto.name,
+        _id: { $ne: id },
+      });
+
+      if (nameConflict) {
+        throw new ConflictException('Office with this name already exists');
       }
+    }
 
-      // If updating name, check for conflicts
-      if (
-        updateOfficeDto.name &&
-        updateOfficeDto.name !== existingOffice.name
-      ) {
-        const nameConflict = await this.officeModel.findOne({
-          name: updateOfficeDto.name,
-          _id: { $ne: id },
-        });
+    const updatedOffice = await this.officeModel
+      .findByIdAndUpdate(id, updateOfficeDto, {
+        new: true,
+        runValidators: true,
+      })
+      .exec();
 
-        if (nameConflict) {
-          throw new ConflictException('Office with this name already exists');
-        }
-      }
+    if (!updatedOffice) {
+      throw new NotFoundException('Office not found');
+    }
 
-      const updatedOffice = await this.officeModel
-        .findByIdAndUpdate(id, updateOfficeDto, {
-          new: true,
-          runValidators: true,
-        })
-        .exec();
+    this.logger.log('Office updated successfully', { officeId: id });
+    return updatedOffice;
 
-      if (!updatedOffice) {
-        throw new NotFoundException('Office not found');
-      }
 
-      this.logger.log('Office updated successfully', { officeId: id });
-      return updatedOffice;
-  
-    
   }
 
   async remove(id: string): Promise<{ message: string }> {
-  
-      this.logger.log('Deleting office', { officeId: id });
 
-      const office = await this.officeModel.findById(id);
-      if (!office) {
-        throw new NotFoundException('Office not found');
-      }
+    this.logger.log('Deleting office', { officeId: id });
 
-      // Soft delete by setting isActive to false
-      await this.officeModel.findByIdAndDelete(id);
+    const office = await this.officeModel.findById(id);
+    if (!office) {
+      throw new NotFoundException('Office not found');
+    }
 
-      this.logger.log('Office deleted successfully', { officeId: id });
-      return { message: 'Office deleted successfully' };
-  
+    // Soft delete by setting isActive to false
+    await this.officeModel.findByIdAndDelete(id);
+
+    this.logger.log('Office deleted successfully', { officeId: id });
+    return { message: 'Office deleted successfully' };
+
   }
 }
