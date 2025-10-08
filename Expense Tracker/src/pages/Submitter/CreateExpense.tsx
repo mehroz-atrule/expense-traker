@@ -8,7 +8,7 @@ import Input from "../../components/Forms/Input";
 import SelectDropdown from "../../components/Forms/SelectionDropDown";
 import type { Expense } from "../../redux/submitter/submitterSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { createExpense, updateExpense, removeExpense } from "../../redux/submitter/submitterSlice";
+import { createExpense, UpdateExpense, removeExpense } from "../../redux/submitter/submitterSlice";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { listOffices } from "../../api/adminApi";
 
@@ -20,7 +20,7 @@ interface Option {
 interface FormData {
   title: string;
   date: string;
-  amount: string;
+  amount: number;
   category: string;
   office: string;
   vendor: string;
@@ -33,7 +33,7 @@ const CreateExpenseView: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     title: "",
     date: "",
-    amount: "",
+    amount: 0,
     category: "",
     office: "",
     vendor: "",
@@ -64,8 +64,9 @@ const CreateExpenseView: React.FC = () => {
 
   const paymentOptions: Option[] = [
     { value: "Cash", label: "Cash" },
-    { value: "Bank Transfer", label: "Bank Transfer" },
-    { value: "Credit Card", label: "Credit Card" },
+    { value: "BankTransfer", label: "Bank Transfer" },
+    { value: "Card", label: "Credit Card" },
+    { value: "Cheque", label: "Cheque" },
   ];
 
   useEffect(() => {
@@ -91,7 +92,7 @@ const CreateExpenseView: React.FC = () => {
           (viewExpense.createdAt
             ? new Date(viewExpense.createdAt).toISOString().slice(0, 10)
             : ""),
-        amount: viewExpense.amount ? String(viewExpense.amount) : "",
+        amount: viewExpense.amount ?? 0 ,
         category: viewExpense.category || "",
         office: viewExpense.officeId || "",
         vendor: viewExpense.vendor || "",
@@ -145,7 +146,7 @@ console.log("Submitting expense with payload:", payload);
     }
 
     if (viewExpense?._id) {
-      dispatch(updateExpense({ id: viewExpense._id, payload: dataToSend })).then(() =>
+      dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).then(() =>
         navigate(-1)
       );
     } else {
