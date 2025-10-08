@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { listExpenses, postExpense, putExpense, deleteExpense } from '../../api/submitterApi';
+import { listExpenses, postExpense, updateExpense, deleteExpense } from '../../api/submitterApi';
 
 export interface Expense {
   _id?: number;
@@ -44,8 +44,8 @@ export const createExpense = createAsyncThunk('submitter/createExpense', async (
   return res as Expense;
 });
 
-export const updateExpense = createAsyncThunk('submitter/updateExpense', async ({ id, payload }: { id: number | string; payload: Partial<Expense> }) => {
-  const res = await putExpense(id, payload);
+export const UpdateExpense = createAsyncThunk('submitter/updateExpense', async ({ id, payload }: { id: number | string; payload: Partial<Expense> }) => {
+  const res = await updateExpense(id, payload);
   return res as Expense;
 });
 
@@ -67,10 +67,10 @@ const submitterSlice = createSlice({
       .addCase(createExpense.fulfilled, (state, action: PayloadAction<Expense>) => { state.loading = false; state.expenses.unshift(action.payload); })
       .addCase(createExpense.rejected, (state, action) => { state.loading = false; state.error = action.error.message; });
     builder
-      .addCase(updateExpense.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(updateExpense.fulfilled, (state, action: PayloadAction<Expense>) => { state.loading = false; state.expenses = state.expenses.map(e => e.id === action.payload.id ? action.payload : e); })
-      .addCase(updateExpense.rejected, (state, action) => { state.loading = false; state.error = action.error.message; })
-      .addCase(removeExpense.fulfilled, (state, action: PayloadAction<number | string>) => { state.expenses = state.expenses.filter(e => e.id !== action.payload); });
+      .addCase(UpdateExpense.pending, (state) => { state.loading = true; state.error = null; })
+      .addCase(UpdateExpense.fulfilled, (state, action: PayloadAction<Expense>) => { state.loading = false; state.expenses = state.expenses.map(e => e._id === action.payload._id ? action.payload : e); })
+      .addCase(UpdateExpense.rejected, (state, action) => { state.loading = false; state.error = action.error.message; })
+      .addCase(removeExpense.fulfilled, (state, action: PayloadAction<number | string>) => { state.expenses = state.expenses.filter(e => e._id !== action.payload); });
   }
 });
 

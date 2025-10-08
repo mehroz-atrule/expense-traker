@@ -8,7 +8,7 @@ import Input from "../../components/Forms/Input";
 import SelectDropdown from "../../components/Forms/SelectionDropDown";
 import type { Expense } from "../../redux/submitter/submitterSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { createExpense, updateExpense, removeExpense } from "../../redux/submitter/submitterSlice";
+import { createExpense, UpdateExpense, removeExpense } from "../../redux/submitter/submitterSlice";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { listOffices } from "../../api/adminApi";
 
@@ -145,7 +145,7 @@ console.log("Submitting expense with payload:", payload);
     }
 
     if (viewExpense?._id) {
-      dispatch(updateExpense({ id: viewExpense._id, payload: dataToSend })).then(() =>
+      dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).then(() =>
         navigate(-1)
       );
     } else {
