@@ -48,7 +48,7 @@ const MyExpenses: React.FC = () => {
     const matchesStatus = activeFilters.status === 'all' || e.status === activeFilters.status;
     const matchesCategory = activeFilters.category === 'all' || e.category === activeFilters.category;
 
-    const ed = e.expenseDate || e.createdAt as string || '';
+    const ed = e.date || e.createdAt as string || '';
     const matchesDate = (!activeFilters.dateFrom || !ed || new Date(ed) >= new Date(activeFilters.dateFrom)) && (!activeFilters.dateTo || !ed || new Date(ed) <= new Date(activeFilters.dateTo));
 
     return matchesSearch && matchesStatus && matchesCategory && matchesDate;
@@ -130,7 +130,7 @@ const MyExpenses: React.FC = () => {
           </div>
         ) : (
           filtered.map(exp => (
-            <div key={exp.id} className="bg-white rounded-xl py-2 px-4 shadow-sm border border-gray-200 cursor-pointer  transition-all duration-200 " onClick={() => {
+            <div key={exp._id} className="bg-white rounded-xl py-2 px-4 shadow-sm border border-gray-200 cursor-pointer  transition-all duration-200 " onClick={() => {
               const firstSeg = (location.pathname.split('/')[1] || 'submitter');
               const base = firstSeg || 'submitter';
               navigate(`/${base}/createexpense`, { state: { expense: exp } });
@@ -143,7 +143,7 @@ const MyExpenses: React.FC = () => {
                       <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{exp.category}</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span>{formatDate(exp.expenseDate || exp.createdAt)}</span>
+                      <span>{formatDate(exp.date || exp.createdAt)}</span>
                     </div>
                   </div>
                 </div>

@@ -94,13 +94,13 @@ const CreateExpenseView: React.FC = () => {
             : ""),
         amount: viewExpense.amount ?? 0 ,
         category: viewExpense.category || "",
-        office: viewExpense.officeId || "",
+        office: viewExpense.office || "",
         vendor: viewExpense.vendor || "",
-        payment: viewExpense.paymentMethod || "",
+        payment: viewExpense.payment || "",
         description: viewExpense.description || "",
         image: null, // file upload is not preloaded
       });
-      setPreview(viewExpense.receiptUrl || null); // ✅ use imageUrl if available
+      setPreview(viewExpense.image || null); // ✅ use imageUrl if available
     }
   }, [viewExpense]);
 
@@ -125,7 +125,7 @@ const CreateExpenseView: React.FC = () => {
       _id: viewExpense?._id,
       title: formData.title,
       vendor: formData.vendor,
-      amount: Number(formData.amount || 0),
+      amount: (formData.amount).toString() ,
       category: formData.category,
       office: formData.office,
       payment: formData.payment,
@@ -146,11 +146,11 @@ console.log("Submitting expense with payload:", payload);
     }
 
     if (viewExpense?._id) {
-      dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).then(() =>
-        navigate(-1)
-      );
+      dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend }))
+      
+   
     } else {
-      dispatch(createExpense(dataToSend)).then(() => navigate(-1));
+      dispatch(createExpense(dataToSend));
     }
   };
 

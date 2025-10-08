@@ -2,20 +2,17 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { listExpenses, postExpense, updateExpense, deleteExpense } from '../../api/submitterApi';
 
 export interface Expense {
-  _id?: number;
+  _id?: string; // 👈 Use string for MongoDB-like IDs (avoid number)
   title: string;
   vendor: string;
   amount: number;
   category: string;
-  officeId: string;
-  paymentMethod: string;
+  office: string;
+  payment: string;
   description?: string;
-  receiptUrl?: string;
-  linkedBudgetId?: string;
-  claimReimbursement?: boolean;
-  expenseDate?: string;
+  image?: string;
+  date?: string;
   status?: string;
-  submitterId?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -32,46 +29,98 @@ const initialState: SubmitterState = {
   error: null,
 };
 
-// const API_BASE =  'http://localhost:4000'; // Removed as we are using API helpers
+export const fetchExpenses = createAsyncThunk(
+  'submitter/fetchExpenses',
+  async (params: Record<string, unknown> = {}) => {
+    const res = await listExpenses(params);
+    return res.data as Expense[];
+  }
+);
 
-export const fetchExpenses = createAsyncThunk('submitter/fetchExpenses', async (params: Record<string, unknown> = {}) => {
-  const res = await listExpenses(params);
-  return res.data as any[];
-});
+export const createExpense = createAsyncThunk(
+  'submitter/createExpense',
+  async (payload: Expense) => {
+    const res = await postExpense(payload);
+    return res as Expense;
+  }
+);
 
-export const createExpense = createAsyncThunk('submitter/createExpense', async (payload: Expense) => {
-  const res = await postExpense(payload);
-  return res as Expense;
-});
+export const UpdateExpense = createAsyncThunk(
+  'submitter/updateExpense',
+  async ({ id, payload }: { id: string; payload: Partial<Expense> }) => {
+    const res = await updateExpense(id, payload);
+    return res as Expense;
+  }
+);
 
-export const UpdateExpense = createAsyncThunk('submitter/updateExpense', async ({ id, payload }: { id: number | string; payload: Partial<Expense> }) => {
-  const res = await updateExpense(id, payload);
-  return res as Expense;
-});
-
-export const removeExpense = createAsyncThunk('submitter/removeExpense', async (id: number | string) => {
-  await deleteExpense(id);
-  return id;
-});
+export const removeExpense = createAsyncThunk(
+  'submitter/removeExpense',
+  async (id: string) => {
+    await deleteExpense(id);
+    return id;
+  }
+);
 
 const submitterSlice = createSlice({
   name: 'submitter',
   initialState,
-  reducers: {},
+  reducers: {
+    // 🧹 Add a clear action to reset expenses (optional but helpful)
+    clearExpenses: (state) => {
+      state.expenses = [];
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchExpenses.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(fetchExpenses.fulfilled, (state, action: PayloadAction<Expense[]>) => { state.loading = false; state.expenses = action.payload; })
-      .addCase(fetchExpenses.rejected, (state, action) => { state.loading = false; state.error = action.error.message; })
-      .addCase(createExpense.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(createExpense.fulfilled, (state, action: PayloadAction<Expense>) => { state.loading = false; state.expenses.unshift(action.payload); })
-      .addCase(createExpense.rejected, (state, action) => { state.loading = false; state.error = action.error.message; });
-    builder
-      .addCase(UpdateExpense.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(UpdateExpense.fulfilled, (state, action: PayloadAction<Expense>) => { state.loading = false; state.expenses = state.expenses.map(e => e.id === action.payload.id ? action.payload : e); })
-      .addCase(UpdateExpense.rejected, (state, action) => { state.loading = false; state.error = action.error.message; })
-      .addCase(removeExpense.fulfilled, (state, action: PayloadAction<number | string>) => { state.expenses = state.expenses.filter(e => e.id !== action.payload); });
-  }
+      // ✅ 1️⃣ Replace (not append) when fetching
+      .addCase(fetchExpenses.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchExpenses.fulfilled, (state, action: PayloadAction<Expense[]>) => {
+        state.loading = false;
+        state.expenses = action.payload; // 👈 Replace the list (no duplicates)
+      })
+      .addCase(fetchExpenses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // ✅ 2️⃣ Avoid adding duplicate items
+      .addCase(createExpense.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
+        state.loading = false;
+        const exists = state.expenses.some(e => e._id === action.payload._id);
+        if (!exists) state.expenses.unshift(action.payload); // 👈 Add only if not exists
+      })
+      .addCase(createExpense.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // ✅ 3️⃣ Fix update & delete to use `_id` instead of `id`
+      .addCase(UpdateExpense.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(UpdateExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
+        state.loading = false;
+        state.expenses = state.expenses.map(e =>
+          e._id === action.payload._id ? action.payload : e
+        );
+      })
+      .addCase(UpdateExpense.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(removeExpense.fulfilled, (state, action: PayloadAction<string>) => {
+        state.expenses = state.expenses.filter(e => e._id !== action.payload);
+      });
+  },
 });
 
+export const { clearExpenses } = submitterSlice.actions; // 👈 Export the clear action
 export default submitterSlice.reducer;
