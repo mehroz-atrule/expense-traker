@@ -4,5 +4,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import { manifestForPlugIn } from "./manifest";
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+        host: true, // This will expose the server to the network
+        
+      },
   plugins: [react(), VitePWA(manifestForPlugIn)],
 })
