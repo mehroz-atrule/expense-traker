@@ -26,50 +26,44 @@ export class AuthService {
   ) { }
 
   async signUp(signUpDto: SignUpDto): Promise<{ message: string; user: Partial<User> }> {
-    try {
-      this.logger.log('Attempting user signup', { username: signUpDto });
 
-      // Check if user already exists
-      const existingUser = await this.userModel.findOne({
-        $or: [
-          { username: signUpDto.username }
-        ]
-      });
+    this.logger.log('Attempting user signup', { username: signUpDto });
 
-      if (existingUser) {
-        if (existingUser.username === signUpDto.username) {
-          throw new ConflictException('Username already exists');
-        }
+    // Check if user already exists
+    const existingUser = await this.userModel.findOne({
+      $or: [
+        { username: signUpDto.username }
+      ]
+    });
+
+    if (existingUser) {
+      if (existingUser.username === signUpDto.username) {
+        throw new ConflictException('Username already exists');
       }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(signUpDto.password, 12);
-
-      // Create user
-      const newUser = new this.userModel({
-        ...signUpDto,
-        password: hashedPassword,
-
-      });
-
-      const savedUser = await newUser.save();
-
-      // Remove password from response
-      const { password, ...userWithoutSensitiveInfo } = savedUser.toObject();
-
-      this.logger.log('User successfully registered', { userId: savedUser._id, username: savedUser.username, role: savedUser.role });
-
-      return {
-        message: 'User successfully registered',
-        user: userWithoutSensitiveInfo
-      };
-    } catch (error) {
-      this.logger.error('Error during user signup', error, { username: signUpDto.username });
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Could not create user');
     }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(signUpDto.password, 12);
+
+    // Create user
+    const newUser = new this.userModel({
+      ...signUpDto,
+      password: hashedPassword,
+
+    });
+
+    const savedUser = await newUser.save();
+
+    // Remove password from response
+    const { password, ...userWithoutSensitiveInfo } = savedUser.toObject();
+
+    this.logger.log('User successfully registered', { userId: savedUser._id, username: savedUser.username, role: savedUser.role });
+
+    return {
+      message: 'User successfully registered',
+      user: userWithoutSensitiveInfo
+    };
+
   }
 
   async login(loginDto: LoginDto): Promise<{
@@ -77,187 +71,163 @@ export class AuthService {
     refreshToken: string;
     user: Partial<User>;
   }> {
-    try {
-      this.logger.log('Attempting user login', { username: loginDto.username });
 
-      // Find user
-      const user = await this.userModel.findOne({ username: loginDto.username });
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
+    this.logger.log('Attempting user login', { username: loginDto.username });
 
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-
-      // Generate tokens
-      const payload = {
-        username: user.username,
-        sub: user._id,
-        role: user.role
-      };
-      console.log('JWT Payload for token generation:', payload);
-
-      const accessToken = this.jwtService.sign(payload,
-        {
-          secret: this.config.get('JWT_SECRET'),
-          expiresIn: '1d'
-        });
-
-      const refreshToken = this.jwtService.sign(payload, {
-        secret: this.config.get('JWT_SECRET'),
-        expiresIn: '7d'
-      });
-
-      // Update user with refresh token and last login
-      await this.userModel.findByIdAndUpdate(user._id, {
-        refreshToken,
-        lastLogin: new Date(),
-      });
-
-      // Remove sensitive information
-      const { password, ...userWithoutPassword } = user.toObject();
-
-      this.logger.log('User successfully logged in', { userId: user._id, username: user.username });
-
-      return {
-        accessToken,
-        refreshToken,
-        user: userWithoutPassword,
-      };
-    } catch (error) {
-      this.logger.error('Error during user login', error, { username: loginDto.username });
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Login failed');
+    // Find user
+    const user = await this.userModel.findOne({ username: loginDto.username });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate tokens
+    const payload = {
+      username: user.username,
+      sub: user._id,
+      role: user.role
+    };
+    console.log('JWT Payload for token generation:', payload);
+
+    const accessToken = this.jwtService.sign(payload,
+      {
+        secret: this.config.get('JWT_SECRET'),
+        expiresIn: '1d'
+      });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.config.get('JWT_SECRET'),
+      expiresIn: '7d'
+    });
+
+    // Update user with refresh token and last login
+    await this.userModel.findByIdAndUpdate(user._id, {
+      refreshToken,
+      lastLogin: new Date(),
+    });
+
+    // Remove sensitive information
+    const { password, ...userWithoutPassword } = user.toObject();
+
+    this.logger.log('User successfully logged in', { userId: user._id, username: user.username });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: userWithoutPassword,
+    };
+
   }
 
   async updateUser(userId: string, updateUserDto: UpdateUserDto): Promise<{ message: string; user: Partial<User> }> {
-    try {
-      this.logger.log('Attempting to update user', { userId });
 
-      // If password is being updated, hash it
-      if (updateUserDto.password) {
-        updateUserDto.password = await bcrypt.hash(updateUserDto.password, 12);
-      }
+    this.logger.log('Attempting to update user', { userId });
 
-      // Check for unique constraints if email or username is being updated
-      if (updateUserDto.username) {
-        const existingUser = await this.userModel.findOne({
-          $and: [
-            { _id: { $ne: userId } },
-            {
-              $or: [
-                { username: updateUserDto.username }
-              ]
-            }
-          ]
-        });
+    // If password is being updated, hash it
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 12);
+    }
 
-        if (existingUser) {
-          if (existingUser.username === updateUserDto.username) {
-            throw new ConflictException('Username already exists');
+    // Check for unique constraints if email or username is being updated
+    if (updateUserDto.username) {
+      const existingUser = await this.userModel.findOne({
+        $and: [
+          { _id: { $ne: userId } },
+          {
+            $or: [
+              { username: updateUserDto.username }
+            ]
           }
+        ]
+      });
+
+      if (existingUser) {
+        if (existingUser.username === updateUserDto.username) {
+          throw new ConflictException('Username already exists');
         }
       }
-
-      const updatedUser = await this.userModel.findByIdAndUpdate(
-        userId,
-        { ...updateUserDto },
-        { new: true, runValidators: true }
-      );
-
-      if (!updatedUser) {
-        throw new NotFoundException('User not found');
-      }
-
-      // Remove sensitive information
-      const { password, ...userWithoutSensitiveInfo } = updatedUser.toObject();
-
-      this.logger.log('User successfully updated', { userId });
-
-      return {
-        message: 'User successfully updated',
-        user: userWithoutSensitiveInfo
-      };
-    } catch (error) {
-      this.logger.error('Error updating user', error, { userId });
-      if (error instanceof ConflictException || error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Could not update user');
     }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { ...updateUserDto },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Remove sensitive information
+    const { password, ...userWithoutSensitiveInfo } = updatedUser.toObject();
+
+    this.logger.log('User successfully updated', { userId });
+
+    return {
+      message: 'User successfully updated',
+      user: userWithoutSensitiveInfo
+    };
+
   }
 
   async deleteUser(userId: string): Promise<{ message: string }> {
-    try {
-      this.logger.log('Attempting to delete user', { userId });
 
-      const deletedUser = await this.userModel.findByIdAndDelete(userId);
+    this.logger.log('Attempting to delete user', { userId });
 
-      if (!deletedUser) {
-        throw new NotFoundException('User not found');
-      }
+    const deletedUser = await this.userModel.findByIdAndDelete(userId);
 
-      this.logger.log('User successfully deleted', { userId });
-
-      return {
-        message: 'User successfully deleted'
-      };
-    } catch (error) {
-      this.logger.error('Error deleting user', error, { userId });
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Could not delete user');
+    if (!deletedUser) {
+      throw new NotFoundException('User not found');
     }
+
+    this.logger.log('User successfully deleted', { userId });
+
+    return {
+      message: 'User successfully deleted'
+    };
+
   }
 
   async refreshTokens(userId: string, refreshToken: string): Promise<{ accessToken: string }> {
-    try {
-      const user = await this.userModel.findOne({ _id: userId, refreshToken });
 
-      if (!user) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
+    const user = await this.userModel.findOne({ _id: userId, refreshToken });
 
-      // Verify refresh token
-      try {
-        this.jwtService.verify(refreshToken);
-      } catch {
-        throw new UnauthorizedException('Refresh token expired');
-      }
-
-      const payload = {
-        username: user.username,
-        sub: user._id,
-      };
-
-      const accessToken = this.jwtService.sign(payload, {
-        expiresIn: '15m'
-      });
-
-      return { accessToken };
-    } catch (error) {
-      this.logger.error('Error refreshing tokens', error, { userId });
-      throw error;
+    if (!user) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
+
+    // Verify refresh token
+    try {
+      this.jwtService.verify(refreshToken);
+    } catch {
+      throw new UnauthorizedException('Refresh token expired');
+    }
+
+    const payload = {
+      username: user.username,
+      sub: user._id,
+    };
+
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: '15m'
+    });
+
+    return { accessToken };
+
   }
 
   async validateUserById(userId: string): Promise<Partial<User> | null> {
-    try {
-      const user = await this.userModel.findById(userId);
-      if (!user) return null;
 
-      const { password, ...userWithoutSensitiveInfo } = user.toObject();
-      return userWithoutSensitiveInfo;
-    } catch (error) {
-      this.logger.error('Error validating user by ID', error, { userId });
-      return null;
-    }
+    const user = await this.userModel.findById(userId);
+    if (!user) return null;
+
+    const { password, ...userWithoutSensitiveInfo } = user.toObject();
+    return userWithoutSensitiveInfo;
+
   }
 }

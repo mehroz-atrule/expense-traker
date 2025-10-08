@@ -1,0 +1,25 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+@Schema({ timestamps: true })
+export class Vendor extends Document {
+  @Prop({ required: true, trim: true })
+  vendorName: string;
+
+  @Prop({ required: true, trim: true })
+  location: string;
+
+  @Prop({ required: true, trim: true })
+  customerId: string;
+
+  @Prop({ required: true, trim: true })
+  preferredBankName: string;
+
+  @Prop({ required: true, trim: true })
+  vendorAccountTitle: string;
+
+  @Prop({ required: true, trim: true, match: /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/ })
+  vendorIban: string;
+}
+
+export const VendorSchema = SchemaFactory.createForClass(Vendor);

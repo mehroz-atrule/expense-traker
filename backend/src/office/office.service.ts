@@ -17,7 +17,7 @@ export class OfficeService {
   constructor(@InjectModel(Office.name) private officeModel: Model<Office>) { }
 
   async create(createOfficeDto: CreateOfficeDto): Promise<Office> {
-    try {
+  
       this.logger.log('Creating new office', { name: createOfficeDto.name });
 
       // Check if office with same name already exists
@@ -36,29 +36,20 @@ export class OfficeService {
         officeId: savedOffice._id,
       });
       return savedOffice;
-    } catch (error) {
-      this.logger.error('Error creating office', error);
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-      throw new Error('Failed to create office');
-    }
+    
   }
 
   async findAll(): Promise<Office[]> {
-    try {
+   
       this.logger.log('Fetching all offices');
       const offices = await this.officeModel.find({ isActive: true }).exec();
       this.logger.log(`Found ${offices.length} offices`);
       return offices;
-    } catch (error) {
-      this.logger.error('Error fetching offices', error);
-      throw new Error('Failed to fetch offices');
-    }
+
   }
 
   async findOne(id: string): Promise<Office> {
-    try {
+   
       this.logger.log('Fetching office', { officeId: id });
       const office = await this.officeModel.findById(id).exec();
 
@@ -67,17 +58,11 @@ export class OfficeService {
       }
 
       return office;
-    } catch (error) {
-      this.logger.error('Error fetching office', error, { officeId: id });
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new Error('Failed to fetch office');
-    }
+   
   }
 
   async update(id: string, updateOfficeDto: UpdateOfficeDto): Promise<Office> {
-    try {
+  
       this.logger.log('Updating office', { officeId: id });
 
       // Check if office exists
@@ -114,20 +99,12 @@ export class OfficeService {
 
       this.logger.log('Office updated successfully', { officeId: id });
       return updatedOffice;
-    } catch (error) {
-      this.logger.error('Error updating office', error, { officeId: id });
-      if (
-        error instanceof NotFoundException ||
-        error instanceof ConflictException
-      ) {
-        throw error;
-      }
-      throw new Error('Failed to update office');
-    }
+  
+    
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    try {
+  
       this.logger.log('Deleting office', { officeId: id });
 
       const office = await this.officeModel.findById(id);
@@ -140,12 +117,6 @@ export class OfficeService {
 
       this.logger.log('Office deleted successfully', { officeId: id });
       return { message: 'Office deleted successfully' };
-    } catch (error) {
-      this.logger.error('Error deleting office', error, { officeId: id });
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new Error('Failed to delete office');
-    }
+  
   }
 }
