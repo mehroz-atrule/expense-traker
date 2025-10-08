@@ -19,6 +19,8 @@ import { Role } from 'src/common/types/roles.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { Query } from '@nestjs/common';
+import { QueryExpenseDto } from './dto/query-expense.dto';
 
 @Controller('expense')
 // @UseGuards(RolesGuard)
@@ -37,10 +39,10 @@ export class ExpenseController {
 
   @Get()
   // @Roles(Role.Admin)
-  async findAll() {
+  async findAll(@Query() query: QueryExpenseDto) {
     try {
       console.log('Fetching expenses...');
-      return this.expenseService.findAll();
+      return this.expenseService.findAll(query);
     } catch (error) {
       console.error('Error fetching expenses:', error);
       throw new InternalServerErrorException('Could not retrieve expenses');
@@ -54,11 +56,11 @@ export class ExpenseController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateExpenseDto: UpdateExpenseDto) {
-    return this.expenseService.update(+id, updateExpenseDto);
+    return this.expenseService.update(id, updateExpenseDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.expenseService.remove(+id);
+    return this.expenseService.remove(id);
   }
 }
