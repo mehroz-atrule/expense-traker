@@ -1,24 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, InternalServerErrorException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  InternalServerErrorException,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/types/roles.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('expense')
-@UseGuards(RolesGuard)
+// @UseGuards(RolesGuard)
 export class ExpenseController {
   constructor(private readonly expenseService: ExpenseService) { }
 
   @Post()
-  @Roles(Role.Submitter, Role.Admin)
-  create(@Body() createExpenseDto: CreateExpenseDto) {
-    return this.expenseService.create(createExpenseDto);
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  // @Roles(Role.Submitter, Role.Admin)
+  create(
+    @Body() createExpenseDto: CreateExpenseDto,
+    @UploadedFile() image?: any,
+  ) {
+    return this.expenseService.create(createExpenseDto, image);
   }
 
   @Get()
-  @Roles(Role.Admin)
+  // @Roles(Role.Admin)
   async findAll() {
     try {
       console.log('Fetching expenses...');
