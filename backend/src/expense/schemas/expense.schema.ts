@@ -33,10 +33,10 @@ export class Expense extends Document {
   linkedBudgetId?: Types.ObjectId;
 
   @Prop({ required: true })
-  expenseDate: Date;
+  date: Date;
 
   @Prop({ default: 'Pending', enum: ['Pending', 'Approved', 'Rejected'] })
-  approvalStatus: 'Pending' | 'Approved' | 'Rejected';
+  status: 'Pending' | 'Approved' | 'Rejected';
 
 }
 

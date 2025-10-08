@@ -35,11 +35,11 @@ export class ExpenseService {
         vendor: createExpenseDto.vendor,
         amount: amountNumber,
         category: createExpenseDto.category,
-        officeId: new Types.ObjectId(createExpenseDto.office),
-        paymentMethod: createExpenseDto.payment,
+        office: new Types.ObjectId(createExpenseDto.office),
+        payment: createExpenseDto.payment,
         description: createExpenseDto.description,
-        receiptUrl,
-        expenseDate: new Date(createExpenseDto.date),
+        image,
+        date: new Date(createExpenseDto.date),
         status: Status.New
       });
 
