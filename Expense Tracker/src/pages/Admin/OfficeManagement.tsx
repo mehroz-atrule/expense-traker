@@ -48,7 +48,7 @@ const OfficeManagement: React.FC = () => {
       dispatch(removeOffice(pendingDeleteId))
         .unwrap()
         .then(() => showToast({ type: 'success', message: 'Office deleted' }))
-        .catch((e: any) => showToast({ type: 'error', message: formatApiError(e) }));
+        .catch((e: Error) => showToast({ type: 'error', message: formatApiError(e) }));
     }
     cancelDelete();
   };
