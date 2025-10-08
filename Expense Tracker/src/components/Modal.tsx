@@ -13,22 +13,24 @@ const Modal: React.FC<ModalProps> = ({ open, title, onClose, children, footer, w
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={`relative z-10 w-full ${widthClassName} rounded-lg bg-white p-4 shadow-xl`}>
-        {title ? (
-          <div className="mb-3">
-            <h3 className="text-base font-semibold">{title}</h3>
+      <div className={`relative z-10 w-full ${widthClassName} max-h-[90vh] rounded-lg bg-white shadow-xl flex flex-col`}>
+        {title && (
+          <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           </div>
-        ) : null}
-        <div className="mb-3">
+        )}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           {children}
         </div>
-        {footer ? (
-          <div className="flex justify-end gap-2">
-            {footer}
+        {footer && (
+          <div className="flex-shrink-0 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="flex justify-end gap-3">
+              {footer}
+            </div>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );
