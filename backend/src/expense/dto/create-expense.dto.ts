@@ -24,6 +24,7 @@ export enum Status {
   PreparingForPayment = 'PreparingForPayment',
   ReadyForPayment = 'ReadyForPayment',
   Paid = 'Paid',
+  Rejected = 'Rejected',
 
 }
 
@@ -35,8 +36,7 @@ export class CreateExpenseDto {
 
   @ApiProperty({ enum: Status })
   @IsEnum(Status)
-  @IsNotEmpty()
-  status: Status;
+  status: Status = Status.New;
 
   // image handled as file via multipart, not validated here
 

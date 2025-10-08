@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Status } from '../dto/create-expense.dto';
 
 @Schema({ timestamps: true })
 export class Expense extends Document {
@@ -33,10 +34,10 @@ export class Expense extends Document {
   linkedBudgetId?: Types.ObjectId;
 
   @Prop({ required: true })
-  expenseDate: Date;
+  date: Date;
 
-  @Prop({ default: 'Pending', enum: ['Pending', 'Approved', 'Rejected'] })
-  approvalStatus: 'Pending' | 'Approved' | 'Rejected';
+  @Prop({ default: 'New', enum: Status })
+  status: Status;
 
 }
 
