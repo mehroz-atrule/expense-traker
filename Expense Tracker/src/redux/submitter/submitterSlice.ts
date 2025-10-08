@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { listExpenses, postExpense, putExpense, deleteExpense } from '../../api/submitterApi';
 
 export interface Expense {
-  id?: number;
+  _id?: number;
   title: string;
   vendor: string;
   amount: number;

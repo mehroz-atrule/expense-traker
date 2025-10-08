@@ -3,12 +3,15 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import store from './app/store'
 import App from './App'
+import { ToastProvider } from './components/Toast'
 import './main.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </Provider>
   </StrictMode>,
 )
