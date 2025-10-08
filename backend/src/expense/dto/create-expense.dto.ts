@@ -36,7 +36,7 @@ export class CreateExpenseDto {
 
   @ApiProperty({ enum: Status })
   @IsEnum(Status)
-  status: Status;
+  status: Status = Status.New;
 
   // image handled as file via multipart, not validated here
 
