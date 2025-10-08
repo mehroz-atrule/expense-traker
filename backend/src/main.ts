@@ -18,6 +18,15 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
 
+
+  const clientUrl = configService.get<string>('CLIENT_URL') || 'http://localhost:5173';
+  app.enableCors({
+    origin: [clientUrl, 'http://localhost:5173', 'http://localhost:3000'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+    exposedHeaders: 'Content-Disposition',
+    credentials: true,
+  });
   // --- Global Prefix ---
   app.setGlobalPrefix('api');
 
@@ -34,10 +43,10 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter(logger));
 
   // --- Global Guards ---
-  app.useGlobalGuards(
-    new JwtAuthGuard(jwtService, configService),
-    new RolesGuard(reflector),
-  );
+  // app.useGlobalGuards(
+  //   new JwtAuthGuard(jwtService, configService),
+  //   new RolesGuard(reflector),
+  // );
 
   // --- Swagger Setup ---
   const swaggerConfig = new DocumentBuilder()

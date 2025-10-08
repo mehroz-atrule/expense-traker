@@ -27,12 +27,12 @@ import {
 @ApiTags('Offices')
 @ApiBearerAuth()
 @Controller('office')
-@UseGuards(JwtAuthGuard, RolesGuard)
+// @UseGuards(JwtAuthGuard, RolesGuard)
 export class OfficeController {
   constructor(private readonly officeService: OfficeService) { }
 
   @Post()
-  @Roles(Role.Admin)
+  // @Roles(Role.Admin)
   @ApiOperation({ summary: 'Create a new office' })
   @ApiResponse({ status: 201, description: 'Office created successfully' })
   @ApiResponse({
@@ -45,7 +45,7 @@ export class OfficeController {
   }
 
   @Get()
-  @Roles(Role.Admin)
+  // @Roles(Role.Admin)
   @ApiOperation({ summary: 'Get all offices' })
   @ApiResponse({ status: 200, description: 'List of all offices' })
   findAll() {
@@ -53,7 +53,7 @@ export class OfficeController {
   }
 
   @Get(':id')
-  @Roles(Role.Admin)
+  // @Roles(Role.Admin)
   @ApiOperation({ summary: 'Get office by ID' })
   @ApiResponse({ status: 200, description: 'Office details' })
   @ApiResponse({ status: 404, description: 'Office not found' })
@@ -62,7 +62,7 @@ export class OfficeController {
   }
 
   @Patch(':id')
-  @Roles(Role.Admin)
+  // @Roles(Role.Admin)
   @ApiOperation({ summary: 'Update office' })
   @ApiResponse({ status: 200, description: 'Office updated successfully' })
   @ApiResponse({ status: 404, description: 'Office not found' })
@@ -75,7 +75,7 @@ export class OfficeController {
   }
 
   @Delete(':id')
-  @Roles(Role.Admin)
+  // @Roles(Role.Admin)
   @ApiOperation({ summary: 'Delete office' })
   @ApiResponse({ status: 200, description: 'Office deleted successfully' })
   @ApiResponse({ status: 404, description: 'Office not found' })
