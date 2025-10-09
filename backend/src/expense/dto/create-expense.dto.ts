@@ -17,11 +17,9 @@ export enum PaymentMethod {
 // Ready for payment
 // Paid
 export enum Status {
-  New = 'New',
   WaitingForApproval = 'WaitingForApproval',
   Approved = 'Approved',
   InReviewByFinance = 'InReviewByFinance',
-  PreparingForPayment = 'PreparingForPayment',
   ReadyForPayment = 'ReadyForPayment',
   Paid = 'Paid',
   Rejected = 'Rejected',
@@ -36,7 +34,7 @@ export class CreateExpenseDto {
 
   @ApiProperty({ enum: Status })
   @IsEnum(Status)
-  status: Status = Status.New;
+  status: Status = Status.WaitingForApproval;
 
   // image handled as file via multipart, not validated here
 

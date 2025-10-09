@@ -41,7 +41,9 @@ export class ExpenseService {
         paymentDate: createExpenseDto.paymentDate
           ? new Date(createExpenseDto.paymentDate)
           : null,
-        status: Status.New
+      
+        status: Status.WaitingForApproval
+
       });
 
       return await expense.save();

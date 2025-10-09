@@ -41,7 +41,7 @@ export class Expense extends Document {
   @Prop({ default: null, type: Date })
   paymentDate: Date;
 
-  @Prop({ default: 'New', enum: Status })
+  @Prop({ default: Status.WaitingForApproval, enum: Status })
   status: Status;
 
 }
