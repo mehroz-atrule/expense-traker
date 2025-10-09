@@ -40,7 +40,7 @@ export class ExpenseService {
         billDate: new Date(createExpenseDto.billDate),
         dueDate: new Date(createExpenseDto.dueDate),
         paymentDate: new Date(createExpenseDto.paymentDate),
-        status: Status.New
+        status: Status.WaitingForApproval
       });
 
       return await expense.save();
