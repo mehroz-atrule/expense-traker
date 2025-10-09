@@ -20,6 +20,9 @@ export class Vendor extends Document {
 
   @Prop({ required: true, trim: true, match: /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/ })
   vendorIban: string;
+
+  @Prop()
+  Tax: number;
 }
 
 export const VendorSchema = SchemaFactory.createForClass(Vendor);

@@ -44,6 +44,15 @@ export class Expense extends Document {
   @Prop({ default: Status.WaitingForApproval, enum: Status })
   status: Status;
 
+  @Prop({ default: 0, type: Number })
+  Tax: number;
+
+  @Prop({ default: 0, type: Number })
+  OIT: number;
+
+  @Prop({ default: 0, type: Number })
+  amountAfterTax: number;
+
 }
 
 export const ExpenseSchema = SchemaFactory.createForClass(Expense);

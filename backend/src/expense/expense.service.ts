@@ -41,7 +41,9 @@ export class ExpenseService {
         paymentDate: createExpenseDto.paymentDate
           ? new Date(createExpenseDto.paymentDate)
           : null,
-      
+        Tax: createExpenseDto.Tax,
+        OIT: createExpenseDto.OIT,
+        amountAfterTax: amountNumber,
         status: Status.WaitingForApproval
 
       });

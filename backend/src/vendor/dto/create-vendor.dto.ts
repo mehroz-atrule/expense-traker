@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, Matches } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, Matches, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateVendorDto {
   @ApiProperty({ example: 'Acme Supplies' })
@@ -32,4 +32,10 @@ export class CreateVendorDto {
   @IsNotEmpty()
   @Matches(/^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/)
   vendorIban: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  Tax?: number;
+
 }

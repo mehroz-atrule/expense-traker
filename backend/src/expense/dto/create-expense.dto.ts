@@ -79,4 +79,19 @@ export class CreateExpenseDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  Tax?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  OIT?: number;
+
+  @ApiProperty()
+  @IsString()
+  amountAfterTax: number;
+
 }
