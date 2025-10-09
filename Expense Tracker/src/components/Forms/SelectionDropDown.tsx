@@ -1,10 +1,6 @@
 import React from "react";
 import Select from "react-select";
-
-interface Option {
-  value: string;
-  label: string;
-}
+import type { Option } from "../../types";
 
 interface CustomSelectProps {
   label?: string;

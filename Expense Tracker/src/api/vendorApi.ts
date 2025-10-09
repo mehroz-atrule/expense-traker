@@ -2,6 +2,7 @@ import apiClient from '../services/apiClient';
 import type { Vendor, CreateVendorPayload, UpdateVendorPayload } from '../types/vendor';
 
 interface VendorListResponse {
+    map(arg0: (v: any) => { value: any; label: any; }): unknown;
     data: Vendor[];
     total: number;
     page: number;

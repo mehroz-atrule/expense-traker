@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Expense } from '../redux/submitter/submitterSlice';
+import type { Expense } from '../types';
 
 const API_BASE =  'http://localhost:4000/api';
 

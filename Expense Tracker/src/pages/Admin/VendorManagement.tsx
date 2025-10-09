@@ -13,7 +13,7 @@ import {
   setPagination,
   clearError
 } from '../../redux/vendor/vendorSlice';
-import type { Vendor, CreateVendorPayload } from '../../types/vendor';
+import type { Vendor, CreateVendorPayload, VendorPagination } from '../../types/vendor';
 import { isValidVendor } from '../../utils/vendorValidation';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Modal from '../../components/Modal';
@@ -53,7 +53,7 @@ const VendorManagement: React.FC = () => {
   const [tempFilters, setTempFilters] = useState(filters);
 
   useEffect(() => {
-    const params: any = { 
+    const params: VendorPagination = { 
       page: pagination.page, 
       limit: pagination.limit
     };

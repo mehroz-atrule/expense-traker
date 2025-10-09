@@ -1,8 +1,6 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import * as api from '../../api/adminApi';
-
-export interface Office { _id: string; name: string }
-export interface User { _id: string; username: string; email?: string; role?: string; officeId?: string }
+import type { Office, User } from '../../types/admin';
 
 interface AdminState {
   offices: Office[];
@@ -21,7 +19,7 @@ export const fetchOffices = createAsyncThunk('admin/fetchOffices', async () => {
 
 export const addOffice = createAsyncThunk('admin/addOffice', async (payload: { name: string }, { rejectWithValue }) => {
   try {
-    const res = await api.createOffice(payload as api.CreateOfficePayload);
+  const res = await api.createOffice(payload as import('../../types/admin').CreateOfficePayload);
     return res as Office;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
@@ -30,7 +28,7 @@ export const addOffice = createAsyncThunk('admin/addOffice', async (payload: { n
 
 export const updateOffice = createAsyncThunk('admin/updateOffice', async ({ id, payload }: { id: string; payload: { name: string } }, { rejectWithValue }) => {
   try {
-    const res = await api.updateOffice(id, payload as api.UpdateOfficePayload);
+  const res = await api.updateOffice(id, payload as import('../../types/admin').UpdateOfficePayload);
     return res as Office;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
@@ -57,7 +55,7 @@ export const fetchUsers = createAsyncThunk('admin/fetchUsers', async (_, { rejec
 
 export const addUser = createAsyncThunk('admin/addUser', async (payload: { username: string; email: string; password?: string; role?: string; officeId?: string }, { rejectWithValue }) => {
   try {
-    const res = await api.createUser(payload as api.CreateUserPayload);
+  const res = await api.createUser(payload as import('../../types/admin').CreateUserPayload);
     return res as User;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
@@ -66,7 +64,7 @@ export const addUser = createAsyncThunk('admin/addUser', async (payload: { usern
 
 export const updateUser = createAsyncThunk('admin/updateUser', async ({ id, payload }: { id: string; payload: { username?: string; email?: string; role?: string; officeId?: string } }, { rejectWithValue }) => {
   try {
-    const res = await api.updateUser(id, payload as api.UpdateUserPayload);
+  const res = await api.updateUser(id, payload as import('../../types/admin').UpdateUserPayload);
     return res as User;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);

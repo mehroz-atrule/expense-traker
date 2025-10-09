@@ -35,8 +35,9 @@ export interface VendorFilters {
 }
 
 export interface VendorPagination {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalPages?: number;
+    q?: string;
 }

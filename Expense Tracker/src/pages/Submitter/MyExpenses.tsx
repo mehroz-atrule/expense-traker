@@ -48,7 +48,7 @@ const MyExpenses: React.FC = () => {
     const matchesStatus = activeFilters.status === 'all' || e.status === activeFilters.status;
     const matchesCategory = activeFilters.category === 'all' || e.category === activeFilters.category;
 
-    const ed = e.date || e.createdAt as string || '';
+    const ed = e.dueDate || e.createdAt as string || '';
     const matchesDate = (!activeFilters.dateFrom || !ed || new Date(ed) >= new Date(activeFilters.dateFrom)) && (!activeFilters.dateTo || !ed || new Date(ed) <= new Date(activeFilters.dateTo));
 
     return matchesSearch && matchesStatus && matchesCategory && matchesDate;
@@ -139,16 +139,16 @@ const MyExpenses: React.FC = () => {
                 <div className="flex items-center gap-3 flex-1">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-gray-800 truncate">{exp.vendor}</p>
+                      <p className="font-semibold text-gray-800 truncate">{exp.title}</p>
                       <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{exp.category}</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span>{formatDate(exp.date || exp.createdAt)}</span>
+                      <span>{formatDate(exp.dueDate || exp.createdAt)}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span>Rs. {exp.amount.toFixed(2)}</span>
+                  <span>Rs. {Number(exp.amount).toFixed(2)}</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(exp.status || '')}`}>{(exp.status || '').replace(/([A-Z])/g, ' $1').trim()}</span>
                 </div>
               </div>
