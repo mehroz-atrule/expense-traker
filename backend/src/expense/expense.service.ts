@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, FilterQuery } from 'mongoose';
 import { Expense } from './schemas/expense.schema';
 import { CloudinaryService } from '../upload/cloudinary.service';
+import { QueryExpenseDto } from './dto/query-expense.dto';
 
 @Injectable()
 export class ExpenseService {
@@ -57,35 +58,55 @@ export class ExpenseService {
     }
   }
 
-  async findAll(query?: any) {
+  async findAll(query?: QueryExpenseDto) {
     try {
       const page = Math.max(1, Number(query?.page ?? 1));
       const limit = Math.max(1, Number(query?.limit ?? 10));
-      const filter: FilterQuery<Expense> = {} as any;
+      const filter: FilterQuery<Expense> = {};
 
+      // 🔹 Office filter
       if (query?.office) {
         if (!Types.ObjectId.isValid(query.office)) {
           throw new BadRequestException('Invalid office id');
         }
-        // support both field names depending on schema
-        filter.$or = [
-          { office: new Types.ObjectId(query.office) },
-          { officeId: new Types.ObjectId(query.office) },
-        ];
+        filter.office = new Types.ObjectId(query.office);
       }
+
+      // 🔹 Vendor filter
       if (query?.vendor) {
         filter.vendor = query.vendor;
       }
+
+      // 🔹 Category filter
+      if (query?.category) {
+        filter.category = query.category;
+      }
+
+      // 🔹 Status filter
+      if (query?.status) {
+        filter.status = query.status;
+      }
+
+      // 🔹 Date range filter (on billDate)
+      if (query?.startDate || query?.endDate) {
+        const dateFilter: any = {};
+        if (query.startDate) dateFilter.$gte = new Date(query.startDate);
+        if (query.endDate) dateFilter.$lte = new Date(query.endDate);
+        filter.billDate = dateFilter;
+      }
+
+      // 🔹 Text search — merge instead of overwriting
       if (query?.q) {
         const regex = new RegExp(query.q, 'i');
         filter.$or = [
           { title: regex },
           { category: regex },
           { description: regex },
-          { vendor: regex },
+          { status: regex },
         ];
       }
 
+      // 🔹 Pagination & Fetch
       const [data, total] = await Promise.all([
         this.expenseModel
           .find(filter)
@@ -97,12 +118,11 @@ export class ExpenseService {
 
       return { data, total, page, limit };
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
+      if (error instanceof BadRequestException) throw error;
       throw new InternalServerErrorException('Failed to fetch expenses');
     }
   }
+
 
   async findOne(id: string) {
     try {
