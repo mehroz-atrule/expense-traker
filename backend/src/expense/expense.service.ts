@@ -27,7 +27,6 @@ export class ExpenseService {
       const receiptUrl = image?.buffer
         ? (await this.cloudinary.uploadBuffer(image.buffer, 'expenses')).secure_url
         : undefined;
-
       const expense = new this.expenseModel({
         title: createExpenseDto.title,
         vendor: createExpenseDto.vendor,
@@ -39,7 +38,9 @@ export class ExpenseService {
         image: receiptUrl,
         billDate: new Date(createExpenseDto.billDate),
         dueDate: new Date(createExpenseDto.dueDate),
-        paymentDate: new Date(createExpenseDto.paymentDate),
+        paymentDate: createExpenseDto.paymentDate
+          ? new Date(createExpenseDto.paymentDate)
+          : null,
         status: Status.New
       });
 

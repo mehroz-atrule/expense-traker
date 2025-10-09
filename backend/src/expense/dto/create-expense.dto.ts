@@ -50,7 +50,8 @@ export class CreateExpenseDto {
 
   @ApiProperty()
   @IsDateString()
-  paymentDate: string; // ISO date string
+  @IsOptional()
+  paymentDate?: string; // ISO date string
 
   @ApiProperty()
   @IsString()
