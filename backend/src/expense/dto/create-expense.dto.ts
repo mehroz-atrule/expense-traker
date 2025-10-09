@@ -42,7 +42,15 @@ export class CreateExpenseDto {
 
   @ApiProperty()
   @IsDateString()
-  date: string; // ISO date string
+  billDate: string; // ISO date string
+
+  @ApiProperty()
+  @IsDateString()
+  dueDate: string; // ISO date string
+
+  @ApiProperty()
+  @IsDateString()
+  paymentDate: string; // ISO date string
 
   @ApiProperty()
   @IsString()
@@ -59,7 +67,7 @@ export class CreateExpenseDto {
   @IsNotEmpty()
   office: string;
 
-  @ApiProperty({ description: 'Vendor ID or name depending on design' })
+  @ApiProperty({ description: 'Vendor ID(ObjectId)' })
   @IsString()
   @IsNotEmpty()
   vendor: string;

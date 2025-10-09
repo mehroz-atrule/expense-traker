@@ -22,9 +22,7 @@ export class ExpenseService {
       if (!Types.ObjectId.isValid(createExpenseDto.office)) {
         throw new BadRequestException('Invalid office id');
       }
-      if (!createExpenseDto.date || Number.isNaN(Date.parse(createExpenseDto.date))) {
-        throw new BadRequestException('Invalid expense date');
-      }
+
 
       const receiptUrl = image?.buffer
         ? (await this.cloudinary.uploadBuffer(image.buffer, 'expenses')).secure_url
@@ -39,7 +37,9 @@ export class ExpenseService {
         payment: createExpenseDto.payment,
         description: createExpenseDto.description,
         image: receiptUrl,
-        date: new Date(createExpenseDto.date),
+        billDate: new Date(createExpenseDto.billDate),
+        dueDate: new Date(createExpenseDto.dueDate),
+        paymentDate: new Date(createExpenseDto.paymentDate),
         status: Status.New
       });
 

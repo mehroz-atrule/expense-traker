@@ -7,8 +7,8 @@ export class Expense extends Document {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ required: true })
-  vendor: string;
+  @Prop({ type: Types.ObjectId, ref: 'Vendor', required: true })
+  vendor: Types.ObjectId;
 
   @Prop({ required: true })
   amount: number;
@@ -29,17 +29,21 @@ export class Expense extends Document {
   @Prop()
   image?: string;
 
-  // Link to Budget if exists
   @Prop({ type: Types.ObjectId, ref: 'Budget' })
   linkedBudgetId?: Types.ObjectId;
 
-  @Prop({ required: true })
-  date: Date;
+  @Prop({ required: true, type: Date })
+  billDate: Date;
+
+  @Prop({ required: true, type: Date })
+  dueDate: Date;
+
+  @Prop({ default: null, type: Date })
+  paymentDate: Date;
 
   @Prop({ default: 'New', enum: Status })
   status: Status;
 
 }
 
-// 👇 Schema Factory
 export const ExpenseSchema = SchemaFactory.createForClass(Expense);
