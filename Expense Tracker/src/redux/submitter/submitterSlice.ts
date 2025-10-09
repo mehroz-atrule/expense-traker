@@ -1,21 +1,8 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { listExpenses, postExpense, updateExpense, deleteExpense } from '../../api/submitterApi';
+import type { Expense } from '../../types/expense';
 
-export interface Expense {
-  _id?: string; // 👈 Use string for MongoDB-like IDs (avoid number)
-  title: string;
-  vendor: string;
-  amount: number;
-  category: string;
-  office: string;
-  payment: string;
-  description?: string;
-  image?: string;
-  date?: string;
-  status?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
+// moved to shared types
 
 interface SubmitterState {
   expenses: Expense[];
