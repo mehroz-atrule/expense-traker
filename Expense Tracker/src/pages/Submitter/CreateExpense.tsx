@@ -359,9 +359,7 @@ if (formData.image || formData.chequeImage || formData.paymentSlip) {
                       ) : (
                         <span className="hidden sm:block">Fill in the details below</span>
                       )}
-                    <span className="hidden sm:block">
-                      {isViewMode ? `Expense ID: ${viewExpense?._id?.slice(-8) || 'N/A'} • Status: ${viewExpense?.status || 'Unknown'}` : "Fill in the details below"}
-                    </span>
+                  
                   </p>
                 </div>
               </div>

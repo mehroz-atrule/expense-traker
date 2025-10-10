@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronLeft, Search, Plus, Eye, Edit, Trash2, ChevronUp, ChevronDown, Grid3X3, List } from 'lucide-react';
+import { ChevronLeft, Search, Plus, Eye, Edit, Trash2, ChevronUp, ChevronDown, Grid3X3, List, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
@@ -197,53 +197,72 @@ const VendorManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-2">
-      {/* Header */}
-      <div className="mb-3">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
-          <ChevronLeft size={16} /> Back
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile App-like Header - Enhanced Responsive */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-3 sm:px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between h-12 xs:h-14 sm:h-16">
+            <div className="flex items-center space-x-1 xs:space-x-2 sm:space-x-4 flex-1 min-w-0">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-auto md:h-auto md:gap-2 md:px-3 md:py-2 text-gray-600 bg-gray-50 md:bg-white rounded-full md:rounded-lg border-0 md:border md:border-gray-200 hover:bg-gray-100 md:hover:bg-gray-50 transition-all duration-200 active:scale-95 touch-manipulation"
+              >
+                <ChevronLeft className="w-4 h-4 xs:w-5 xs:h-5 md:w-4 md:h-4" />
+                <span className="hidden md:inline text-sm">Back</span>
+              </button>
+              
+              <div className="flex items-center space-x-1 xs:space-x-2 sm:space-x-3 flex-1 min-w-0">
+                <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-blue-100 rounded-md sm:rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Building2 className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-sm xs:text-base sm:text-lg font-semibold text-gray-900 truncate leading-tight">Vendor Management</h1>
+                  <p className="text-xs sm:text-sm text-gray-500 truncate hidden sm:block leading-tight">Manage your vendors and suppliers</p>
+                </div>
+              </div>
+            </div>
 
-      {/* Title and Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Vendor Management</h1>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1 self-center sm:self-auto">
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'table' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              title="Table View"
-            >
-              <List size={16} />
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-              title="Grid View"
-            >
-              <Grid3X3 size={16} />
-            </button>
+            <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-2">
+              {/* View Mode Toggle - Responsive */}
+              <div className="flex items-center bg-gray-100 rounded-md sm:rounded-lg p-0.5 sm:p-1">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`p-1 xs:p-1.5 sm:p-2 rounded-sm sm:rounded-md transition-colors touch-manipulation ${
+                    viewMode === 'table' 
+                      ? 'bg-white text-gray-900 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  title="Table View"
+                >
+                  <List className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-1 xs:p-1.5 sm:p-2 rounded-sm sm:rounded-md transition-colors touch-manipulation ${
+                    viewMode === 'grid' 
+                      ? 'bg-white text-gray-900 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                  title="Grid View"
+                >
+                  <Grid3X3 className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              </div>
+
+              <button
+                onClick={handleAddVendor}
+                className="inline-flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-auto md:h-auto md:gap-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-full md:rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm active:scale-95 touch-manipulation ml-1"
+              >
+                <Plus className="w-4 h-4 xs:w-5 xs:h-5 md:w-4 md:h-4" />
+                <span className="hidden md:inline text-sm font-medium">Add Vendor</span>
+              </button>
+            </div>
           </div>
-          
-          <button
-            onClick={handleAddVendor}
-            className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base"
-          >
-            <Plus size={18} />
-            <span className="whitespace-nowrap">Add Vendor</span>
-          </button>
         </div>
       </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
       {/* Error Display */}
       {error && (
@@ -681,16 +700,18 @@ const VendorManagement: React.FC = () => {
         )}
       </Modal>
 
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        open={confirmDeleteOpen}
-        title="Delete Vendor"
-        message={`Are you sure you want to delete "${selectedVendor?.vendorName}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
-        onConfirm={confirmDelete}
-        onCancel={cancelDelete}
-      />
+        {/* Confirm Delete Dialog */}
+        <ConfirmDialog
+          open={confirmDeleteOpen}
+          title="Delete Vendor"
+          message={`Are you sure you want to delete "${selectedVendor?.vendorName}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+        />
+        </div>
+      </div>
     </div>
   );
 };
