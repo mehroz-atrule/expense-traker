@@ -200,7 +200,7 @@ const VendorManagement: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-2">
       {/* Header */}
       <div className="mb-3">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-gray-600">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
           <ChevronLeft size={16} /> Back
         </button>
       </div>
