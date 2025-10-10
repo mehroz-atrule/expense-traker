@@ -22,7 +22,7 @@ export class Vendor extends Document {
   vendorIban: string;
 
   @Prop()
-  Tax: number;
+  WHT: number;
 }
 
 export const VendorSchema = SchemaFactory.createForClass(Vendor);

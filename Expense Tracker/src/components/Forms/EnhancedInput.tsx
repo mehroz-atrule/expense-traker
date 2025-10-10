@@ -3,14 +3,14 @@ import { AlertCircle } from 'lucide-react';
 
 interface EnhancedInputProps {
   label: string;
-  value: string;
+  value: string | number;
   onChange: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
   error?: string;
-  type?: 'text' | 'email' | 'password' | 'tel';
+  type?: 'text' | 'email' | 'password' | 'tel'| 'number' | 'date';
   pattern?: string;
   className?: string;
 }

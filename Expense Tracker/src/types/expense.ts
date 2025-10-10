@@ -14,6 +14,11 @@ export interface Expense {
   status?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+  WHT?: number|string; // tax percentage from vendor (Withholding Tax)
+  advanceTax?: number; // calculated/entered advance tax amount
+  amountAfterTax?: number | string; // calculated amount after tax deduction
+  chequeImage?: string; // URL or base64 string of cheque image
+  paymentSlip?: string; // URL or base64 string of payment slip image
 }
 
 export interface CreateExpensePayload extends Omit<Expense, '_id' | 'createdAt' | 'updatedAt'> {}

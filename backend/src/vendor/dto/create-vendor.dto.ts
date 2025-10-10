@@ -36,6 +36,6 @@ export class CreateVendorDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
-  Tax?: number;
+  WHT?: number;
 
 }

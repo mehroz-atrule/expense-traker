@@ -8,6 +8,7 @@ export interface Vendor {
     vendorIban: string;
     createdAt?: string | Date;
     updatedAt?: string | Date;
+    WHT: number;
 }
 
 export interface CreateVendorPayload {
@@ -17,6 +18,7 @@ export interface CreateVendorPayload {
     preferredBankName: string;
     vendorAccountTitle: string;
     vendorIban: string;
+    WHT: number;
 }
 
 export interface UpdateVendorPayload {

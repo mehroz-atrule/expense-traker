@@ -15,6 +15,7 @@ export class CloudinaryService {
   }
 
   async uploadBuffer(buffer: Buffer, folder = 'expenses'): Promise<UploadApiResponse> {
+    if (!buffer) throw new Error('Buffer is empty');
     return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream({ folder }, (error, result) => {
         if (error || !result) return reject(error);
@@ -26,22 +27,18 @@ export class CloudinaryService {
 
   async deleteByUrl(url: string): Promise<{ result: string }> {
     const publicId = this.extractPublicId(url);
-    if (!publicId) {
-      return { result: 'not_found' };
-    }
+    if (!publicId) return { result: 'not_found' };
     return cloudinary.uploader.destroy(publicId);
   }
 
   private extractPublicId(url: string): string | null {
     try {
-      // Example: https://res.cloudinary.com/<cloud>/image/upload/v1699999999/expenses/abc123.jpg
-      const pathname = new URL(url).pathname; // /<type>/upload/v.../expenses/abc123.jpg
+      const pathname = new URL(url).pathname;
       const segments = pathname.split('/');
-      // public id is everything after the version segment, without extension
       const versionIdx = segments.findIndex((s) => s.startsWith('v') && /^v\d+$/i.test(s));
+      if (versionIdx === -1) return null;
       const publicIdWithExt = segments.slice(versionIdx + 1).join('/');
-      const withoutExt = publicIdWithExt.replace(/\.[^/.]+$/, '');
-      return withoutExt || null;
+      return publicIdWithExt.replace(/\.[^/.]+$/, '') || null;
     } catch {
       return null;
     }

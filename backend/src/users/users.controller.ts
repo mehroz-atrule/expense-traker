@@ -9,8 +9,8 @@ import { Role } from 'src/common/types/roles.enum';
 
 @Controller('users')
 @ApiTags('users')
-@UseGuards(RolesGuard)
-@Roles(Role.Admin)
+// @UseGuards(RolesGuard)
+// @Roles(Role.Admin)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 

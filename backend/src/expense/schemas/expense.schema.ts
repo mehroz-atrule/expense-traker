@@ -45,13 +45,19 @@ export class Expense extends Document {
   status: Status;
 
   @Prop({ default: 0, type: Number })
-  Tax: number;
+  WHT: number;
 
   @Prop({ default: 0, type: Number })
-  OIT: number;
+  advanceTax: number;
 
   @Prop({ default: 0, type: Number })
   amountAfterTax: number;
+
+  @Prop()
+  chequeImage?: string;
+  
+  @Prop()
+  paymentSlip?: string;
 
 }
 

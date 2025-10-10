@@ -6,62 +6,58 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   InternalServerErrorException,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
+  Query,
 } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/types/roles.enum';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
-import { Query } from '@nestjs/common';
 import { QueryExpenseDto } from './dto/query-expense.dto';
 
 @Controller('expense')
-// @UseGuards(RolesGuard)
 export class ExpenseController {
-  constructor(private readonly expenseService: ExpenseService) { }
+  constructor(private readonly expenseService: ExpenseService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
-  // @Roles(Role.Submitter, Role.Admin)
+  @UseInterceptors(AnyFilesInterceptor({ storage: memoryStorage() }))
   create(
     @Body() createExpenseDto: CreateExpenseDto,
-    @UploadedFile() image?: any,
+    @UploadedFiles() files: Array<any>,
   ) {
-    return this.expenseService.create(createExpenseDto, image);
+    const safeFiles = Array.isArray(files) ? files : [];
+    const image = safeFiles.find(f => f.fieldname === 'image');
+    const chequeImage = safeFiles.find(f => f.fieldname === 'chequeImage');
+    const paymentSlip = safeFiles.find(f => f.fieldname === 'paymentSlip');
+    return this.expenseService.create(createExpenseDto, image, chequeImage, paymentSlip);
   }
 
+@Patch(':id')
+@UseInterceptors(AnyFilesInterceptor({ storage: memoryStorage() }))
+update(
+  @Param('id') id: string,
+  @Body() updateExpenseDto: UpdateExpenseDto,
+  @UploadedFiles() files: Array<any>,
+) {
+  const safeFiles = Array.isArray(files) ? files : [];
+  const image = safeFiles.find(f => f.fieldname === 'image');
+  const chequeImage = safeFiles.find(f => f.fieldname === 'chequeImage');
+  const paymentSlip = safeFiles.find(f => f.fieldname === 'paymentSlip');
+
+  return this.expenseService.update(id, updateExpenseDto, image, chequeImage, paymentSlip);
+}
+
   @Get()
-  // @Roles(Role.Admin)
-  async findAll(@Query() query: QueryExpenseDto) {
-    try {
-      console.log('Fetching expenses...');
-      return this.expenseService.findAll(query);
-    } catch (error) {
-      console.error('Error fetching expenses:', error);
-      throw new InternalServerErrorException('Could not retrieve expenses');
-    }
+  findAll(@Query() query: QueryExpenseDto) {
+    return this.expenseService.findAll(query);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.expenseService.findOne(id);
-  }
-
-  @Patch(':id')
-  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
-  update(
-    @Param('id') id: string,
-    @Body() updateExpenseDto: UpdateExpenseDto,
-    @UploadedFile() image?: any,
-  ) {
-    return this.expenseService.update(id, updateExpenseDto, image);
   }
 
   @Delete(':id')

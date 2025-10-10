@@ -27,6 +27,12 @@ interface FormData {
   payment: string;
   description: string;
   image?: File | null;
+   WHT?: number; // Auto-filled from selected vendor (Withholding Tax)
+  advanceTax?: number;
+    amountAfterTax?: number; // NEW FIELD
+     chequeImage?: File | null;    // Issued Cheque
+  paymentSlip?: File | null;
+
 }
 
 const CreateExpenseView: React.FC = () => {
@@ -42,9 +48,17 @@ const CreateExpenseView: React.FC = () => {
     payment: "",
     description: "",
     image: null,
+      chequeImage: null,
+  paymentSlip: null,
+      WHT: 0,
+  advanceTax: 0,
+    amountAfterTax: 0, // NEW
+
   });
 
   const [preview, setPreview] = useState<string | null>(null);
+  const [chequePreview, setChequePreview] = useState<string | null>(null);
+const [paymentSlipPreview, setPaymentSlipPreview] = useState<string | null>(null);
   const [officeOptions, setOfficeOptions] = useState<Option[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [vendorOptions, setVendorOptions] = useState<Option[]>([]);
@@ -67,7 +81,7 @@ const CreateExpenseView: React.FC = () => {
     'WaitingForApproval',
     'Approved',
     'InReviewByFinance',
-    'ReadyForpayment',
+    'ReadyForPayment',
     'Paid',
   ] as const;
 
@@ -114,7 +128,7 @@ const CreateExpenseView: React.FC = () => {
     setVendorOptions(opts);
   }, [vendors]);
 
-  // ✅ populate form if viewing
+  // populate form if viewing
   useEffect(() => {
     if (viewExpense) {
       setFormData({
@@ -131,52 +145,123 @@ const CreateExpenseView: React.FC = () => {
         image: null,
       });
       setPreview(viewExpense.image || null);
+       setChequePreview((viewExpense as any).chequeImage || null);
+    setPaymentSlipPreview((viewExpense as any).paymentSlip || null);
     }
   }, [viewExpense]);
 
-  // ✅ Handle file upload
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setPreview(file ? URL.createObjectURL(file) : null);
-    setFormData((prev) => ({ ...prev, image: file }));
-  };
+  // Handle file upload
+const handleFileChange = (e: ChangeEvent<HTMLInputElement>, type: "image" | "cheque" | "paymentSlip") => {
+  const file = e.target.files?.[0] || null;
+  if (!file) return;
 
-  // ✅ Generic field change handler
-  const handleChange = (field: keyof FormData, value: string | boolean) => {
-    console.log(`Field ${field} changed to`, value);
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const url = URL.createObjectURL(file);
 
-  // ✅ Submit handler (with file upload support)
+  setFormData(prev => {
+    const updated = { ...prev };
+    if (type === "image") updated.image = file;
+    else if (type === "cheque") updated.chequeImage = file;
+    else updated.paymentSlip = file;
+    return updated;
+  });
+
+  // set preview for the right type
+  if (type === "image") {
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(url);
+  } else if (type === "cheque") {
+    if (chequePreview) URL.revokeObjectURL(chequePreview);
+    setChequePreview(url);
+  } else {
+    if (paymentSlipPreview) URL.revokeObjectURL(paymentSlipPreview);
+    setPaymentSlipPreview(url);
+  }
+};
+
+
+
+  // Generic field change handler
+const handleChange = (field: keyof FormData, value: string | number | boolean) => {
+  setFormData(prev => {
+    const updated: any = { ...prev, [field]: value };
+
+    // when vendor changes -> auto fill WHT
+    if (field === "vendor") {
+      const selectedVendor = vendors.find(v => v._id === value);
+      if (selectedVendor) updated.WHT = Number((selectedVendor as any).WHT ?? (selectedVendor as any).Tax) || 0;
+    }
+
+    // calculate amountAfterTax
+    const amountNum = parseFloat(String(updated.amount || "0")) || 0;
+    const advanceTaxNum = parseFloat(String(updated.advanceTax || "0")) || 0;
+    const taxNum = parseFloat(String(updated.WHT || "0")) || 0;
+
+    const base = amountNum - advanceTaxNum;
+    const total = base + (base * (taxNum / 100));
+    updated.amountAfterTax = Number(total.toFixed(2));
+
+    return updated;
+  });
+};
+
+useEffect(() => {
+  if (viewExpense) {
+    console.log("📸 Backend images:", {
+      image: viewExpense.image,
+      chequeImage: viewExpense.chequeImage,
+      paymentSlip: viewExpense.paymentSlip,
+    });
+  }
+}, [viewExpense]);
+
+  // Submit handler (with file upload support)
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const payload: Expense = {
-      _id: viewExpense?._id,
-      title: formData.title,
-      vendor: formData.vendor,
-      amount: formData.amount || "",
-      category: formData.category,
-      office: formData.office,
-      payment: formData.payment,
-      description: formData.description,
-      billDate: formData.billDate ? new Date(formData.billDate).toISOString() : undefined,
-      dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
-      paymentDate: formData.paymentDate ? new Date(formData.paymentDate).toISOString() : undefined, 
-    };
+const payload: Expense = {
+  _id: viewExpense?._id,
+  title: formData.title,
+  vendor: formData.vendor,
+  amount: formData.amount || "",
+  category: formData.category,
+  office: formData.office,
+  payment: formData.payment,
+  description: formData.description,
+  billDate: formData.billDate ? new Date(formData.billDate).toISOString() : undefined,
+  dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
+  paymentDate: formData.paymentDate ? new Date(formData.paymentDate).toISOString() : undefined,
+  WHT: formData.WHT != null ? String(formData.WHT) : "0",
+  advanceTax: formData.advanceTax != null ? Number(formData.advanceTax) : 0,
+  amountAfterTax: formData.amountAfterTax != null ? String(formData.amountAfterTax) : "0",
+
+  // Send existing server URLs (if any) so backend knows not to null them
+  image: viewExpense?.image || undefined,           // server URL (optional)
+  chequeImage: viewExpense?.chequeImage || undefined,
+  paymentSlip: viewExpense?.paymentSlip || undefined,
+};
+
 
     console.log("Submitting expense with payload:", payload);
     
     let dataToSend: any = payload;
-    if (formData.image) {
-      const form = new FormData();
-      Object.entries(payload).forEach(([key, value]) => {
-        if (value !== undefined && value !== null)
-          form.append(key, value as any);
-      });
-      form.append("image", formData.image);
-      dataToSend = form;
+ // Build FormData if any image is attached
+if (formData.image || formData.chequeImage || formData.paymentSlip) {
+  const form = new FormData();
+
+  // Append all normal fields
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      form.append(key, value as any);
     }
+  });
+
+  // Append individual images
+  if (formData.image) form.append("image", formData.image);
+  if (formData.chequeImage) form.append("chequeImage", formData.chequeImage);
+  if (formData.paymentSlip) form.append("paymentSlip", formData.paymentSlip);
+
+  dataToSend = form;
+}
 
     if (viewExpense?._id) {
       dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend }));
@@ -185,7 +270,7 @@ const CreateExpenseView: React.FC = () => {
     }
   };
 
-  // ✅ Delete logic
+  // Delete logic
   const onDelete = () => setConfirmOpen(true);
   const confirmDelete = () => {
     if (viewExpense?._id) {
@@ -250,53 +335,138 @@ const CreateExpenseView: React.FC = () => {
         </div>
       )}
 
-      {/* Image Upload Section */}
-      <div className="bg-white rounded-lg xs:rounded-xl shadow-sm border border-gray-200 p-3 xs:p-4 sm:p-5 flex flex-col md:flex-row gap-4 xs:gap-5 sm:gap-6">
-        <div
-          onClick={() => {
-            if (!isViewMode || isEditing)
-              document.getElementById("imageUpload")?.click();
-          }}
-          className={`flex-shrink-0 w-full md:w-64 lg:w-72 h-48 xs:h-56 sm:h-64 md:h-72 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg ${
-            isViewMode && !isEditing
-              ? "cursor-default opacity-90"
-              : "cursor-pointer text-gray-400 hover:text-blue-600 hover:border-blue-400"
-          } relative overflow-hidden group transition-all duration-200`}
-        >
-          {preview ? (
-            <>
-              <img
-                src={preview}
-                alt="Image Preview"
-                className="w-full h-full object-cover rounded-lg"
-              />
-              {!isViewMode || isEditing ? (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <p className="text-white text-xs xs:text-sm font-medium flex items-center gap-1 xs:gap-2">
-                    <Upload size={14} className="xs:size-4" />
-                    Change Image
-                  </p>
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center text-center px-3">
-              <Upload size={20} className="xs:size-6 sm:size-7 mb-1 xs:mb-2" strokeWidth={1.5} />
-              <p className="text-xs xs:text-sm font-medium text-gray-500">Upload Image</p>
-              <p className="text-[10px] xs:text-xs text-gray-400 mt-0.5">(Click to browse file)</p>
-            </div>
-          )}
-        </div>
+     {/* ================= Image Upload Section ================= */}
+<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col gap-4">
+  <h3 className="font-semibold text-gray-700 text-sm">Upload Documents</h3>
 
-        <input
-          id="imageUpload"
-          type="file"
-          accept="image/*,application/pdf"
-          onChange={handleFileChange}
-          className="hidden"
-          disabled={isViewMode && !isEditing}
+  {/* Expense Receipt - Always visible */}
+  <div className="flex flex-col items-start gap-2">
+    <p className="text-xs font-medium text-gray-600">Expense Receipt</p>
+    <div
+      onClick={() => (!isViewMode || isEditing) && document.getElementById("expenseUpload")?.click()}
+      className="relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-400 transition"
+    >
+      {preview ? (
+        <img
+          src={preview}
+          alt="Expense Receipt"
+          className="w-full h-full object-cover rounded-xl"
         />
-      </div>
+      ) : (
+        <div className="flex flex-col items-center text-gray-400 text-xs">
+          <Upload size={20} />
+          <span>Upload</span>
+        </div>
+      )}
+    </div>
+    <input
+      id="expenseUpload"
+      type="file"
+      accept="image/*,application/pdf"
+      className="hidden"
+      disabled={isViewMode && !isEditing}
+      onChange={(e) => handleFileChange(e, "image")}
+    />
+  </div>
+
+  {/* Issued Cheque - visible when InReviewByFinance or later */}
+ {/* Issued Cheque - visible and editable only when InReviewByFinance or later */}
+{(currentStatusKey === "InReviewByFinance" ||
+  currentStatusKey === "ReadyForPayment" ||
+  currentStatusKey === "Paid") && (
+  <div className="flex flex-col items-start gap-2">
+    <p className="text-xs font-medium text-gray-600">Issued Cheque</p>
+    <div
+      onClick={() =>
+        currentStatusKey === "InReviewByFinance" ||
+        currentStatusKey === "ReadyForPayment" ||
+        currentStatusKey === "Paid"
+          ? document.getElementById("chequeUpload")?.click()
+          : null
+      }
+      className={`relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-400 transition ${
+        currentStatusKey !== "InReviewByFinance" &&
+        currentStatusKey !== "ReadyForPayment" &&
+        currentStatusKey !== "Paid"
+          ? "opacity-50 cursor-not-allowed"
+          : ""
+      }`}
+    >
+      {chequePreview ? (
+        <img
+          src={chequePreview}
+          alt="Issued Cheque"
+          className="w-full h-full object-cover rounded-xl"
+        />
+      ) : (
+        <div className="flex flex-col items-center text-gray-400 text-xs">
+          <Upload size={20} />
+          <span>Upload</span>
+        </div>
+      )}
+    </div>
+    <input
+      id="chequeUpload"
+      type="file"
+      accept="image/*,application/pdf"
+      className="hidden"
+      disabled={
+        !(
+          currentStatusKey === "InReviewByFinance" ||
+          currentStatusKey === "ReadyForPayment" ||
+          currentStatusKey === "Paid"
+        )
+      }
+      onChange={(e) => handleFileChange(e, "cheque")}
+    />
+  </div>
+)}
+
+
+  {/* Payment Slip - visible when ReadyForPayment or Paid */}
+{/* Payment Slip */}
+{(currentStatusKey === "ReadyForPayment" || currentStatusKey === "Paid") && (
+  <div className="flex flex-col items-start gap-2">
+    <p className="text-xs font-medium text-gray-600">Paid Receipt / Payment Slip</p>
+    <div
+      onClick={() =>
+        (currentStatusKey === "ReadyForPayment" || currentStatusKey === "Paid") &&
+        document.getElementById("paymentSlipUpload")?.click()
+      }
+      className={`relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-400 transition ${
+        !(currentStatusKey === "ReadyForPayment" || currentStatusKey === "Paid")
+          ? "opacity-50 cursor-not-allowed"
+          : ""
+      }`}
+    >
+      {paymentSlipPreview ? (
+        <img
+          src={paymentSlipPreview}
+          alt="Payment Slip"
+          className="w-full h-full object-cover rounded-xl"
+        />
+      ) : (
+        <div className="flex flex-col items-center text-gray-400 text-xs">
+          <Upload size={20} />
+          <span>Upload</span>
+        </div>
+      )}
+    </div>
+    <input
+      id="paymentSlipUpload"
+      type="file"
+      accept="image/*,application/pdf"
+      className="hidden"
+      disabled={!(currentStatusKey === "ReadyForPayment" || currentStatusKey === "Paid")}
+      onChange={(e) => handleFileChange(e, "paymentSlip")}
+    />
+  </div>
+)}
+
+</div>
+
+
+      
 
       {/* Expense Info Form */}
       <form
@@ -393,6 +563,27 @@ const CreateExpenseView: React.FC = () => {
             onChange={(opt) => handleChange("vendor", opt?.value || "")}
             isDisabled={isViewMode && !isEditing}
           />
+   <Input
+  label="WHT (%)"
+  type="number"
+  value={formData.WHT === 0 || formData.WHT == null ? "" : formData.WHT.toString()}
+  onChange={(val) => handleChange("WHT", val)}
+  placeholder="Auto-filled from vendor"
+  disabled={isViewMode && !isEditing}
+  readOnly={isViewMode && !isEditing}
+/>
+
+<Input
+  label="Advance Tax"
+  type="number"
+  value={formData.advanceTax === 0 || formData.advanceTax == null ? "" : formData.advanceTax.toString()}
+  onChange={(val) => handleChange("advanceTax", val)}
+  placeholder="Enter advance tax amount"
+  disabled={isViewMode && !isEditing}
+  readOnly={isViewMode && !isEditing}
+/>
+
+
 
           <SelectDropdown
             label="Payment Method"
@@ -403,8 +594,16 @@ const CreateExpenseView: React.FC = () => {
                 : null
             }
             onChange={(opt) => handleChange("payment", opt?.value || "")}
-            isDisabled={isViewMode && !canEdit}
+            isDisabled={isViewMode && !isEditing}
           />
+<Input
+  label="Amount After Tax"
+  type="number"
+  value={formData.amountAfterTax?.toString() || ""}
+  placeholder="Auto-calculated amount"
+  disabled
+  readOnly
+/>
 
           {/* Full width textarea */}
           <div className="md:col-span-2">
@@ -429,15 +628,56 @@ const CreateExpenseView: React.FC = () => {
           <div className="flex flex-col xs:flex-row gap-2 xs:gap-3 w-full xs:w-auto">
             {isViewMode ? (
               <>
-                {!isEditing && !isRejected && !isPaid && nextStatusKey && (
-                  <button
-                    type="button"
-                    onClick={() => dispatch(UpdateExpense({ id: viewExpense._id as string, payload: { status: nextStatusKey } }))}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 xs:px-5 py-2 rounded-lg text-xs xs:text-sm font-medium transition-colors w-full xs:w-auto"
-                  >
-                    Approve
-                  </button>
-                )}
+             {!isEditing && !isRejected && !isPaid && nextStatusKey && (
+  <div className="flex gap-2">
+    {/* Approve Button */}
+    <button
+      type="button"
+      onClick={() => {
+        // Create FormData to include status + cheque/payment slip files
+        const form = new FormData();
+
+        form.append("status", nextStatusKey);
+
+        if (formData.chequeImage) {
+          form.append("chequeImage", formData.chequeImage);
+        }
+
+        if (formData.paymentSlip) {
+          form.append("paymentSlip", formData.paymentSlip);
+        }
+
+        dispatch(
+          UpdateExpense({
+            id: viewExpense._id as string,
+            payload: form, // send as FormData
+          })
+        );
+      }}
+      className="bg-green-600 hover:bg-green-700 text-white px-4 xs:px-5 py-2 rounded-lg text-xs xs:text-sm font-medium transition-colors w-full xs:w-auto"
+    >
+      Approve
+    </button>
+
+    {/* Reject Button */}
+    <button
+      type="button"
+      onClick={() =>
+        dispatch(
+          UpdateExpense({
+            id: viewExpense._id as string,
+            payload: { status: 'Rejected' },
+          })
+        )
+      }
+      className="bg-red-600 hover:bg-red-700 text-white px-4 xs:px-5 py-2 rounded-lg text-xs xs:text-sm font-medium transition-colors w-full xs:w-auto"
+    >
+      Reject
+    </button>
+  </div>
+)}
+
+
                 {isEditing && (
                   <button
                     type="submit"

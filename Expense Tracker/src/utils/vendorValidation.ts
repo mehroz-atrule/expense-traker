@@ -68,6 +68,8 @@ export const validateVendor = (data: CreateVendorPayload): VendorValidationError
             }
         }
     }
+            
+
 
     return errors;
 };

@@ -14,7 +14,7 @@ export class ExpenseService {
     private readonly cloudinary: CloudinaryService,
   ) { }
 
-  async create(createExpenseDto: CreateExpenseDto, image?: any) {
+  async create(createExpenseDto: CreateExpenseDto, image?: any , chequeImage?: any, paymentSlip?: any) {
     try {
       const amountNumber = Number(createExpenseDto.amount);
       if (Number.isNaN(amountNumber)) {
@@ -25,9 +25,18 @@ export class ExpenseService {
       }
 
 
-      const receiptUrl = image?.buffer
-        ? (await this.cloudinary.uploadBuffer(image.buffer, 'expenses')).secure_url
-        : undefined;
+       const receiptUrl = image?.buffer
+    ? (await this.cloudinary.uploadBuffer(image.buffer, 'expenses')).secure_url
+    : undefined;
+
+  const chequeUrl = chequeImage?.buffer
+    ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'expenses')).secure_url
+    : undefined;
+
+  const slipUrl = paymentSlip?.buffer
+    ? (await this.cloudinary.uploadBuffer(paymentSlip.buffer, 'expenses')).secure_url
+    : undefined;
+        
       const expense = new this.expenseModel({
         title: createExpenseDto.title,
         vendor: createExpenseDto.vendor,
@@ -42,11 +51,12 @@ export class ExpenseService {
         paymentDate: createExpenseDto.paymentDate
           ? new Date(createExpenseDto.paymentDate)
           : null,
-        Tax: createExpenseDto.Tax,
-        OIT: createExpenseDto.OIT,
+        WHT: createExpenseDto.WHT,
+        advanceTax: createExpenseDto.advanceTax,
         amountAfterTax: amountNumber,
-        status: Status.WaitingForApproval
-
+        status: Status.WaitingForApproval,
+        chequeImage: chequeImage,
+        paymentSlip: paymentSlip,
       });
 
       return await expense.save();
@@ -142,60 +152,75 @@ export class ExpenseService {
     }
   }
 
-  async update(id: string, updateExpenseDto: UpdateExpenseDto, image?: any) {
-    try {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid expense id');
-      }
-      if (updateExpenseDto['office'] && !Types.ObjectId.isValid(updateExpenseDto['office'] as any)) {
-        throw new BadRequestException('Invalid office id');
-      }
-      if (updateExpenseDto['amount'] && Number.isNaN(Number(updateExpenseDto['amount'] as any))) {
+async update(
+  id: string,
+  updateExpenseDto: UpdateExpenseDto,
+  image?: any,
+  chequeImage?: any,
+  paymentSlip?: any,
+) {
+  try {
+    if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid expense id');
+
+    const existing = await this.expenseModel.findById(id).exec();
+    if (!existing) throw new NotFoundException('Expense not found');
+
+    const updatePayload: Record<string, any> = { ...updateExpenseDto };
+
+    // Status validation
+    if (updatePayload.status && !Object.values(Status).includes(updatePayload.status)) {
+      throw new BadRequestException('Invalid status value');
+    }
+
+    // Handle optional image files
+    if (image?.buffer) {
+      if (existing.image) await this.cloudinary.deleteByUrl(existing.image).catch(() => undefined);
+      const uploaded = await this.cloudinary.uploadBuffer(image.buffer, 'expenses');
+      updatePayload.image = uploaded.secure_url;
+    }
+
+    if (chequeImage?.buffer) {
+      if (existing.chequeImage) await this.cloudinary.deleteByUrl(existing.chequeImage).catch(() => undefined);
+      const uploaded = await this.cloudinary.uploadBuffer(chequeImage.buffer, 'expenses');
+      updatePayload.chequeImage = uploaded.secure_url;
+    }
+
+    if (paymentSlip?.buffer) {
+      if (existing.paymentSlip) await this.cloudinary.deleteByUrl(existing.paymentSlip).catch(() => undefined);
+      const uploaded = await this.cloudinary.uploadBuffer(paymentSlip.buffer, 'expenses');
+      updatePayload.paymentSlip = uploaded.secure_url;
+    }
+
+    // Normalize and validate fields
+    if (updatePayload.amount !== undefined) {
+      const amountNumber = Number(updatePayload.amount);
+      if (Number.isNaN(amountNumber)) {
         throw new BadRequestException('Amount must be a number');
       }
-
-      // Fetch existing expense for image handling
-      const existing = await this.expenseModel.findById(id).exec();
-      if (!existing) {
-        throw new NotFoundException('Expense not found');
-      }
-
-      const updatePayload: Record<string, any> = { ...updateExpenseDto };
-
-      // If a new image is provided, delete previous and upload new
-      if (image?.buffer) {
-        if (existing.image) {
-          await this.cloudinary.deleteByUrl(existing.image as unknown as string).catch(() => undefined);
-        }
-        const uploaded = await this.cloudinary.uploadBuffer(image.buffer, 'expenses');
-        updatePayload.image = uploaded.secure_url;
-      }
-
-      // Normalize amount and office if present
-      if (updatePayload['amount'] !== undefined) {
-        updatePayload['amount'] = Number(updatePayload['amount']);
-      }
-      if (updatePayload['office']) {
-        updatePayload['office'] = new Types.ObjectId(updatePayload['office'] as string);
-      }
-      if (updatePayload['date']) {
-        updatePayload['date'] = new Date(updatePayload['date'] as string);
-      }
-
-      const updated = await this.expenseModel
-        .findByIdAndUpdate(id, updatePayload, { new: true, runValidators: true })
-        .exec();
-      if (!updated) {
-        throw new NotFoundException('Expense not found');
-      }
-      return updated;
-    } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to update expense');
+      updatePayload.amount = amountNumber;
     }
+
+    if (updatePayload.office) {
+      if (!Types.ObjectId.isValid(updatePayload.office)) {
+        throw new BadRequestException('Invalid office id');
+      }
+      updatePayload.office = new Types.ObjectId(updatePayload.office);
+    }
+
+    const updated = await this.expenseModel
+      .findByIdAndUpdate(id, updatePayload, { new: true, runValidators: true })
+      .exec();
+
+    if (!updated) throw new NotFoundException('Expense not found');
+    return updated;
+
+  } catch (error) {
+    console.error('UPDATE EXPENSE ERROR:', error); // Log actual error
+    if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
+    throw new InternalServerErrorException('Failed to update expense');
   }
+}
+
 
   async remove(id: string) {
     try {
