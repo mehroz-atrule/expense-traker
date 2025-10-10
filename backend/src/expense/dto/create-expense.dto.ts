@@ -82,13 +82,15 @@ export class CreateExpenseDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
-  WHT?: number;
+  // Accept string from multipart/form-data; convert in service
+  @IsString()
+  WHT?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
-  advanceTax?: number;
+  // Accept string from multipart/form-data; convert in service
+  @IsString()
+  advanceTax?: string;
 
   @ApiProperty()
   @IsString()

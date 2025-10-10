@@ -51,8 +51,8 @@ export class ExpenseService {
         paymentDate: createExpenseDto.paymentDate
           ? new Date(createExpenseDto.paymentDate)
           : null,
-        WHT: createExpenseDto.WHT,
-        advanceTax: createExpenseDto.advanceTax,
+        WHT: createExpenseDto.WHT != null ? Number(createExpenseDto.WHT) : 0,
+        advanceTax: createExpenseDto.advanceTax != null ? Number(createExpenseDto.advanceTax) : 0,
         amountAfterTax: amountNumber,
         status: Status.WaitingForApproval,
         chequeImage: chequeImage,
