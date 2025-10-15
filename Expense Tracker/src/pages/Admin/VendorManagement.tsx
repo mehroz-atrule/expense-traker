@@ -47,7 +47,6 @@ const VendorManagement: React.FC = () => {
     preferredBankName: '',
     vendorAccountTitle: '',
     vendorIban: '',
-    WHT: 0,
   });
 
   // Temporary filters for the filter form
@@ -114,7 +113,6 @@ const VendorManagement: React.FC = () => {
       preferredBankName: '',
       vendorAccountTitle: '',
       vendorIban: '',
-      Tax: 0, 
     });
   };
 
@@ -137,7 +135,6 @@ const VendorManagement: React.FC = () => {
       preferredBankName: vendor.preferredBankName,
       vendorAccountTitle: vendor.vendorAccountTitle,
       vendorIban: vendor.vendorIban,
-      WHT: (vendor as any).WHT ?? (vendor as any).Tax ?? 0,
     });
     setEditModalOpen(true);
   };

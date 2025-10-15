@@ -2,25 +2,37 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { listExpenses, postExpense, updateExpense, deleteExpense } from '../../api/submitterApi';
 import type { Expense } from '../../types/expense';
 
-// moved to shared types
-
 interface SubmitterState {
   expenses: Expense[];
+  total: number; // ✅ Add total
+  page: number;  // ✅ Add page
+  limit: number; // ✅ Add limit
   loading: boolean;
   error?: string | null;
 }
 
 const initialState: SubmitterState = {
   expenses: [],
+  total: 0,      // ✅ Initialize total
+  page: 1,       // ✅ Initialize page
+  limit: 10,     // ✅ Initialize limit
   loading: false,
   error: null,
 };
+
+// ✅ Update the API response type to include pagination data
+interface ExpensesResponse {
+  data: Expense[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export const fetchExpenses = createAsyncThunk(
   'submitter/fetchExpenses',
   async (params: Record<string, unknown> = {}) => {
     const res = await listExpenses(params);
-    return res.data as Expense[];
+    return res as ExpensesResponse; // ✅ Return full response
   }
 );
 
@@ -52,28 +64,29 @@ const submitterSlice = createSlice({
   name: 'submitter',
   initialState,
   reducers: {
-    // 🧹 Add a clear action to reset expenses (optional but helpful)
     clearExpenses: (state) => {
       state.expenses = [];
+      state.total = 0; // ✅ Clear total too
     },
   },
   extraReducers: (builder) => {
     builder
-      // ✅ 1️⃣ Replace (not append) when fetching
       .addCase(fetchExpenses.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchExpenses.fulfilled, (state, action: PayloadAction<Expense[]>) => {
+      .addCase(fetchExpenses.fulfilled, (state, action: PayloadAction<ExpensesResponse>) => {
         state.loading = false;
-        state.expenses = action.payload; // 👈 Replace the list (no duplicates)
+        state.expenses = action.payload.data; // ✅ Set expenses from data
+        state.total = action.payload.total;   // ✅ Set total
+        state.page = action.payload.page;     // ✅ Set page
+        state.limit = action.payload.limit;   // ✅ Set limit
       })
       .addCase(fetchExpenses.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
 
-      // ✅ 2️⃣ Avoid adding duplicate items
       .addCase(createExpense.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -81,14 +94,16 @@ const submitterSlice = createSlice({
       .addCase(createExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
         state.loading = false;
         const exists = state.expenses.some(e => e._id === action.payload._id);
-        if (!exists) state.expenses.unshift(action.payload); // 👈 Add only if not exists
+        if (!exists) {
+          state.expenses.unshift(action.payload);
+          state.total += 1; // ✅ Update total when new expense is added
+        }
       })
       .addCase(createExpense.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
 
-      // ✅ 3️⃣ Fix update & delete to use `_id` instead of `id`
       .addCase(UpdateExpense.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -105,9 +120,10 @@ const submitterSlice = createSlice({
       })
       .addCase(removeExpense.fulfilled, (state, action: PayloadAction<string>) => {
         state.expenses = state.expenses.filter(e => e._id !== action.payload);
+        state.total = Math.max(0, state.total - 1); // ✅ Update total when expense is deleted
       });
   },
 });
 
-export const { clearExpenses } = submitterSlice.actions; // 👈 Export the clear action
+export const { clearExpenses } = submitterSlice.actions;
 export default submitterSlice.reducer;

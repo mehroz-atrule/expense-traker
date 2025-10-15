@@ -19,6 +19,8 @@ export interface Expense {
   amountAfterTax?: number | string; // calculated amount after tax deduction
   chequeImage?: string; // URL or base64 string of cheque image
   paymentSlip?: string; // URL or base64 string of payment slip image
+  chequeNumber?: string; // new: cheque number if payment is by cheque
+  bankName?: string;   // new: bank name if payment is by cheque
 }
 
 export interface CreateExpensePayload extends Omit<Expense, '_id' | 'createdAt' | 'updatedAt'> {}

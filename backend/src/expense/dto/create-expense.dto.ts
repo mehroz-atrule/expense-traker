@@ -96,6 +96,14 @@ export class CreateExpenseDto {
   @IsString()
   amountAfterTax: number;
 
-  
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  chequeNumber?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  bankName?: string;
 
 }

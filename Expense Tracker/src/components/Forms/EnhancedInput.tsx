@@ -9,6 +9,7 @@ interface EnhancedInputProps {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  readOnly?: boolean;
   error?: string;
   type?: 'text' | 'email' | 'password' | 'tel'| 'number' | 'date';
   pattern?: string;
@@ -23,6 +24,7 @@ const EnhancedInput: React.FC<EnhancedInputProps> = ({
   placeholder,
   required = false,
   disabled = false,
+  readOnly = false,
   error,
   type = 'text',
   pattern,
@@ -46,11 +48,12 @@ const EnhancedInput: React.FC<EnhancedInputProps> = ({
           placeholder={placeholder}
           required={required}
           disabled={disabled}
+        readOnly={readOnly}
           pattern={pattern}
           className={`
             w-full px-3 py-2 border rounded-lg text-sm transition-colors
             focus:outline-none focus:ring-2 focus:ring-offset-1
-            disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
+          disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed ${readOnly ? 'bg-gray-50' : ''}
             ${hasError 
               ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
               : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'

@@ -19,6 +19,18 @@ async function bootstrap() {
   const jwtService = app.get(JwtService);
 
 
+  // const clientUrl = configService.get<string>('CLIENT_URL') || 'http://localhost:5173';
+  // app.enableCors({
+  //   origin: [clientUrl, 'http://localhost:5173', 'http://localhost:3000'],
+  //   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  //   allowedHeaders: 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+  //   exposedHeaders: 'Content-Disposition',
+  //   credentials: true,
+  // });
+  // // --- Global Prefix ---
+  app.setGlobalPrefix('api');
+
+  // --- CORS ---
   const clientUrl = configService.get<string>('CLIENT_URL') || 'http://localhost:5173';
   app.enableCors({
     origin: [clientUrl, 'http://localhost:5173', 'http://localhost:3000'],
@@ -27,8 +39,6 @@ async function bootstrap() {
     exposedHeaders: 'Content-Disposition',
     credentials: true,
   });
-  // --- Global Prefix ---
-  app.setGlobalPrefix('api');
 
   // --- Validation Pipes ---
   app.useGlobalPipes(

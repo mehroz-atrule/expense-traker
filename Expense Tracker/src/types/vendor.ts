@@ -18,7 +18,6 @@ export interface CreateVendorPayload {
     preferredBankName: string;
     vendorAccountTitle: string;
     vendorIban: string;
-    WHT: number;
 }
 
 export interface UpdateVendorPayload {

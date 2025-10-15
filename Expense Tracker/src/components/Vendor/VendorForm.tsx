@@ -22,8 +22,7 @@ const VendorForm: React.FC<VendorFormProps> = ({
 const handleFieldChange = (field: keyof CreateVendorPayload, value: string) => {
   onChange({
     ...formData,
-    [field]: field === "WHT" ? Number(value) || 0 : value, // Convert WHT to number safely
-  });
+    [field]: value,});
 };
 
   const handleFieldBlur = (field: keyof CreateVendorPayload) => {
@@ -91,17 +90,16 @@ const handleFieldChange = (field: keyof CreateVendorPayload, value: string) => {
           error={shouldShowError('customerId') ? validationErrors.customerId : undefined}
         />
         
-        <EnhancedInput
+        {/* <EnhancedInput
           label="WHT %"
           value={(formData as any).WHT as any}
           type='number'
           onChange={(val) => handleFieldChange('WHT' as any, val)}
           onBlur={() => handleFieldBlur('WHT' as any)}
           placeholder="Enter withholding tax percentage (e.g., 17)"
-          required
           disabled={isLoading}
           error={shouldShowError('preferredBankName') ? validationErrors.preferredBankName : undefined}
-        />
+        /> */}
         
         <EnhancedInput
           label="Preferred Bank Name"

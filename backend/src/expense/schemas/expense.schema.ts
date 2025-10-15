@@ -59,6 +59,12 @@ export class Expense extends Document {
   @Prop()
   paymentSlip?: string;
 
+  @Prop()
+  chequeNumber?: string;
+
+  @Prop()
+  bankName?: string;
+
 }
 
 export const ExpenseSchema = SchemaFactory.createForClass(Expense);

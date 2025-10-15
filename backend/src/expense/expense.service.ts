@@ -57,6 +57,7 @@ export class ExpenseService {
         status: Status.WaitingForApproval,
         chequeImage: chequeImage,
         paymentSlip: paymentSlip,
+      
       });
 
       return await expense.save();
@@ -158,6 +159,7 @@ async update(
   image?: any,
   chequeImage?: any,
   paymentSlip?: any,
+               
 ) {
   try {
     if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid expense id');
@@ -205,6 +207,23 @@ async update(
         throw new BadRequestException('Invalid office id');
       }
       updatePayload.office = new Types.ObjectId(updatePayload.office);
+    }
+
+    // Coerce WHT and advanceTax if present
+    if (updatePayload.WHT !== undefined) {
+      const whtNumber = Number(updatePayload.WHT);
+      if (Number.isNaN(whtNumber)) {
+        throw new BadRequestException('WHT must be a number');
+      }
+      updatePayload.WHT = whtNumber;
+    }
+
+    if (updatePayload.advanceTax !== undefined) {
+      const advNumber = Number(updatePayload.advanceTax);
+      if (Number.isNaN(advNumber)) {
+        throw new BadRequestException('advanceTax must be a number');
+      }
+      updatePayload.advanceTax = advNumber;
     }
 
     const updated = await this.expenseModel
