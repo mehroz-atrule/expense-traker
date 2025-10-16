@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { listExpenses, postExpense, updateExpense, deleteExpense } from '../../api/submitterApi';
+import { listExpenses, postExpense, updateExpense, deleteExpense, getExpenseById } from '../../api/submitterApi';
 import type { Expense } from '../../types/expense';
 
 interface SubmitterState {
@@ -9,6 +9,7 @@ interface SubmitterState {
   limit: number; // ✅ Add limit
   loading: boolean;
   error?: string | null;
+  expenseDetails?: Expense | null; // ✅ Add expenseDetails to hold single expense data
 }
 
 const initialState: SubmitterState = {
@@ -18,6 +19,7 @@ const initialState: SubmitterState = {
   limit: 10,     // ✅ Initialize limit
   loading: false,
   error: null,
+  expenseDetails: null, // ✅ Initialize expenseDetails
 };
 
 // ✅ Update the API response type to include pagination data
@@ -40,6 +42,13 @@ export const createExpense = createAsyncThunk(
   'submitter/createExpense',
   async (payload: Expense) => {
     const res = await postExpense(payload);
+    return res as Expense;
+  }
+);
+export const getExpense = createAsyncThunk(
+  'submitter/getExpenseById',
+  async (id: string | number) => {  
+    const res = await getExpenseById(id);
     return res as Expense;
   }
 );
@@ -68,6 +77,9 @@ const submitterSlice = createSlice({
       state.expenses = [];
       state.total = 0; // ✅ Clear total too
     },
+     clearExpenseDetails: (state) => {
+    state.expenseDetails = null;
+  },
   },
   extraReducers: (builder) => {
     builder
@@ -121,9 +133,24 @@ const submitterSlice = createSlice({
       .addCase(removeExpense.fulfilled, (state, action: PayloadAction<string>) => {
         state.expenses = state.expenses.filter(e => e._id !== action.payload);
         state.total = Math.max(0, state.total - 1); // ✅ Update total when expense is deleted
-      });
+      })
+      .addCase(removeExpense.rejected, (state, action) => {
+        state.error = action.error.message;
+      } )
+    .addCase(getExpense.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })  
+    .addCase(getExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
+      state.loading = false;
+          state.expenseDetails = action.payload; // ✅ Set the fetched expense details
+    })
+    .addCase(getExpense.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message;
+    });
   },
 });
 
-export const { clearExpenses } = submitterSlice.actions;
+export const { clearExpenses , clearExpenseDetails } = submitterSlice.actions;
 export default submitterSlice.reducer;

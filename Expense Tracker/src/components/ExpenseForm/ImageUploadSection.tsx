@@ -1,5 +1,6 @@
 import React from "react";
 import { Upload, FileText, CreditCard, ZoomIn, File } from "lucide-react";
+import { current } from "@reduxjs/toolkit";
 
 interface ImageUploadSectionProps {
   preview: string | null;
@@ -12,6 +13,7 @@ interface ImageUploadSectionProps {
   shouldShowPaymentSlip: boolean;
   onImageClick: (imageUrl: string | null, title: string) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, type: "image" | "cheque" | "paymentSlip") => void;
+  isBankTransfer: boolean; // Not used currently but can be useful for future logic
 }
 
 const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
@@ -21,6 +23,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   isViewMode,
   isEditing,
   isCashPayment,
+  isBankTransfer, // Not used currently but can be useful for future logic
   currentStatusKey,
   shouldShowPaymentSlip,
   onImageClick,
@@ -173,7 +176,11 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 
   // ✅ Payment Slip Logic:
   const showPaymentSlipImage = shouldShowPaymentSlip;
-  const enablePaymentSlipImage = currentStatusKey === "ReadyForPayment" || currentStatusKey === "Approved" && isCashPayment;
+  const enablePaymentSlipImage =
+   currentStatusKey === "ReadyForPayment" ||
+    currentStatusKey === "Approved" && isCashPayment  || 
+    currentStatusKey === "WaitingForApproval" && isCashPayment ||
+    currentStatusKey === "Approved"  && isBankTransfer;
 
   return (
     <div className="bg-white rounded-2xl sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">

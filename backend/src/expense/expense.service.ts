@@ -118,14 +118,15 @@ export class ExpenseService {
       }
 
       // 🔹 Pagination & Fetch
-      const [data, total] = await Promise.all([
-        this.expenseModel
-          .find(filter)
-          .skip((page - 1) * limit)
-          .limit(limit)
-          .exec(),
-        this.expenseModel.countDocuments(filter).exec(),
-      ]);
+     const [data, total] = await Promise.all([
+  this.expenseModel
+    .find(filter)
+.sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .exec(),
+  this.expenseModel.countDocuments(filter).exec(),
+]);
 
       return { data, total, page, limit };
     } catch (error) {

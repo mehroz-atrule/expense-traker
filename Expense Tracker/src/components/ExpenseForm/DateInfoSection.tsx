@@ -11,6 +11,8 @@ interface DateInfoSectionProps {
   onBillDateChange: (value: string) => void;
   onDueDateChange: (value: string) => void;
   onPaymentDateChange: (value: string) => void;
+  currentStatusKey: string;
+  paymentMethod: string;
 }
 
 const DateInfoSection: React.FC<DateInfoSectionProps> = ({
@@ -22,7 +24,29 @@ const DateInfoSection: React.FC<DateInfoSectionProps> = ({
   onBillDateChange,
   onDueDateChange,
   onPaymentDateChange,
+  currentStatusKey,
+  paymentMethod,
 }) => {
+  console.log("DateInfoSection Rendered");
+
+  // ✅ show payment date for these statuses 
+  const showPaymentDate =
+    currentStatusKey === "ReadyForPayment" ||
+    currentStatusKey === "Approved" ||
+      currentStatusKey === "" ||  
+    currentStatusKey === "WaitingForApproval" ||    
+    currentStatusKey === "Paid";
+
+  // ✅ editable only when not paid and method is Cash or BankTransfer
+const isPaymentEditable =
+  (currentStatusKey === "ReadyForPayment" ||
+    currentStatusKey === "" ||
+    currentStatusKey === "WaitingForApproval" ||
+    currentStatusKey === "Approved") &&
+  (paymentMethod === "BankTransfer" || paymentMethod === "Cash" || paymentMethod === "Cheque");
+
+    console.log({isPaymentEditable, currentStatusKey, paymentMethod});
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3 sm:border-l-4 sm:border-indigo-500 sm:pl-4">
@@ -30,11 +54,15 @@ const DateInfoSection: React.FC<DateInfoSectionProps> = ({
           <Calendar className="w-4 h-4 text-indigo-600" />
         </div>
         <div>
-          <h3 className="text-base sm:text-sm font-semibold text-gray-900 mb-0 sm:mb-1">Date Information</h3>
-          <p className="text-sm sm:text-xs text-gray-600">Bill date, due date, and payment date</p>
+          <h3 className="text-base sm:text-sm font-semibold text-gray-900 mb-0 sm:mb-1">
+            Date Information
+          </h3>
+          <p className="text-sm sm:text-xs text-gray-600">
+            Bill date, due date, and payment date
+          </p>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <EnhancedInput
           label="Bill Date"
@@ -54,16 +82,18 @@ const DateInfoSection: React.FC<DateInfoSectionProps> = ({
           readOnly={isViewMode && !isEditing}
         />
 
-        <div className="sm:col-span-2 sm:max-w-sm">
-          <EnhancedInput
-            label="Payment Date (Optional)"
-            type="date"
-            value={paymentDate}
-            onChange={onPaymentDateChange}
-            disabled={isViewMode && !isEditing}
-            readOnly={isViewMode && !isEditing}
-          />
-        </div>
+        {showPaymentDate && (
+          <div className="sm:col-span-2 sm:max-w-sm">
+            <EnhancedInput
+              label="Payment Date"
+              type="date"
+              value={paymentDate}
+              onChange={onPaymentDateChange}
+              disabled={!isPaymentEditable}
+              readOnly={!isPaymentEditable}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -46,6 +46,7 @@ const MyExpenses: React.FC = () => {
   // Use the data from your API response
   const { expenses = [], total = 0 } = useAppSelector((s) => s.submitter);
 
+
   // Calculate total pages
   const totalPages = Math.ceil(total / limit);
 
@@ -158,7 +159,7 @@ const MyExpenses: React.FC = () => {
 
   const handleEditExpense = (expense: any) => {
     const firstSeg = location.pathname.split("/")[1] || "submitter";
-    navigate(`/${firstSeg}/createexpense`, { state: { expense: expense } });
+    navigate(`/${firstSeg}/createexpense?id=${expense._id}`, { state: { expense: expense } });
   };
 
   const handleDeleteExpense = (expense: any) => {
@@ -586,7 +587,7 @@ const MyExpenses: React.FC = () => {
                           {getOfficeName(exp.office)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                          Rs. {Number(exp.amount).toFixed(2)}
+                          Rs. {Number(exp.amountAfterTax??exp.amount).toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={getStatusColor(exp.status || "")}>
