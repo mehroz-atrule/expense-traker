@@ -13,56 +13,56 @@ export class PettycashService {
     @InjectModel(Pettycash.name) private pettycashModel: Model<Pettycash>,
     private readonly cloudinary: CloudinaryService,
   ) { }
-async create(createPettycashDto: CreatePettycashDto, chequeImage?: any) {
-  try {
-    // 🔹 Upload image if provided
-    const pettycashUrl = chequeImage?.buffer
-      ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'pettycash')).secure_url
-      : undefined;
+  async create(createPettycashDto: CreatePettycashDto, chequeImage?: any) {
+    try {
+      // 🔹 Upload image if provided
+      const pettycashUrl = chequeImage?.buffer
+        ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'pettycash')).secure_url
+        : undefined;
 
-    // 🔹 Parse amounts safely
-    const amountRecieve = Number(createPettycashDto.amountRecieve) || 0;
-    const amountSpent = Number(createPettycashDto.amountSpent) || 0;
+      // 🔹 Parse amounts safely
+      const amountRecieve = Number(createPettycashDto.amountRecieve) || 0;
+      const amountSpent = Number(createPettycashDto.amountSpent) || 0;
 
-    const officeId = new Types.ObjectId(createPettycashDto.office);
+      const officeId = new Types.ObjectId(createPettycashDto.office);
 
-    // 🔹 Get last pettycash for this specific office only
-    const lastPettycash = await this.pettycashModel
-      .findOne({ office: officeId })
-      .sort({ dateOfPayment: -1 }) // last transaction by payment date
-      .exec();
+      // 🔹 Get last pettycash for this specific office only
+      const lastPettycash = await this.pettycashModel
+        .findOne({ office: officeId })
+        .sort({ dateOfPayment: -1 }) // last transaction by payment date
+        .exec();
 
-    // 🔹 Determine opening balance (0 if first transaction for office)
-    const openingBalance = lastPettycash?.closingBalance
-      ? Number(lastPettycash.closingBalance)
-      : 0;
+      // 🔹 Determine opening balance (0 if first transaction for office)
+      const openingBalance = lastPettycash?.closingBalance
+        ? Number(lastPettycash.closingBalance)
+        : 0;
 
-    // 🔹 Compute new closing balance
-    const closingBalance = openingBalance + amountRecieve - amountSpent;
+      // 🔹 Compute new closing balance
+      const closingBalance = openingBalance + amountRecieve - amountSpent;
 
-    // 🔹 Create pettycash entry
-    const pettycash = new this.pettycashModel({
-      ...createPettycashDto,
-      office: officeId,
-      chequeImage: pettycashUrl,
-      openingBalance: openingBalance.toString(),
-      closingBalance: closingBalance.toString(),
-      remainingAmount: closingBalance.toString(),
-    });
+      // 🔹 Create pettycash entry
+      const pettycash = new this.pettycashModel({
+        ...createPettycashDto,
+        office: officeId,
+        chequeImage: pettycashUrl,
+        openingBalance: openingBalance.toString(),
+        closingBalance: closingBalance.toString(),
+        remainingAmount: closingBalance.toString(),
+      });
 
-    const saved = await pettycash.save();
+      const saved = await pettycash.save();
 
-    // 🔹 Optional: log the operation for debugging
-    console.log(
-      `Pettycash created for office ${officeId}: +${amountRecieve} -${amountSpent} → Closing ${closingBalance}`
-    );
+      // 🔹 Optional: log the operation for debugging
+      console.log(
+        `Pettycash created for office ${officeId}: +${amountRecieve} -${amountSpent} → Closing ${closingBalance}`
+      );
 
-    return saved;
-  } catch (error) {
-    console.error('Error creating pettycash:', error);
-    throw new InternalServerErrorException('Failed to create pettycash record');
+      return saved;
+    } catch (error) {
+      console.error('Error creating pettycash:', error);
+      throw new InternalServerErrorException('Failed to create pettycash record');
+    }
   }
-}
 
 
 
@@ -108,7 +108,7 @@ async create(createPettycashDto: CreatePettycashDto, chequeImage?: any) {
 
       const [data, total] = await Promise.all([
         this.pettycashModel
-          .find(filter)
+          .find(filter).populate('office')
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)

@@ -57,7 +57,6 @@ export class ExpenseService {
         status: Status.WaitingForApproval,
         chequeImage: chequeImage,
         paymentSlip: paymentSlip,
-      
       });
 
       return await expense.save();
