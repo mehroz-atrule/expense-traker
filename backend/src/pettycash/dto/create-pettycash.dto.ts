@@ -20,17 +20,17 @@ export class CreatePettycashDto {
 
   @ApiProperty({ description: 'Petty Cash amount spent' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   amountSpent: string;
 
   @ApiProperty({ description: 'Petty Cash amount recieved' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   amountRecieve: string;
 
   @ApiProperty({ description: 'Petty Cash remaining amount' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   remainingAmount: string;
 
   @ApiProperty({ description: 'Petty Cash date' })
