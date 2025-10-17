@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import routesConfig, { type Role } from "../../routes/routesCongif";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 
 interface SidebarProps {
   role: Role;
@@ -16,6 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, open, setOpen }) => {
   const { basePath, routes } = routesConfig[role];
 
   const toggleCollapse = () => setCollapsed(!collapsed);
+  const [pettyOpen, setPettyOpen] = useState(false);
 
   const isActiveLink = (path: string) => {
     const fullPath = path ? `${basePath}/${path}` : basePath;
@@ -25,7 +26,9 @@ const Sidebar: React.FC<SidebarProps> = ({ role, open, setOpen }) => {
   return (
     <>
       {open && (
-        <div
+        <button
+          type="button"
+          aria-label="Close sidebar"
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setOpen(false)}
         />
@@ -64,45 +67,80 @@ const Sidebar: React.FC<SidebarProps> = ({ role, open, setOpen }) => {
 
         <nav>
           <ul className="space-y-2">
-            {routes
-              .filter((r) => r.label)
-              .map((item) => {
-                const fullPath = item.path ? `${basePath}/${item.path}` : basePath;
-                return (
-                  <li key={fullPath}>
-                    <Link
-                      to={fullPath}
-                      className={`
-                        flex items-center 
-                        p-2 sm:p-3
-                        rounded-lg transition-all duration-200 group relative
-                        text-sm sm:text-base
-                        ${
-                          isActiveLink(item.path)
-                            ? "bg-gray-200 text-black"
-                            : "hover:bg-gray-100"
-                        }
-                        ${collapsed ? "justify-center" : ""}
-                      `}
-                      onClick={() => setOpen(false)}
-                      title={collapsed ? item.label : ""}
-                    >
-                      <span
-                        className={`text-base sm:text-lg ${
-                          collapsed ? "" : "mr-2 sm:mr-3"
-                        }`}
+            {/** Group pettycash routes into a dropdown */}
+            {(() => {
+              const pettyRoutes = routes.filter(r => r.path?.includes('pettycash'));
+              const pettyPaths = new Set(pettyRoutes.map(r => r.path));
+
+              return routes
+                .filter(r => r.label)
+                .map((item) => {
+                  const fullPath = item.path ? `${basePath}/${item.path}` : basePath;
+
+                  // Render the PettyCash parent as a dropdown
+                  if (item.path === 'pettycash') {
+                    return (
+                      <li key={fullPath}>
+                          <button
+                            type="button"
+                            className={`w-full text-left flex items-center p-2 sm:p-3 rounded-lg transition-all duration-200 group relative text-sm sm:text-base ${collapsed ? 'justify-center' : ''} ${isActiveLink(item.path) ? 'bg-gray-200 text-black' : 'hover:bg-gray-100'}`}
+                            onClick={() => setPettyOpen(!pettyOpen)}
+                          >
+                            <span className={`text-base sm:text-lg ${collapsed ? '' : 'mr-2 sm:mr-3'}`}>{item.icon}</span>
+                            {!collapsed && (
+                              <div className="flex-1 flex items-center justify-between">
+                                <span className="font-medium sm:text-sm">{item.label}</span>
+                                <ChevronDown className={`w-4 h-4 transition-transform ${pettyOpen ? 'rotate-180' : ''}`} />
+                              </div>
+                            )}
+                          </button>
+
+                        {/* Child links */}
+                        {!collapsed && pettyOpen && (
+                          <ul className="mt-2 ml-2 space-y-1">
+                            {routes
+                              .filter(r => r.path && pettyPaths.has(r.path) && r.path !== 'pettycash')
+                              .map(child => {
+                                const childFull = `${basePath}/${child.path}`;
+                                return (
+                                  <li key={childFull}>
+                                    <Link
+                                      to={childFull}
+                                      className={`flex items-center p-2 pl-4 rounded-md text-sm ${isActiveLink(child.path) ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50 text-gray-700'}`}
+                                      onClick={() => setOpen(false)}
+                                    >
+                                      <span className="text-xs mr-2">•</span>
+                                      <span>{child.label}</span>
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  }
+
+                  // Skip rendering child routes at top-level (they are shown under the dropdown)
+                  if (pettyPaths.has(item.path) && item.path !== 'pettycash') return null;
+
+                  return (
+                    <li key={fullPath}>
+                      <Link
+                        to={fullPath}
+                        className={`flex items-center p-2 sm:p-3 rounded-lg transition-all duration-200 group relative text-sm sm:text-base ${isActiveLink(item.path) ? 'bg-gray-200 text-black' : 'hover:bg-gray-100'} ${collapsed ? 'justify-center' : ''}`}
+                        onClick={() => setOpen(false)}
+                        title={collapsed ? item.label : ''}
                       >
-                        {item.icon}
-                      </span>
-                      {!collapsed && (
-                        <span className="font-medium sm:text-sm">
-                          {item.label}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
+                        <span className={`text-base sm:text-lg ${collapsed ? '' : 'mr-2 sm:mr-3'}`}>{item.icon}</span>
+                        {!collapsed && (
+                          <span className="font-medium sm:text-sm">{item.label}</span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                });
+            })()}
           </ul>
         </nav>
       </aside>

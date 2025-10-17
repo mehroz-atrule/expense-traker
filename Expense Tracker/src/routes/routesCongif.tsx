@@ -28,6 +28,9 @@ export type RoutesConfig = {
 // ✅ Import pages
 import CreateExpense from "../pages/Submitter/CreateExpense";
 import MyExpenses from "../pages/Submitter/MyExpenses";
+import PettyCash from "../pages/Submitter/PettyCash";
+import CreatePettycashExpense from "../pages/Submitter/CreatePettycashExpense";
+import PettycashExpense from "../pages/Submitter/PettycashExpense";
 
 import ReviewExpenses from "../pages/Operations/ReviewExpenses";
 import ReviewDetail from "../pages/Operations/ReviewDetail";
@@ -59,6 +62,30 @@ const routesConfig: RoutesConfig = {
         icon: <Home size={18} />, 
         tooltip: "Go to dashboard",
         navbar: { title: "Dashboard" }
+      },
+      {
+        path: "pettycash",
+        element: <PettyCash />,
+        label: "PettyCash",
+        icon: <CreditCard size={18} />,
+        tooltip: "Manage petty cash",
+        navbar: { title: "PettyCash" }
+      },
+      {
+        path: "create-pettycash-expense",
+        element: <CreatePettycashExpense />,
+        label: "Create Pettycash Expense",
+        icon: <FileText size={18} />,
+        tooltip: "Create petty cash expense",
+        navbar: { title: "Create Pettycash Expense" }
+      },
+      {
+        path: "pettycash-expense",
+        element: <PettycashExpense />,
+        label: "Pettycash expense",
+        icon: <ClipboardList size={18} />,
+        tooltip: "Pettycash transactions",
+        navbar: { title: "Pettycash Expense" }
       },
       { 
         path: "createexpense", 
@@ -187,6 +214,31 @@ const routesConfig: RoutesConfig = {
         icon: <Building2 size={18} />,
         tooltip: "Manage vendors",
         navbar: { title: "Vendor Management" }
+      },
+      // PettyCash admin views (same pages available to admin)
+      {
+        path: "pettycash",
+        element: <PettyCash />,
+        label: "PettyCash",
+        icon: <CreditCard size={18} />,
+        tooltip: "Manage petty cash",
+        navbar: { title: "PettyCash" }
+      },
+      {
+        path: "create-pettycash-expense",
+        element: <CreatePettycashExpense />,
+        label: "Create Pettycash Expense",
+        icon: <FileText size={18} />,
+        tooltip: "Create petty cash expense",
+        navbar: { title: "Create Pettycash Expense" }
+      },
+      {
+        path: "pettycash-expense",
+        element: <PettycashExpense />,
+        label: "Pettycash expense",
+        icon: <ClipboardList size={18} />,
+        tooltip: "Pettycash transactions",
+        navbar: { title: "Pettycash Expense" }
       },
       { 
         path: "settings", 
