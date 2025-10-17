@@ -1,6 +1,5 @@
 import React from "react";
 import { Upload, FileText, CreditCard, ZoomIn, File } from "lucide-react";
-import { current } from "@reduxjs/toolkit";
 
 interface ImageUploadSectionProps {
   preview: string | null;
@@ -14,6 +13,7 @@ interface ImageUploadSectionProps {
   onImageClick: (imageUrl: string | null, title: string) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, type: "image" | "cheque" | "paymentSlip") => void;
   isBankTransfer: boolean; // Not used currently but can be useful for future logic
+  showExpenseReceipt?: boolean;
 }
 
 const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
@@ -28,6 +28,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   shouldShowPaymentSlip,
   onImageClick,
   onFileChange,
+  showExpenseReceipt = true,
 }) => {
   
   // Function to check if file is PDF
@@ -196,8 +197,8 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
         </div>
       
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Expense Receipt - Only in create/edit mode */}
-          {renderUploadField(
+          {/* Expense Receipt - Only in create/edit mode (optional) */}
+          {showExpenseReceipt !== false && renderUploadField(
             "image",
             "Expense Receipt",
             <FileText className="w-4 h-4 text-blue-500 sm:hidden" />,
