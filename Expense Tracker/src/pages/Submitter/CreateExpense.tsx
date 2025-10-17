@@ -21,6 +21,7 @@ import FinancialDetailsSection from "../../components/ExpenseForm/FinancialDetai
 import CategoryDetailsSection from "../../components/ExpenseForm/CategoryDetailsSection";
 import ImageUploadSection from "../../components/ExpenseForm/ImageUploadSection";
 import ImageModal from "../../components/ImageViewModal";
+import Loader from "../../components/Loader";
 
 interface FormData {
   title: string;
@@ -436,7 +437,8 @@ const submitExpense = async (isApprove = false) => {
         <button
           type="button"
           onClick={handleCancel}
-          className="order-2 sm:order-1 px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200 flex items-center justify-center gap-2"
+          disabled={submitterLoading}
+          className="order-2 sm:order-1 px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
         >
           <ChevronLeft className="w-4 h-4" />
           {isEditing ? "Cancel Changes" : "Cancel"}
@@ -452,7 +454,11 @@ const submitExpense = async (isApprove = false) => {
                 disabled={submitterLoading}
                 className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
               >
-                ✓ {getApproveButtonText()}
+                {submitterLoading ? (
+                  <Loader size="sm" text="" className="!text-white" />
+                ) : (
+                  <>✓ {getApproveButtonText()}</>
+                )}
               </button>
 
               <button
@@ -465,7 +471,8 @@ const submitExpense = async (isApprove = false) => {
                     })
                   )
                 }
-                className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 flex items-center justify-center gap-2"
+                disabled={submitterLoading}
+                className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 ✗ Reject
               </button>
@@ -477,7 +484,8 @@ const submitExpense = async (isApprove = false) => {
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="px-4 py-3 sm:py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 flex items-center justify-center gap-2"
+              disabled={submitterLoading}
+              className="px-4 py-3 sm:py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <Edit3 className="w-4 h-4" />
               Edit Expense
@@ -492,10 +500,7 @@ const submitExpense = async (isApprove = false) => {
               className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
             >
               {submitterLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Processing...</span>
-                </>
+                <Loader size="sm" text="Processing..." className="!text-white" />
               ) : (
                 <>
                   {isEditing ? <Edit3 className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
@@ -523,7 +528,6 @@ const submitExpense = async (isApprove = false) => {
       </div>
     );
   };
-
   const Header = () => (
     <div className="bg-white border-b border-gray-200">
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
