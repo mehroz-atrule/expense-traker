@@ -13,46 +13,57 @@ export class PettycashService {
     @InjectModel(Pettycash.name) private pettycashModel: Model<Pettycash>,
     private readonly cloudinary: CloudinaryService,
   ) { }
-  async create(createPettycashDto: CreatePettycashDto, chequeImage?: any) {
-    try {
-      const pettycashUrl = chequeImage?.buffer
-        ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'pettycash')).secure_url
-        : undefined;
-      console.log(createPettycashDto)
-      // 🔹 Parse amounts as numbers
-      const amountRecieve = Number(createPettycashDto.amountRecieve || 0);
-      const amountSpent = Number(createPettycashDto.amountSpent || 0);
+async create(createPettycashDto: CreatePettycashDto, chequeImage?: any) {
+  try {
+    // 🔹 Upload image if provided
+    const pettycashUrl = chequeImage?.buffer
+      ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'pettycash')).secure_url
+      : undefined;
 
-      // 🔹 Get last pettycash for this office (sort by dateOfPayment descending)
-      const lastPettycash = await this.pettycashModel
-        .findOne({ office: new Types.ObjectId(createPettycashDto.office) })
-        .sort({ dateOfPayment: -1 })
-        .exec();
+    // 🔹 Parse amounts safely
+    const amountRecieve = Number(createPettycashDto.amountRecieve) || 0;
+    const amountSpent = Number(createPettycashDto.amountSpent) || 0;
 
-      // 🔹 Determine openingBalance
-      const openingBalance = lastPettycash?.closingBalance
-        ? Number(lastPettycash.closingBalance)
-        : 0;
+    const officeId = new Types.ObjectId(createPettycashDto.office);
 
-      // 🔹 Compute closingBalance and remainingAmount
-      const closingBalance = openingBalance + amountRecieve - amountSpent;
-      const remainingAmount = closingBalance;
+    // 🔹 Get last pettycash for this specific office only
+    const lastPettycash = await this.pettycashModel
+      .findOne({ office: officeId })
+      .sort({ dateOfPayment: -1 }) // last transaction by payment date
+      .exec();
 
-      // 🔹 Create new pettycash doc
-      const pettycash = new this.pettycashModel({
-        ...createPettycashDto,
-        openingBalance: openingBalance.toString(),
-        closingBalance: closingBalance.toString(),
-        remainingAmount: remainingAmount.toString(),
-        chequeImage: pettycashUrl,
-      });
+    // 🔹 Determine opening balance (0 if first transaction for office)
+    const openingBalance = lastPettycash?.closingBalance
+      ? Number(lastPettycash.closingBalance)
+      : 0;
 
-      return await pettycash.save();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    // 🔹 Compute new closing balance
+    const closingBalance = openingBalance + amountRecieve - amountSpent;
+
+    // 🔹 Create pettycash entry
+    const pettycash = new this.pettycashModel({
+      ...createPettycashDto,
+      office: officeId,
+      chequeImage: pettycashUrl,
+      openingBalance: openingBalance.toString(),
+      closingBalance: closingBalance.toString(),
+      remainingAmount: closingBalance.toString(),
+    });
+
+    const saved = await pettycash.save();
+
+    // 🔹 Optional: log the operation for debugging
+    console.log(
+      `Pettycash created for office ${officeId}: +${amountRecieve} -${amountSpent} → Closing ${closingBalance}`
+    );
+
+    return saved;
+  } catch (error) {
+    console.error('Error creating pettycash:', error);
+    throw new InternalServerErrorException('Failed to create pettycash record');
   }
+}
+
 
 
   async findAll(query: QueryPettycashDto) {
