@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
-import { 
-  Home, FileText, ClipboardList, Eye, CheckCircle, 
-  CreditCard, BarChart, Users, Settings, Building2,
+import {
+  Home,
+  FileText,
+  ClipboardList,
+  CreditCard,
+  Users,
+  Settings,
+  Building2,
 } from "lucide-react";
 
 export interface RouteItem {
@@ -14,9 +19,10 @@ export interface RouteItem {
     title: string;
     actions?: ReactNode[];
   };
+  children?: RouteItem[];
 }
 
-export type Role = "submitter" | "operations" | "finance" | "admin";
+export type Role = "admin";
 
 export type RoutesConfig = {
   [key in Role]: {
@@ -26,227 +32,102 @@ export type RoutesConfig = {
 };
 
 // ✅ Import pages
+import AdminDashboard from "../pages/Dashboard/AdminDashboard";
+import UserManagement from "../pages/Admin/UserManagement";
+import OfficeManagement from "../pages/Admin/OfficeManagement";
+import VendorManagement from "../pages/Admin/VendorManagement";
 import CreateExpense from "../pages/Submitter/CreateExpense";
 import MyExpenses from "../pages/Submitter/MyExpenses";
 import PettyCash from "../pages/Submitter/PettyCash";
 import CreatePettycashExpense from "../pages/Submitter/CreatePettycashExpense";
 import PettycashExpense from "../pages/Submitter/PettycashExpense";
-
-import ReviewExpenses from "../pages/Operations/ReviewExpenses";
-import ReviewDetail from "../pages/Operations/ReviewDetail";
-
-import ValidateExpense from "../pages/Finance/ValidateExpense";
-import PaymentProcessing from "../pages/Finance/PaymentProcessing";
-import Reports from "../pages/Finance/Reports";
-
-import UserManagement from "../pages/Admin/UserManagement";
 import SystemSettings from "../pages/Admin/SystemSettings";
-import OfficeManagement from "../pages/Admin/OfficeManagement";
-import VendorManagement from "../pages/Admin/VendorManagement";
-import SubmitterDashboard from "../pages/Dashboard/SubmitterDashboard";
-import OperatorDashboard from "../pages/Dashboard/OperatorDashboard";
-import FinanceDashboard from "../pages/Dashboard/FinanceDashboard";
-import AdminDashboard from "../pages/Dashboard/AdminDashboard";
-
-// 🔹 Example action buttons
-
 
 const routesConfig: RoutesConfig = {
-  submitter: {
-    basePath: "/submitter",
-    routes: [
-      { 
-        path: "", 
-        element: <SubmitterDashboard />, 
-        label: "Dashboard", 
-        icon: <Home size={18} />, 
-        tooltip: "Go to dashboard",
-        navbar: { title: "Dashboard" }
-      },
-      {
-        path: "pettycash",
-        element: <PettyCash />,
-        label: "PettyCash",
-        icon: <CreditCard size={18} />,
-        tooltip: "Manage petty cash",
-        navbar: { title: "PettyCash" }
-      },
-      {
-        path: "create-pettycash-expense",
-        element: <CreatePettycashExpense />,
-        label: "Create Pettycash Expense",
-        icon: <FileText size={18} />,
-        tooltip: "Create petty cash expense",
-        navbar: { title: "Create Pettycash Expense" }
-      },
-      {
-        path: "pettycash-expense",
-        element: <PettycashExpense />,
-        label: "Pettycash expense",
-        icon: <ClipboardList size={18} />,
-        tooltip: "Pettycash transactions",
-        navbar: { title: "Pettycash Expense" }
-      },
-      { 
-        path: "createexpense", 
-        element: <CreateExpense />, 
-        label: "Create Expense", 
-        icon: <FileText size={18} />, 
-        tooltip: "Create new expense",
-        navbar: { title: "Create New Expense", actions: [] }
-      },
-      { 
-        path: "my-expenses", 
-        element: <MyExpenses />, 
-        label: "Expenses", 
-        icon: <ClipboardList size={18} />, 
-        tooltip: "View expenses",
-        navbar: { title: "Submitted Expenses" }
-      },
-    ],
-  },
-  operations: {
-    basePath: "/operations",
-    routes: [
-      { 
-        path: "", 
-        element: <OperatorDashboard />, 
-        label: "Dashboard", 
-        icon: <Home size={18} />, 
-        tooltip: "Go to dashboard",
-        navbar: { title: "Operations Dashboard" }
-      },
-      { 
-        path: "review", 
-        element: <ReviewExpenses />, 
-        label: "Review Expenses", 
-        icon: <Eye size={18} />, 
-        tooltip: "Review pending expenses",
-        navbar: { title: "Review Expenses" }
-      },
-      { path: "review/:id", element: <ReviewDetail />, navbar: { title: "Expense Review Detail" } },
-    ],
-  },
-  finance: {
-    basePath: "/finance",
-    routes: [
-      { 
-        path: "", 
-        element: <FinanceDashboard />, 
-        label: "Dashboard", 
-        icon: <BarChart size={18} />, 
-        tooltip: "Finance dashboard",
-        navbar: { title: "Finance Dashboard" }
-      },
-      { 
-        path: "validate/:id", 
-        element: <ValidateExpense />, 
-        label: "Validate", 
-        icon: <CheckCircle size={18} />, 
-        tooltip: "Validate expenses",
-        navbar: { title: "Validate Expense" }
-      },
-      { 
-        path: "payment", 
-        element: <PaymentProcessing />, 
-        label: "Payment", 
-        icon: <CreditCard size={18} />, 
-        tooltip: "Process payments",
-        navbar: { title: "Payment Processing" }
-      },
-      { 
-        path: "reports", 
-        element: <Reports />, 
-        label: "Reports", 
-        icon: <BarChart size={18} />, 
-        tooltip: "View reports",
-        navbar: { title: "Financial Reports", actions: [] }
-      },
-    ],
-  },
   admin: {
     basePath: "/admin",
     routes: [
-      { 
-        path: "", 
-        element: <AdminDashboard />, 
-        label: "Dashboard", 
-        icon: <Home size={18} />, 
+      {
+        path: "",
+        element: <AdminDashboard />,
+        label: "Dashboard",
+        icon: <Home size={18} />,
         tooltip: "Admin dashboard",
-        navbar: { title: "Admin Dashboard" }
+        navbar: { title: "Admin Dashboard" },
       },
-      { 
-        path: "users", 
-        element: <UserManagement />, 
-        label: "Users", 
-        icon: <Users size={18} />, 
+      {
+        path: "users",
+        element: <UserManagement />,
+        label: "Users",
+        icon: <Users size={18} />,
         tooltip: "Manage users",
-        navbar: { title: "User Management" }
-      },
-      {
-        path: "createexpense",
-        element: <CreateExpense />,
-        label: "Create Expense",
-        icon: <FileText size={18} />,
-        tooltip: "Create expense as admin",
-        navbar: { title: "Create New Expense" }
-      },
-      {
-        path: "my-expenses",
-        element: <MyExpenses />,
-        label: "My Expenses",
-        icon: <ClipboardList size={18} />,
-        tooltip: "View expenses (admin)",
-        navbar: { title: "Submitted Expenses" }
+        navbar: { title: "User Management" },
       },
       {
         path: "offices",
         element: <OfficeManagement />,
         label: "Offices",
-        icon: <Users size={18} />,
+        icon: <Building2 size={18} />,
         tooltip: "Manage offices",
-        navbar: { title: "Office Management" }
+        navbar: { title: "Office Management" },
       },
       {
-        path: "vendors",
+        path: "vendor",
         element: <VendorManagement />,
-        label: "Vendors",
+        label: "Vendor",
         icon: <Building2 size={18} />,
-        tooltip: "Manage vendors",
-        navbar: { title: "Vendor Management" }
+        tooltip: "Vendor Section",
+        navbar: { title: "Vendor" },
+        children: [
+          {
+            path: "create-expense",
+            element: <CreateExpense />,
+            label: "Create Expense",
+            icon: <FileText size={18} />,
+          },
+          {
+            path: "my-expenses",
+            element: <MyExpenses />,
+            label: "Vendor Expenses",
+            icon: <ClipboardList size={18} />,
+          },
+          {
+            path: "manage",
+            element: <VendorManagement />,
+            label: "Manage Vendors",
+            icon: <Building2 size={18} />,
+          },
+        ],
       },
-      // PettyCash admin views (same pages available to admin)
       {
         path: "pettycash",
         element: <PettyCash />,
         label: "PettyCash",
         icon: <CreditCard size={18} />,
         tooltip: "Manage petty cash",
-        navbar: { title: "PettyCash" }
+        navbar: { title: "PettyCash" },
+        children: [
+          {
+            path: "create-expense",
+            element: <CreatePettycashExpense />,
+            label: "Create Pettycash Expense",
+            icon: <FileText size={18} />,
+          },
+          {
+            path: "expenses",
+            element: <PettycashExpense />,
+            label: "Pettycash Expenses",
+            icon: <ClipboardList size={18} />,
+          },
+        ],
       },
       {
-        path: "create-pettycash-expense",
-        element: <CreatePettycashExpense />,
-        label: "Create Pettycash Expense",
-        icon: <FileText size={18} />,
-        tooltip: "Create petty cash expense",
-        navbar: { title: "Create Pettycash Expense" }
-      },
-      {
-        path: "pettycash-expense",
-        element: <PettycashExpense />,
-        label: "Pettycash expense",
-        icon: <ClipboardList size={18} />,
-        tooltip: "Pettycash transactions",
-        navbar: { title: "Pettycash Expense" }
-      },
-      { 
-        path: "settings", 
-        element: <SystemSettings />, 
-        label: "Settings", 
-        icon: <Settings size={18} />, 
+        path: "settings",
+        element: <SystemSettings />,
+        label: "Settings",
+        icon: <Settings size={18} />,
         tooltip: "System settings",
-        navbar: { title: "System Settings" }
+        navbar: { title: "System Settings" },
       },
     ],
   },

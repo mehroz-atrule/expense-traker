@@ -159,13 +159,13 @@ const MyExpenses: React.FC = () => {
 
   const handleEditExpense = (expense: any) => {
     const firstSeg = location.pathname.split("/")[1] || "submitter";
-    navigate(`/${firstSeg}/createexpense?id=${expense._id}`, { state: { expense: expense } });
+    navigate(`/${firstSeg}/vendor/create-expense?id=${expense._id}`, { state: { expense: expense } });
   };
 
   const handleDeleteExpense = (expense: any) => {
     setSelectedExpense(expense);
     setConfirmDeleteOpen(true);
-  };
+  };  
 
   const confirmDelete = () => {
     if (selectedExpense?._id) {
