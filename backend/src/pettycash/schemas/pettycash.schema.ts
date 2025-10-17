@@ -6,16 +6,21 @@ export class Pettycash extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Office', required: true })
   office: Types.ObjectId;
 
-  @Prop({ required: true })
-  amount: string;
+  @Prop()
+  amountSpent?: string;
 
-  @Prop({ required: true })
+  @Prop()
+  amountRecieve?: string;
+
+  @Prop()
+  remainingAmount?: string;
+
+  @Prop({ type: Date, required: true })
   dateOfPayment: Date;
 
-  @Prop({ required: true })
+  @Prop()
   transactionNo?: string;
 
-  // 👇 Relation with Office
   @Prop()
   chequeNumber?: string;
 
@@ -34,7 +39,11 @@ export class Pettycash extends Document {
   @Prop()
   month?: string;
 
+  @Prop()
+  title?: string;
 
+  @Prop()
+  description?: string;
 }
 
 export const PettycashSchema = SchemaFactory.createForClass(Pettycash);

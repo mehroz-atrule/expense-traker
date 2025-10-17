@@ -3,15 +3,35 @@ import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreatePettycashDto {
 
+  @ApiProperty({ description: 'Petty Cash title' })
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @ApiProperty({ description: 'Petty Cash description' })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @ApiProperty({ description: 'Office ID (ObjectId)' })
   @IsString()
   @IsNotEmpty()
   office: string;
 
-  @ApiProperty({ description: 'Petty Cash amount' })
+  @ApiProperty({ description: 'Petty Cash amount spent' })
   @IsString()
   @IsNotEmpty()
-  amount: string;
+  amountSpent: string;
+
+  @ApiProperty({ description: 'Petty Cash amount recieved' })
+  @IsString()
+  @IsNotEmpty()
+  amountRecieve: string;
+
+  @ApiProperty({ description: 'Petty Cash remaining amount' })
+  @IsString()
+  @IsNotEmpty()
+  remainingAmount: string;
 
   @ApiProperty({ description: 'Petty Cash date' })
   @IsString()
