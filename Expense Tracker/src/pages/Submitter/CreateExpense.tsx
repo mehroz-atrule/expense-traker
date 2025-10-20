@@ -42,6 +42,7 @@ interface FormData {
   paymentSlip?: File | null;
   chequeNumber: string;
   bankName: string;
+  status?: string;
 }
 
 // Constants
@@ -125,28 +126,28 @@ const CreateExpenseView: React.FC = () => {
   const dispatch = useAppDispatch();
   const role = useAppSelector((s) => (s as any)?.auth?.user?.role || "submitter");
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
-  const {loading :submitterLoading , expenses} = useAppSelector((s: RootState) => s.submitter);
-//   const viewExpense = useAppSelector((s: RootState) =>
-//   s.submitter.expenses.find(e => e._id === id)
-// );
-  const { loading, expenseDetails:viewExpense } = useAppSelector(
+  const { loading: submitterLoading, expenses } = useAppSelector((s: RootState) => s.submitter);
+  //   const viewExpense = useAppSelector((s: RootState) =>
+  //   s.submitter.expenses.find(e => e._id === id)
+  // );
+  const { loading, expenseDetails: viewExpense } = useAppSelector(
     (state: RootState) => state.submitter
   );
-  console.log({viewExpense});
-  
-  console.log({id, mode});
+  console.log({ viewExpense });
 
-useEffect(() => {
-  if (id) {
-    dispatch(getExpense(id));
-  } 
-  return () => {  
-    dispatch(clearExpenseDetails());
-  };
-}, [id, dispatch]);
+  console.log({ id, mode });
+
+  useEffect(() => {
+    if (id) {
+      dispatch(getExpense(id));
+    }
+    return () => {
+      dispatch(clearExpenseDetails());
+    };
+  }, [id, dispatch]);
 
 
- 
+
   // Derived State
   const state = (location.state as { expense?: Expense } | null) || null;
 
@@ -156,12 +157,12 @@ useEffect(() => {
 
   const normalizeStatus = (s?: string) => (s || '').replace(/\s+/g, '').replace(/[^A-Za-z]/g, '');
   const currentStatusKey = normalizeStatus(viewExpense?.status);
-  const isRejected = (viewExpense?.status || '').toLowerCase() === 'rejected' || 
-                    (viewExpense?.status || '').startsWith('Rejected@');
+  const isRejected = (viewExpense?.status || '').toLowerCase() === 'rejected' ||
+    (viewExpense?.status || '').startsWith('Rejected');
   const isPaid = currentStatusKey === 'Paid';
   const currentIndex = STATUS_FLOW.findIndex(k => k === currentStatusKey);
-  const nextStatusKey = currentIndex >= 0 && currentIndex < STATUS_FLOW.length - 1 ? 
-                       STATUS_FLOW[currentIndex + 1] : undefined;
+  const nextStatusKey = currentIndex >= 0 && currentIndex < STATUS_FLOW.length - 1 ?
+    STATUS_FLOW[currentIndex + 1] : undefined;
 
   const isCashPayment = formData.payment === "Cash";
 
@@ -186,11 +187,11 @@ useEffect(() => {
       currentStatusKey === "ReadyForPayment" ||
       currentStatusKey === "Paid"
     )) ||
-    ((!isViewMode || isEditing) && formData.payment === "Cheque" && 
-     (formData.chequeImage || chequePreview));
+    ((!isViewMode || isEditing) && formData.payment === "Cheque" &&
+      (formData.chequeImage || chequePreview));
 
   const shouldEnableChequeFields =
-    !isViewMode || isEditing || 
+    !isViewMode || isEditing ||
     (isViewMode && !isEditing && !isCashPayment && currentStatusKey === "InReviewByFinance");
 
   const shouldShowPaymentSlip =
@@ -224,7 +225,7 @@ useEffect(() => {
   }, [vendors]);
 
   useEffect(() => {
-    
+
     if (viewExpense) {
       const expenseData = {
         title: viewExpense.title || "",
@@ -242,8 +243,8 @@ useEffect(() => {
         bankName: (viewExpense as any).bankName || "",
         WHT: (viewExpense as any).WHT ? Number((viewExpense as any).WHT) : 0,
         advanceTax: (viewExpense as any).advanceTax || 0,
-        amountAfterTax: (viewExpense as any).amountAfterTax ? 
-                       Number((viewExpense as any).amountAfterTax) : 0,
+        amountAfterTax: (viewExpense as any).amountAfterTax ?
+          Number((viewExpense as any).amountAfterTax) : 0,
       };
 
       setFormData(expenseData);
@@ -268,7 +269,7 @@ useEffect(() => {
   };
 
   const handleFileChange = (
-    e: ChangeEvent<HTMLInputElement>, 
+    e: ChangeEvent<HTMLInputElement>,
     type: "image" | "cheque" | "paymentSlip"
   ) => {
     const file = e.target.files?.[0] || null;
@@ -278,8 +279,8 @@ useEffect(() => {
 
     setFormData(prev => ({
       ...prev,
-      [type === "image" ? "image" : 
-       type === "cheque" ? "chequeImage" : "paymentSlip"]: file
+      [type === "image" ? "image" :
+        type === "cheque" ? "chequeImage" : "paymentSlip"]: file
     }));
 
     // Update previews and cleanup previous URLs
@@ -312,7 +313,7 @@ useEffect(() => {
       const whtNum = parseFloat(String(updated.WHT || "0")) || 0;
       const advanceTaxNum = parseFloat(String(updated.advanceTax || "0")) || 0;
 
-      const total = amountNum -  + advanceTaxNum;
+      const total = amountNum - + advanceTaxNum;
       updated.amountAfterTax = Number(total.toFixed(2));
 
       return updated;
@@ -328,60 +329,61 @@ useEffect(() => {
     submitExpense(true);
   };
 
-const submitExpense = async (isApprove = false) => {
-  const payload: Expense & { chequeNumber?: string; bankName?: string; status?: string } = {
-    _id: viewExpense?._id,
-    title: formData.title,
-    vendor: formData.vendor,
-    amount: formData.amount || "",
-    category: formData.category,
-    office: formData.office,
-    payment: formData.payment,
-    description: formData.description,
-    billDate: formData.billDate ? new Date(formData.billDate).toISOString() : undefined,
-    dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
-    paymentDate: formData.paymentDate ? new Date(formData.paymentDate).toISOString() : undefined,
-    WHT: formData.WHT != null ? String(formData.WHT) : "0",
-    advanceTax: formData.advanceTax != null ? Number(formData.advanceTax) : 0,
-    amountAfterTax: formData.amountAfterTax != null ? String(formData.amountAfterTax) : "0",
-    chequeNumber: formData.chequeNumber,
-    bankName: formData.bankName,
-    image: viewExpense?.image || undefined,
-    chequeImage: viewExpense?.chequeImage || undefined,
-    paymentSlip: viewExpense?.paymentSlip || undefined,
-  };
+  const submitExpense = async (isApprove = false) => {
+    const payload: Expense & { chequeNumber?: string; bankName?: string; status?: string } = {
+      _id: viewExpense?._id,
+      title: formData.title,
+      vendor: formData.vendor,
+      amount: formData.amount || "",
+      category: formData.category,
+      office: formData.office,
+      payment: formData.payment,
+      description: formData.description,
+      billDate: formData.billDate ? new Date(formData.billDate).toISOString() : undefined,
+      dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
+      paymentDate: formData.paymentDate ? new Date(formData.paymentDate).toISOString() : undefined,
+      WHT: formData.WHT != null ? String(formData.WHT) : "0",
+      advanceTax: formData.advanceTax != null ? Number(formData.advanceTax) : 0,
+      amountAfterTax: formData.amountAfterTax != null ? String(formData.amountAfterTax) : "0",
+      chequeNumber: formData.chequeNumber,
+      bankName: formData.bankName,
+      image: viewExpense?.image || undefined,
+      chequeImage: viewExpense?.chequeImage || undefined,
+      paymentSlip: viewExpense?.paymentSlip || undefined,
+      status: viewExpense?.status || "WaitingForApproval"
+    };
 
-  if (isApprove && effectiveNextStatus) {
-    payload.status = isCashPayment ? "Paid" : effectiveNextStatus;
-  }
-
-  let dataToSend: any = payload;
-  if (formData.image || formData.chequeImage || formData.paymentSlip) {
-    const form = new FormData();
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        form.append(key, value as any);
-      }
-    });
-    if (formData.image) form.append("image", formData.image);
-    if (formData.chequeImage) form.append("chequeImage", formData.chequeImage);
-    if (formData.paymentSlip) form.append("paymentSlip", formData.paymentSlip);
-    dataToSend = form;
-  }
-
-  try {
-    if (viewExpense?._id) {
-      await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
-    } else {
-      await dispatch(createExpense(dataToSend)).unwrap();
+    if (isApprove && effectiveNextStatus) {
+      payload.status = isCashPayment ? "Paid" : effectiveNextStatus;
     }
 
-    navigate(-1); 
+    let dataToSend: any = payload;
+    if (formData.image || formData.chequeImage || formData.paymentSlip) {
+      const form = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          form.append(key, value as any);
+        }
+      });
+      if (formData.image) form.append("image", formData.image);
+      if (formData.chequeImage) form.append("chequeImage", formData.chequeImage);
+      if (formData.paymentSlip) form.append("paymentSlip", formData.paymentSlip);
+      dataToSend = form;
+    }
 
-  } catch (error) {
-    console.error("Failed to submit expense:", error);
-  }
-};
+    try {
+      if (viewExpense?._id) {
+        await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
+      } else {
+        await dispatch(createExpense(dataToSend)).unwrap();
+      }
+
+      navigate(-1);
+
+    } catch (error) {
+      console.error("Failed to submit expense:", error);
+    }
+  };
 
 
   const handleCancel = () => {
@@ -405,8 +407,8 @@ const submitExpense = async (isApprove = false) => {
           bankName: (viewExpense as any).bankName || "",
           WHT: (viewExpense as any).WHT ? Number((viewExpense as any).WHT) : 0,
           advanceTax: (viewExpense as any).advanceTax || 0,
-          amountAfterTax: (viewExpense as any).amountAfterTax ? 
-                         Number((viewExpense as any).amountAfterTax) : 0,
+          amountAfterTax: (viewExpense as any).amountAfterTax ?
+            Number((viewExpense as any).amountAfterTax) : 0,
         };
         setFormData(resetData);
       }
@@ -473,22 +475,24 @@ const submitExpense = async (isApprove = false) => {
                   <>✓ {getApproveButtonText()}</>
                 )}
               </button>
+              {
+                effectiveNextStatus !== "Paid" &&
+                < button
+                  type="button"
+                  onClick={() =>
+                    dispatch(
+                      UpdateExpense({
+                        id: viewExpense._id as string,
+                        payload: { status: 'Rejected' },
+                      })
+                    )
+                  }
+                  disabled={submitterLoading}
+                  className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  ✗ Reject
+                </button>}
 
-              <button
-                type="button"
-                onClick={() =>
-                  dispatch(
-                    UpdateExpense({
-                      id: viewExpense._id as string,
-                      payload: { status: 'Rejected' },
-                    })
-                  )
-                }
-                disabled={submitterLoading}
-                className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                ✗ Reject
-              </button>
             </>
           )}
 
@@ -538,7 +542,7 @@ const submitExpense = async (isApprove = false) => {
             </div>
           )}
         </div>
-      </div>
+      </div >
     );
   };
   const Header = () => (
@@ -553,7 +557,7 @@ const submitExpense = async (isApprove = false) => {
               <ChevronLeft className="w-4 h-4" />
               <span className="text-sm">Back</span>
             </button>
-            
+
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                 <FileText className="w-5 h-5 text-blue-600" />
@@ -561,7 +565,7 @@ const submitExpense = async (isApprove = false) => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-lg font-semibold text-gray-900 truncate">
-                    {isViewMode 
+                    {isViewMode
                       ? (isEditing ? "Edit Expense" : "Expense Details")
                       : "Create New Expense"
                     }
@@ -590,7 +594,7 @@ const submitExpense = async (isApprove = false) => {
             </div>
           </div>
 
-          {isViewMode && !isEditing && (
+          {isViewMode && !isEditing && currentStatusKey !== "Paid" && (
             <div className="relative">
               <button
                 type="button"
