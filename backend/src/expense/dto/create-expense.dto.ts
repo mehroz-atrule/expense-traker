@@ -19,7 +19,7 @@ export enum PaymentMethod {
 export enum Status {
   WaitingForApproval = 'WaitingForApproval',
   Approved = 'Approved',
-  InReviewByFinance = 'InReviewByFinance',
+  ReviewedByFinance = 'ReviewedByFinance',
   ReadyForPayment = 'ReadyForPayment',
   Paid = 'Paid',
   Rejected = 'Rejected',

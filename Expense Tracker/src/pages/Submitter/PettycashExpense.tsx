@@ -463,7 +463,7 @@ const PettycashExpense: React.FC = () => {
             isEditing={editMode}
             isCashPayment={false}
             isBankTransfer={false}
-            currentStatusKey={'InReviewByFinance'}
+            currentStatusKey={'ReviewedByFinance'}
             shouldShowPaymentSlip={false}
             showExpenseReceipt={false}
             onImageClick={(url) => {

@@ -8,7 +8,7 @@ interface ExpenseStatusTrackerProps {
 const baseSteps = [
   { key: "WaitingForApproval", label: "Pending" },
   { key: "Approved", label: "Approved" },
-  { key: "InReviewByFinance", label: "Finance Review" },
+  { key: "ReviewedByFinance", label: "Finance Review" },
   { key: "ReadyForPayment", label: "Ready to Pay" },
   { key: "Paid", label: "Paid" },
 ];

@@ -49,7 +49,7 @@ interface FormData {
 const STATUS_FLOW = [
   'WaitingForApproval',
   'Approved',
-  'InReviewByFinance',
+  'ReviewedByFinance',
   'ReadyForPayment',
   'Paid',
 ] as const;
@@ -184,7 +184,7 @@ const CreateExpenseView: React.FC = () => {
   // Conditional Display Logic
   const shouldShowChequeDetails =
     (isViewMode && !isEditing && formData.payment === "Cheque" && (
-      currentStatusKey === "InReviewByFinance" ||
+      currentStatusKey === "ReviewedByFinance" ||
       currentStatusKey === "ReadyForPayment" ||
       currentStatusKey === "Paid"
     )) ||
@@ -193,7 +193,7 @@ const CreateExpenseView: React.FC = () => {
 
   const shouldEnableChequeFields =
     !isViewMode || isEditing ||
-    (isViewMode && !isEditing && !isCashPayment && currentStatusKey === "InReviewByFinance");
+    (isViewMode && !isEditing && !isCashPayment && currentStatusKey === "ReviewedByFinance");
 
   const shouldShowPaymentSlip =
     (formData.payment === "BankTransfer" && currentStatusKey === "Approved") ||
@@ -459,7 +459,7 @@ const CreateExpenseView: React.FC = () => {
 
       switch (effectiveNextStatus) {
         case "Approved": return "Approve";
-        case "InReviewByFinance": return "Send to Finance Review";
+        case "ReviewedByFinance": return "Send to Finance Review";
         case "ReadyForPayment": return "Ready for Payment";
         case "Paid": return "Mark as Paid";
         default: return "Approve";
@@ -739,7 +739,7 @@ const CreateExpenseView: React.FC = () => {
               isEditing={isEditing}
               showTaxFields={
                 currentStatusKey === "Approved" ||
-                currentStatusKey === "InReviewByFinance" ||
+                currentStatusKey === "ReviewedByFinance" ||
                 currentStatusKey === "ReadyForPayment" ||
                 currentStatusKey === "Paid"
               }

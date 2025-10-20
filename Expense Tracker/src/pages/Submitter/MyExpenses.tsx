@@ -193,8 +193,8 @@ const MyExpenses: React.FC = () => {
       New: "bg-blue-100 text-blue-800",
       WaitingForApproval: "bg-yellow-100 text-yellow-800",
       Approved: "bg-green-100 text-green-800",
-      InReviewByFinance: "bg-purple-100 text-purple-800",
-      InReviewbyFinance: "bg-purple-100 text-purple-800",
+      ReviewedByFinance: "bg-purple-100 text-purple-800",
+      ReviewedByFinance: "bg-purple-100 text-purple-800",
       Readyforpayment: "bg-indigo-100 text-indigo-800",
       Preparing: "bg-orange-100 text-orange-800",
       Paid: "bg-green-100 text-green-800",
@@ -343,7 +343,7 @@ const MyExpenses: React.FC = () => {
                       <option value="all">All Statuses</option>
                       <option value="WaitingForApproval">Waiting For Approval</option>
                       <option value="Approved">Approved</option>
-                      <option value="InReviewByFinance">Reviewed By Finance</option>
+                      <option value="ReviewedByFinance">Reviewed By Finance</option>
                       <option value="ReadyForPayment">Ready For Payment</option>
                       <option value="Paid">Paid</option>
                       <option value="Rejected">Rejected</option>

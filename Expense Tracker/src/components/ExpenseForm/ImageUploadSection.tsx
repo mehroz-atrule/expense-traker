@@ -34,6 +34,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 }) => {
 
   const [pdfStates, setPdfStates] = React.useState<{ [key: string]: boolean }>({});
+  console.log("CurrentStatusKey:", currentStatusKey );
 
   // Move the PDF checking logic to component-level useEffect
   React.useEffect(() => {
@@ -134,7 +135,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                     <div className="bg-white bg-opacity-80 rounded-full p-2">
                       <ZoomIn className="w-6 h-6 text-gray-700" />
                     </div>
-                    {isEditing && (
+                    {isEditing  || !currentStatusKey &&(
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -168,7 +169,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                     <div className="bg-white bg-opacity-90 rounded-full p-2">
                       <ZoomIn className="w-6 h-6 text-gray-700" />
                     </div>
-                    {isEditing && (
+                    {isEditing || !currentStatusKey && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -217,12 +218,12 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   };
 
   const showChequeImage = !isCashPayment && (
-    currentStatusKey === "InReviewByFinance" ||
+    currentStatusKey === "ReviewedByFinance" ||
     currentStatusKey === "ReadyForPayment" ||
     currentStatusKey === "Paid"
   );
 
-  const enableChequeImage = !isCashPayment && currentStatusKey === "InReviewByFinance";
+  const enableChequeImage = !isCashPayment && currentStatusKey === "ReviewedByFinance";
   const showPaymentSlipImage = shouldShowPaymentSlip;
   const enablePaymentSlipImage =
     currentStatusKey === "ReadyForPayment" ||
