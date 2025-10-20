@@ -4,6 +4,7 @@ import type { Vendor, CreateVendorPayload, UpdateVendorPayload } from '../../typ
 
 interface VendorState {
     vendors: Vendor[];
+    dropdownVendors: Vendor[];
     loading: boolean;
     error?: string | null;
     currentVendor?: Vendor | null;
@@ -22,6 +23,7 @@ interface VendorState {
 
 const initialState: VendorState = {
     vendors: [],
+    dropdownVendors: [],
     loading: false,
     error: null,
     currentVendor: null,
@@ -44,6 +46,14 @@ export const fetchVendors = createAsyncThunk(
         const response = await api.listVendors(params);
         return response;
     }
+);
+
+export const fetchVendorDropdown = createAsyncThunk(
+    'vendor/fetchVendorDropdown',
+    async () => {
+        const response = await api.listVendors({ limit: 1000 });
+        return response.data;
+    }   
 );
 
 export const fetchVendor = createAsyncThunk(
@@ -183,9 +193,22 @@ const vendorSlice = createSlice({
             .addCase(removeVendor.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || 'Failed to remove vendor';
+            })
+        // Fetch vendor dropdown    
+            .addCase(fetchVendorDropdown.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchVendorDropdown.fulfilled, (state, action) => {
+                state.loading = false;
+                state.dropdownVendors = action.payload;
+            })
+            .addCase(fetchVendorDropdown.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to fetch vendor dropdown';
             });
     },
 });
 
-export const { setFilters, clearFilters, setPagination, clearError } = vendorSlice.actions;
+export const { setFilters, clearFilters, setPagination, clearError   } = vendorSlice.actions;
 export default vendorSlice.reducer;

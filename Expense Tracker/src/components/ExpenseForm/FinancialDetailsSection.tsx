@@ -38,7 +38,7 @@ const FinancialDetailsSection: React.FC<FinancialDetailsSectionProps> = ({
     const advAmt = parseFloat(advanceTax?.toString()) || 0;
 
     if (showTaxFields) {
-      const total = amt - (whtAmt + advAmt);
+      const total = amt -  advAmt;
       onAmountAfterTaxChange(total.toFixed(2));
     } else {
       onAmountAfterTaxChange(amount);

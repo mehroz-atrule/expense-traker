@@ -14,6 +14,8 @@ interface EnhancedInputProps {
   type?: 'text' | 'email' | 'password' | 'tel'| 'number' | 'date';
   pattern?: string;
   className?: string;
+  min?: string; // 👈 Add this new prop
+max?: string;
 }
 
 const EnhancedInput: React.FC<EnhancedInputProps> = ({
@@ -29,6 +31,9 @@ const EnhancedInput: React.FC<EnhancedInputProps> = ({
   type = 'text',
   pattern,
   className = '',
+  min,    // 👈 Add this
+  max
+ 
 }) => {
   const hasError = Boolean(error);
 
@@ -59,6 +64,8 @@ const EnhancedInput: React.FC<EnhancedInputProps> = ({
               : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
             }
           `}
+          min={min}   // 👈 Add this
+  max={max}
         />
         
         {hasError && (

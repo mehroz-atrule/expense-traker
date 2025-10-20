@@ -1,4 +1,5 @@
 export interface PettyCashRecord {
+    _id?: string;
   title?: string;
   description?: string;
   office?: string;
@@ -9,7 +10,7 @@ export interface PettyCashRecord {
   transactionNo?: string;
   chequeNumber?: string;
   bankName?: string;
-  chequeImage?: string;
+  chequeImage?: string | File; // URL or File object
   openingBalance?: string;
   closingBalance?: string;
   month?: string;

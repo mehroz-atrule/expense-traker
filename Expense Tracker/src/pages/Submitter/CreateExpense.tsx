@@ -11,7 +11,7 @@ import { createExpense, UpdateExpense, removeExpense, getExpense, clearExpenseDe
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { listOffices } from "../../api/adminApi";
 import type { RootState } from "../../app/store";
-import { fetchVendors } from "../../redux/vendor/vendorSlice";
+import { fetchVendorDropdown, fetchVendors } from "../../redux/vendor/vendorSlice";
 
 // Import components
 import ChequeDetailsSection from "../../components/ExpenseForm/ChequeDetailsSection";
@@ -54,15 +54,28 @@ const STATUS_FLOW = [
 ] as const;
 
 const CATEGORY_OPTIONS: Option[] = [
-  { value: "Travel", label: "Travel" },
-  { value: "Food", label: "Food" },
-  { value: "Office Supplies", label: "Office Supplies" },
+  { value: "Internet Bill", label: "Internet Bill" },
+  { value: "Cloud Computing", label: "Cloud Computing" },
+  { value: "Dues and Subscriptions", label: "Dues and Subscriptions" },
+  { value: "Financial Services / Consultancy", label: "Financial Services / Consultancy" },
+  { value: "Electricity Bill", label: "Electricity Bill" },
+  { value: "Telephone Bill", label: "Telephone Bill" },
+  { value: "Office Rent", label: "Office Rent" },
+  { value: "Solar Plates Bill", label: "Solar Plates Bill" },
+  { value: "Office Maintenance", label: "Office Maintenance" },
+  { value: "FBR", label: "FBR" },
+  { value: "Pettycash", label: "Pettycash" },
+  { value: "Computer Hardware", label: "Computer Hardware" },
+  { value: "Salaries", label: "Salaries" },
+  { value: "Salaries WHT", label: "Salaries WHT" },
+  { value: "EOBI Employer’s Share", label: "EOBI Employer’s Share" },
+  { value: "Others", label: "Others" },
+  { value: "Misc.", label: "Misc." },
 ];
 
 const PAYMENT_OPTIONS: Option[] = [
   { value: "Cash", label: "Cash" },
   { value: "BankTransfer", label: "Bank Transfer" },
-  { value: "Card", label: "Credit Card" },
   { value: "Cheque", label: "Cheque" },
 ];
 
@@ -111,7 +124,7 @@ const CreateExpenseView: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const role = useAppSelector((s) => (s as any)?.auth?.user?.role || "submitter");
-  const vendors = useAppSelector((s: RootState) => s.vendor.vendors || []);
+  const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
   const {loading :submitterLoading , expenses} = useAppSelector((s: RootState) => s.submitter);
 //   const viewExpense = useAppSelector((s: RootState) =>
 //   s.submitter.expenses.find(e => e._id === id)
@@ -202,7 +215,7 @@ useEffect(() => {
     };
 
     initializeData();
-    dispatch(fetchVendors({}));
+    dispatch(fetchVendorDropdown() as any);
   }, [dispatch]);
 
   useEffect(() => {
@@ -299,7 +312,7 @@ useEffect(() => {
       const whtNum = parseFloat(String(updated.WHT || "0")) || 0;
       const advanceTaxNum = parseFloat(String(updated.advanceTax || "0")) || 0;
 
-      const total = amountNum - (whtNum + advanceTaxNum);
+      const total = amountNum -  + advanceTaxNum;
       updated.amountAfterTax = Number(total.toFixed(2));
 
       return updated;

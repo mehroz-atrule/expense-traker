@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import EnhancedInput from "../../components/Forms/EnhancedInput";
 
@@ -27,28 +27,52 @@ const DateInfoSection: React.FC<DateInfoSectionProps> = ({
   currentStatusKey,
   paymentMethod,
 }) => {
-  console.log("DateInfoSection Rendered");
+  // 🔹 Error states
+  const [dueError, setDueError] = useState("");
+  const [paymentError, setPaymentError] = useState("");
 
-  // ✅ show payment date for these statuses 
+  // 🔹 Show payment date for these statuses
   const showPaymentDate =
     currentStatusKey === "ReadyForPayment" ||
     currentStatusKey === "Approved" ||
-      currentStatusKey === "" ||  
-    currentStatusKey === "WaitingForApproval" ||    
-    currentStatusKey === "Paid";
-
-  // ✅ editable only when not paid and method is Cash or BankTransfer
-const isPaymentEditable =
-  (currentStatusKey === "ReadyForPayment" ||
     currentStatusKey === "" ||
     currentStatusKey === "WaitingForApproval" ||
-    currentStatusKey === "Approved") &&
-  (paymentMethod === "BankTransfer" || paymentMethod === "Cash" || paymentMethod === "Cheque");
+    currentStatusKey === "Paid";
 
-    console.log({isPaymentEditable, currentStatusKey, paymentMethod});
+  // 🔹 Payment editable for these conditions
+  const isPaymentEditable =
+    (currentStatusKey === "ReadyForPayment" ||
+      currentStatusKey === "" ||
+      currentStatusKey === "WaitingForApproval" ||
+      currentStatusKey === "Approved") &&
+    (paymentMethod === "BankTransfer" ||
+      paymentMethod === "Cash" ||
+      paymentMethod === "Cheque");
+
+  // ✅ Validation checks
+  useEffect(() => {
+    // --- Due Date Validation ---
+    if (billDate && dueDate) {
+      if (new Date(dueDate) < new Date(billDate)) {
+        setDueError("Due date cannot be earlier than Bill date");
+      } else {
+        setDueError("");
+      }
+    }
+
+    // --- Payment Date Validation ---
+    if (billDate && paymentDate) {
+      if (new Date(paymentDate) < new Date(billDate)) {
+        setPaymentError("Payment date cannot be earlier than Bill date");
+      } else {
+        setPaymentError("");
+      }
+    }
+  }, [billDate, dueDate, paymentDate]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Section header */}
       <div className="flex items-center gap-3 sm:border-l-4 sm:border-indigo-500 sm:pl-4">
         <div className="w-8 h-8 bg-indigo-100 rounded-full sm:hidden flex items-center justify-center">
           <Calendar className="w-4 h-4 text-indigo-600" />
@@ -63,7 +87,9 @@ const isPaymentEditable =
         </div>
       </div>
 
+      {/* Inputs grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* 🔸 Bill Date */}
         <EnhancedInput
           label="Bill Date"
           type="date"
@@ -73,15 +99,19 @@ const isPaymentEditable =
           readOnly={isViewMode && !isEditing}
         />
 
+        {/* 🔸 Due Date */}
         <EnhancedInput
           label="Due Date"
           type="date"
           value={dueDate}
           onChange={onDueDateChange}
+          min={billDate || undefined} // ✅ Prevent selecting before Bill Date
+          error={dueError} // ✅ Show red error if invalid
           disabled={isViewMode && !isEditing}
           readOnly={isViewMode && !isEditing}
         />
 
+        {/* 🔸 Payment Date */}
         {showPaymentDate && (
           <div className="sm:col-span-2 sm:max-w-sm">
             <EnhancedInput
@@ -89,6 +119,8 @@ const isPaymentEditable =
               type="date"
               value={paymentDate}
               onChange={onPaymentDateChange}
+              min={billDate || undefined}
+              error={paymentError}
               disabled={!isPaymentEditable}
               readOnly={!isPaymentEditable}
             />

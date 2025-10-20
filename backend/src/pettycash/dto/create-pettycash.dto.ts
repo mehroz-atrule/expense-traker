@@ -53,10 +53,6 @@ export class CreatePettycashDto {
   @IsOptional()
   bankName?: string;
 
-  @ApiProperty({ description: 'Petty Cash cheque image' })
-  @IsString()
-  @IsOptional()
-  chequeImage?: string;
 
   @ApiProperty({ description: 'Petty Cash opening balance' })
   @IsString()

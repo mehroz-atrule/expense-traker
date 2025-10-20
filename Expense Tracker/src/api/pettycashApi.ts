@@ -1,9 +1,15 @@
 import axios from "axios";
 const API_BASE_URL = 'localhost:4000/api';
 
-
-export const getPettyCasheExpenses = async () => {
-    const res = await axios.get(`http://${API_BASE_URL}/pettycash`);
+export interface PettycashQueryParams {
+  q?: string;
+  office?: string;
+  vendor?: string;
+  page?: number;
+  limit?: number;
+}
+export const getPettyCasheExpenses = async ({ params }: { params?: PettycashQueryParams } = {}) => {
+    const res = await axios.get(`http://${API_BASE_URL}/pettycash`, { params });
     return res.data;
 }
 export const addPettyCashExpense = async (payload: any) => {
