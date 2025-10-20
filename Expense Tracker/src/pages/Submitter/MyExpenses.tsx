@@ -343,7 +343,7 @@ const MyExpenses: React.FC = () => {
                       <option value="all">All Statuses</option>
                       <option value="WaitingForApproval">Waiting For Approval</option>
                       <option value="Approved">Approved</option>
-                      <option value="InReviewByFinance">In Review By Finance</option>
+                      <option value="InReviewByFinance">Reviewed By Finance</option>
                       <option value="ReadyForPayment">Ready For Payment</option>
                       <option value="Paid">Paid</option>
                       <option value="Rejected">Rejected</option>

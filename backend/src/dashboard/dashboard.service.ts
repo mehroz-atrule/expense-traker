@@ -31,7 +31,7 @@ export class DashboardService {
         'New',
         'Waiting for Approval',
         'Approved',
-        'In Review by Finance',
+        'Reviewed by Finance',
         'Preparing for payment',
         'Ready for payment',
         'Paid',

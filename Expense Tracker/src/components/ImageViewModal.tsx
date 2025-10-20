@@ -16,17 +16,32 @@ const ImageModal: React.FC<ImageModalProps> = ({
 }) => {
   const [scale, setScale] = React.useState(1);
   const [rotation, setRotation] = React.useState(0);
+  const [isPdf, setIsPdf] = React.useState(false);
 
-  // ✅ FIXED: Handles blob URLs & PDFs properly
-  const isPdfFile = (url: string): boolean => {
-    if (!url) return false;
-    if (url.startsWith("blob:")) {
-      return url.includes("pdf") && !url.match(/\.(png|jpg|jpeg|gif|webp)$/i);
-    }
-    return url.toLowerCase().endsWith(".pdf");
-  };
+  console.log("Image URL in Modal:", imageUrl);
 
-  const isPdf = isPdfFile(imageUrl);
+  React.useEffect(() => {
+    const checkFileType = async () => {
+      try {
+        if (imageUrl.startsWith('blob:')) {
+          const response = await fetch(imageUrl);
+          const contentType = response.headers.get('content-type');
+          setIsPdf(contentType?.includes('pdf') || contentType?.includes('application/pdf') || false);
+        } else {
+          setIsPdf(
+            imageUrl.toLowerCase().endsWith('.pdf') || 
+            imageUrl.toLowerCase().includes('/pdf') ||
+            imageUrl.toLowerCase().includes('application/pdf')
+          );
+        }
+      } catch (error) {
+        console.error('Error checking file type:', error);
+        setIsPdf(false);
+      }
+    };
+
+    checkFileType();
+  }, [imageUrl]);
 
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
