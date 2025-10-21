@@ -36,8 +36,8 @@ export class PettycashService {
 
     try {
       const officeId = new Types.ObjectId(createDto.office);
+      const month = createDto.month || new Date().toISOString().slice(0, 7); // e.g., "2025-10"
 
-      // Upload image if exists
       const chequeImageUrl = chequeImage
         ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'pettycash')).secure_url
         : undefined;
@@ -49,15 +49,40 @@ export class PettycashService {
       const debit = isIncome ? 0 : amount;
       const credit = isIncome ? amount : 0;
 
-      // Get last transaction for office (regardless of month)
-      const lastTxn = await this.txnModel
+      // ✅ 1. Find last transaction in this office
+      let lastTxn = await this.txnModel
         .findOne({ office: officeId })
         .sort({ dateOfPayment: -1, _id: -1 })
         .session(session);
-      const lastBalance = lastTxn?.balanceAfter ?? 0;
+
+      let lastBalance = 0;
+
+      // ✅ 2. If no transactions in current month, carry forward from previous month
+      const firstTxnOfMonth = await this.txnModel
+        .findOne({ office: officeId, month })
+        .session(session);
+
+      if (!firstTxnOfMonth) {
+        // extract previous month in YYYY-MM format
+        const [year, monthStr] = month.split('-');
+        const prevMonthDate = new Date(Number(year), Number(monthStr) - 2, 1);
+        const prevMonth = prevMonthDate.toISOString().slice(0, 7); // e.g., "2025-09"
+
+        // get previous month's summary
+        const prevSummary = await this.summaryModel
+          .findOne({ office: officeId, month: prevMonth })
+          .session(session);
+
+        lastBalance = prevSummary?.closingBalance ?? 0; // use previous month closing as opening
+      } else {
+        // else, continue from last txn
+        lastBalance = lastTxn?.balanceAfter ?? 0;
+      }
+
+      // ✅ 3. Compute balance after this txn
       const balanceAfter = isIncome ? lastBalance + amount : lastBalance - amount;
 
-      // Create transaction
+      // ✅ 4. Create the transaction
       const txn = await this.txnModel.create(
         [
           {
@@ -71,15 +96,14 @@ export class PettycashService {
             reference: createDto.transactionNo || createDto.chequeNumber || '',
             bankName: createDto.bankName || '',
             chequeImage: chequeImageUrl,
-            month: createDto.month || '',
+            month,
             dateOfPayment: new Date(createDto.dateOfPayment || Date.now()),
           },
         ],
         { session },
       );
-      const month = createDto.month || new Date().toISOString().slice(0, 7);
 
-      // Update summary
+      // ✅ 5. Update summary with new balance
       await this.updateSummary(officeId, month, balanceAfter, session);
 
       await session.commitTransaction();
@@ -93,6 +117,7 @@ export class PettycashService {
       throw new InternalServerErrorException('Failed to create transaction');
     }
   }
+
 
   // ================= UPDATE TRANSACTION =================
   async update(id: string, updateDto: UpdatePettycashDto, image?: any) {
@@ -199,13 +224,20 @@ export class PettycashService {
       const limit = Math.max(1, Number(query?.limit ?? 1000));
       const filter: FilterQuery<PettyCashTransaction> = {};
 
+      // 🏢 Office filter
       if (query?.office) {
-        if (!Types.ObjectId.isValid(query.office)) throw new BadRequestException('Invalid office id');
+        if (!Types.ObjectId.isValid(query.office)) {
+          throw new BadRequestException('Invalid office id');
+        }
         filter.office = new Types.ObjectId(query.office);
       }
 
-      if (query?.month) filter.month = query.month;
+      // 📅 Month filter
+      if (query?.month) {
+        filter.month = query.month;
+      }
 
+      // 🗓️ Date range filter
       if (query?.startDate || query?.endDate) {
         const dateFilter: Record<string, Date> = {};
         if (query.startDate) dateFilter.$gte = new Date(query.startDate);
@@ -213,6 +245,7 @@ export class PettycashService {
         filter.dateOfPayment = dateFilter;
       }
 
+      // 🔍 Text search
       if (query?.q) {
         const regex = new RegExp(query.q, 'i');
         filter.$or = [
@@ -223,14 +256,44 @@ export class PettycashService {
       }
 
       const skip = (page - 1) * limit;
-      const [data, total] = await Promise.all([
-        this.txnModel.find(filter).populate('office').sort({ dateOfPayment: -1 }).skip(skip).limit(limit),
-        this.txnModel.countDocuments(filter),
+
+      // ⚡ Fetch both transactions and summary in parallel
+      const [data, total, summary] = await Promise.all([
+        this.txnModel
+          .find(filter)
+          .populate('office')
+          .sort({ dateOfPayment: -1 })
+          .skip(skip)
+          .limit(limit)
+          .exec(),
+
+        this.txnModel.countDocuments(filter).exec(),
+
+        // ✅ Fetch summary for same office & month (if both provided)
+        query?.office && query?.month
+          ? this.summaryModel
+            .findOne({
+              office: new Types.ObjectId(query.office),
+              month: query.month,
+            }).populate('office')
+            .lean()
+            .exec()
+          : null,
       ]);
 
-      return { data, total, page, limit };
+      return {
+        data,
+        total,
+        page,
+        limit,
+        summary: summary || {
+          openingBalance: 0,
+          closingBalance: 0,
+          note: 'No summary found for this office/month',
+        },
+      };
     } catch (error) {
-      console.error(error);
+      console.error('❌ Error fetching pettycash list:', error);
       throw new InternalServerErrorException('Failed to fetch transactions');
     }
   }
