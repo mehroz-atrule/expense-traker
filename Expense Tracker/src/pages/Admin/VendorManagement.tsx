@@ -38,7 +38,6 @@ const VendorManagement: React.FC = () => {
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [showValidation, setShowValidation] = useState(false);
-  const [userHasInteracted, setUserHasInteracted] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<CreateVendorPayload>({
@@ -120,6 +119,7 @@ const VendorManagement: React.FC = () => {
   const handleAddVendor = () => {
     setAddModalOpen(true);
     resetForm();
+    setShowValidation(false);
   };
 
   const handleViewVendor = (vendor: Vendor) => {
@@ -138,6 +138,7 @@ const VendorManagement: React.FC = () => {
       vendorIban: vendor.vendorIban,
     });
     setEditModalOpen(true);
+    setShowValidation(false);
   };
 
   const handleDeleteVendor = (vendor: Vendor) => {
@@ -162,11 +163,11 @@ const VendorManagement: React.FC = () => {
   };
 
   const handleSaveVendor = () => {
+    // Ask child form to display validation
     setShowValidation(true);
-    
-    if (!isFormValid()) {
-      return; // Don't save if form is invalid
-    }
+
+    // If invalid, stop here (no API call)
+    if (!isFormValid()) return;
     console.log('Saving vendor with data:', formData);
     if (editModalOpen && selectedVendor) {
       dispatch(updateVendor({ id: selectedVendor._id, payload: (formData) }));
@@ -178,7 +179,6 @@ const VendorManagement: React.FC = () => {
     resetForm();
     setSelectedVendor(null);
     setShowValidation(false);
-    setUserHasInteracted(false);
   };
 
   const formatDate = (date: string | Date | undefined) => {
@@ -583,8 +583,7 @@ const VendorManagement: React.FC = () => {
           setEditModalOpen(false);
           resetForm();
           setSelectedVendor(null);
-          setShowValidation(false);
-          setUserHasInteracted(false);
+        setShowValidation(false);
         }}
         widthClassName="max-w-4xl"
         footer={
@@ -596,7 +595,6 @@ const VendorManagement: React.FC = () => {
                 resetForm();
                 setSelectedVendor(null);
                 setShowValidation(false);
-                setUserHasInteracted(false);
               }}
               className="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
             >
@@ -604,31 +602,19 @@ const VendorManagement: React.FC = () => {
             </button>
             <button
               onClick={handleSaveVendor}
-              disabled={!isFormValid() || loading}
+              disabled={loading}
               className="px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed relative"
-              title={!isFormValid() ? 'Please fill all required fields correctly' : ''}
             >
               {loading ? 'Saving...' : (editModalOpen ? 'Update' : 'Create')}
-              {!isFormValid() && !loading && (
-                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                </span>
-              )}
             </button>
           </>
         }
       >
         <VendorForm
           formData={formData}
-          onChange={(data) => {
-            setFormData(data);
-            if (!userHasInteracted) {
-              setUserHasInteracted(true);
-            }
-          }}
+          onChange={(data) => { setFormData(data); }}
           isLoading={loading}
-          showValidation={showValidation || userHasInteracted}
+          showValidation={showValidation}
         />
       </Modal>
 
