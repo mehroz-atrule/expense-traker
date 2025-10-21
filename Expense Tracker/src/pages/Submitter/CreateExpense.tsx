@@ -49,7 +49,7 @@ interface FormData {
 const STATUS_FLOW = [
   'WaitingForApproval',
   'Approved',
-  'InReviewByFinance',
+  'ReviewedByFinance',
   'ReadyForPayment',
   'Paid',
 ] as const;
@@ -82,6 +82,7 @@ const PAYMENT_OPTIONS: Option[] = [
 
 const CreateExpenseView: React.FC = () => {
   // State Management
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     billDate: "",
@@ -183,7 +184,7 @@ const CreateExpenseView: React.FC = () => {
   // Conditional Display Logic
   const shouldShowChequeDetails =
     (isViewMode && !isEditing && formData.payment === "Cheque" && (
-      currentStatusKey === "InReviewByFinance" ||
+      currentStatusKey === "ReviewedByFinance" ||
       currentStatusKey === "ReadyForPayment" ||
       currentStatusKey === "Paid"
     )) ||
@@ -192,7 +193,7 @@ const CreateExpenseView: React.FC = () => {
 
   const shouldEnableChequeFields =
     !isViewMode || isEditing ||
-    (isViewMode && !isEditing && !isCashPayment && currentStatusKey === "InReviewByFinance");
+    (isViewMode && !isEditing && !isCashPayment && currentStatusKey === "ReviewedByFinance");
 
   const shouldShowPaymentSlip =
     (formData.payment === "BankTransfer" && currentStatusKey === "Approved") ||
@@ -268,6 +269,14 @@ const CreateExpenseView: React.FC = () => {
     setCurrentImageTitle("");
   };
 
+  const handleEditClick = (type: "image" | "cheque" | "paymentSlip") => {
+    // Trigger file input click for the specified type
+    const input = document.getElementById(`${type}Upload`) as HTMLInputElement | null;
+    if (input) {
+      input.click();
+    }
+  };
+
   const handleFileChange = (
     e: ChangeEvent<HTMLInputElement>,
     type: "image" | "cheque" | "paymentSlip"
@@ -276,6 +285,7 @@ const CreateExpenseView: React.FC = () => {
     if (!file) return;
 
     const url = URL.createObjectURL(file);
+    console.log("Generated URL:", url);
 
     setFormData(prev => ({
       ...prev,
@@ -313,7 +323,7 @@ const CreateExpenseView: React.FC = () => {
       const whtNum = parseFloat(String(updated.WHT || "0")) || 0;
       const advanceTaxNum = parseFloat(String(updated.advanceTax || "0")) || 0;
 
-      const total = amountNum - + advanceTaxNum;
+      const total = amountNum -  whtNum;
       updated.amountAfterTax = Number(total.toFixed(2));
 
       return updated;
@@ -372,16 +382,26 @@ const CreateExpenseView: React.FC = () => {
     }
 
     try {
+      setIsSubmitting(true); // Add loading state
       if (viewExpense?._id) {
-        await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
+        const result = await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
+        if (result) {
+          console.log("Expense updated successfully:", result);
+          navigate(-1);
+        }
       } else {
-        await dispatch(createExpense(dataToSend)).unwrap();
+        const result = await dispatch(createExpense(dataToSend)).unwrap();
+        if (result) {
+          console.log("Expense created successfully:", result);
+          navigate(-1);
+        }
       }
-
-      navigate(-1);
-
     } catch (error) {
       console.error("Failed to submit expense:", error);
+      // Show error to user
+      alert("Failed to save expense. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -439,7 +459,7 @@ const CreateExpenseView: React.FC = () => {
 
       switch (effectiveNextStatus) {
         case "Approved": return "Approve";
-        case "InReviewByFinance": return "Send to Finance Review";
+        case "ReviewedByFinance": return "Send to Finance Review";
         case "ReadyForPayment": return "Ready for Payment";
         case "Paid": return "Mark as Paid";
         default: return "Approve";
@@ -452,7 +472,7 @@ const CreateExpenseView: React.FC = () => {
         <button
           type="button"
           onClick={handleCancel}
-          disabled={submitterLoading}
+          disabled={submitterLoading || isSubmitting}
           className="order-2 sm:order-1 px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -466,7 +486,7 @@ const CreateExpenseView: React.FC = () => {
               <button
                 type="button"
                 onClick={handleApprove}
-                disabled={submitterLoading}
+                disabled={submitterLoading || isSubmitting}
                 className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 {submitterLoading ? (
@@ -664,6 +684,7 @@ const CreateExpenseView: React.FC = () => {
             shouldShowPaymentSlip={shouldShowPaymentSlip}
             onFileChange={handleFileChange}
             onImageClick={handleImageClick}
+            onEditClick={handleEditClick}
             isBankTransfer={formData.payment === "BankTransfer"}
           />
 
@@ -718,7 +739,7 @@ const CreateExpenseView: React.FC = () => {
               isEditing={isEditing}
               showTaxFields={
                 currentStatusKey === "Approved" ||
-                currentStatusKey === "InReviewByFinance" ||
+                currentStatusKey === "ReviewedByFinance" ||
                 currentStatusKey === "ReadyForPayment" ||
                 currentStatusKey === "Paid"
               }

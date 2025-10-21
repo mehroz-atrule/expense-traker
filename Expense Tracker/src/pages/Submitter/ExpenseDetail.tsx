@@ -22,7 +22,7 @@ const ExpenseDetailView: React.FC<ExpenseDetailViewProps> = ({ expense, onBack, 
     { key: "New", label: "New" },
     { key: "WaitingForApproval", label: "Waiting" },
     { key: "Approved", label: "Approved" },
-    { key: "InReviewByFinance", label: "In Review" },
+    { key: "ReviewedByFinance", label: "In Review" },
     { key: "Paid", label: "Paid" },
   ];
 
