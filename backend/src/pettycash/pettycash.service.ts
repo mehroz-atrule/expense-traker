@@ -1,91 +1,211 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types, FilterQuery } from 'mongoose';
+import { CloudinaryService } from 'src/upload/cloudinary.service';
 import { CreatePettycashDto } from './dto/create-pettycash.dto';
 import { UpdatePettycashDto } from './dto/update-pettycash.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Pettycash } from './schemas/pettycash.schema';
-import { FilterQuery, Model, Types } from 'mongoose';
-import { CloudinaryService } from 'src/upload/cloudinary.service';
 import { QueryPettycashDto } from './dto/query-pettycash.dto';
+import {
+  PettyCashTransaction,
+  PettyCashTransactionDocument,
+} from './schemas/pettycash.schema';
+import {
+  PettyCashSummary,
+  PettyCashSummaryDocument,
+} from './schemas/pettycashsummary.schema';
 
 @Injectable()
 export class PettycashService {
   constructor(
-    @InjectModel(Pettycash.name) private pettycashModel: Model<Pettycash>,
+    @InjectModel(PettyCashTransaction.name)
+    private txnModel: Model<PettyCashTransactionDocument>,
+    @InjectModel(PettyCashSummary.name)
+    private summaryModel: Model<PettyCashSummaryDocument>,
     private readonly cloudinary: CloudinaryService,
   ) { }
-  async create(createPettycashDto: CreatePettycashDto, chequeImage?: any) {
+
+  // ================= CREATE TRANSACTION =================
+  async create(createDto: CreatePettycashDto, chequeImage?: any) {
+    const session = await this.txnModel.db.startSession();
+    session.startTransaction();
+
     try {
-      // 🔹 Upload image if provided
-      const pettycashUrl = chequeImage?.buffer
+      const officeId = new Types.ObjectId(createDto.office);
+
+      // Upload image if exists
+      const chequeImageUrl = chequeImage
         ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'pettycash')).secure_url
         : undefined;
 
-      // 🔹 Parse amounts safely
-      const amountRecieve = Number(createPettycashDto.amountRecieve) || 0;
-      const amountSpent = Number(createPettycashDto.amountSpent) || 0;
+      const amount = Number(createDto.amount);
+      if (isNaN(amount) || amount <= 0) throw new BadRequestException('Invalid transaction amount');
 
-      const officeId = new Types.ObjectId(createPettycashDto.office);
+      const isIncome = createDto.transactionType === 'income';
+      const debit = isIncome ? 0 : amount;
+      const credit = isIncome ? amount : 0;
 
-      // 🔹 Get last pettycash for this specific office only
-      const lastPettycash = await this.pettycashModel
+      // Get last transaction for office (regardless of month)
+      const lastTxn = await this.txnModel
         .findOne({ office: officeId })
-        .sort({ dateOfPayment: -1 }) // last transaction by payment date
-        .exec();
+        .sort({ dateOfPayment: -1, _id: -1 })
+        .session(session);
+      const lastBalance = lastTxn?.balanceAfter ?? 0;
+      const balanceAfter = isIncome ? lastBalance + amount : lastBalance - amount;
 
-      // 🔹 Determine opening balance (0 if first transaction for office)
-      const openingBalance = lastPettycash?.closingBalance
-        ? Number(lastPettycash.closingBalance)
-        : 0;
-
-      // 🔹 Compute new closing balance
-      const closingBalance = openingBalance + amountRecieve - amountSpent;
-
-      // 🔹 Create pettycash entry
-      const pettycash = new this.pettycashModel({
-        ...createPettycashDto,
-        office: officeId,
-        chequeImage: pettycashUrl,
-        openingBalance: openingBalance.toString(),
-        closingBalance: closingBalance.toString(),
-        remainingAmount: closingBalance.toString(),
-      });
-
-      const saved = await pettycash.save();
-
-      // 🔹 Optional: log the operation for debugging
-      console.log(
-        `Pettycash created for office ${officeId}: +${amountRecieve} -${amountSpent} → Closing ${closingBalance}`
+      // Create transaction
+      const txn = await this.txnModel.create(
+        [
+          {
+            office: officeId,
+            transactionType: createDto.transactionType,
+            amount,
+            debit,
+            credit,
+            balanceAfter,
+            description: createDto.description || '',
+            reference: createDto.transactionNo || createDto.chequeNumber || '',
+            bankName: createDto.bankName || '',
+            chequeImage: chequeImageUrl,
+            month: createDto.month || '',
+            dateOfPayment: new Date(createDto.dateOfPayment || Date.now()),
+          },
+        ],
+        { session },
       );
+      const month = createDto.month || new Date().toISOString().slice(0, 7);
 
-      return saved;
+      // Update summary
+      await this.updateSummary(officeId, month, balanceAfter, session);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return txn[0];
     } catch (error) {
-      console.error('Error creating pettycash:', error);
-      throw new InternalServerErrorException('Failed to create pettycash record');
+      await session.abortTransaction();
+      session.endSession();
+      console.error('❌ Error creating transaction:', error);
+      throw new InternalServerErrorException('Failed to create transaction');
     }
   }
 
+  // ================= UPDATE TRANSACTION =================
+  async update(id: string, updateDto: UpdatePettycashDto, image?: any) {
+    const session = await this.txnModel.db.startSession();
+    session.startTransaction();
 
+    try {
+      if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid ID');
 
+      const txn = await this.txnModel.findById(id).session(session);
+      if (!txn) throw new NotFoundException('Transaction not found');
+
+      let chequeImageUrl = txn.chequeImage;
+      if (image?.buffer) {
+        if (chequeImageUrl)
+          await this.cloudinary.deleteByUrl(chequeImageUrl).catch(() => undefined);
+        chequeImageUrl = (await this.cloudinary.uploadBuffer(image.buffer, 'pettycash')).secure_url;
+      }
+
+      const transactionType = updateDto.transactionType ?? txn.transactionType;
+      const amount = Number(updateDto.amount ?? txn.amount ?? 0);
+      const debit = transactionType === 'expense' ? amount : 0;
+      const credit = transactionType === 'income' ? amount : 0;
+
+      // Previous transaction for balance
+      const previous = await this.txnModel
+        .findOne({ office: txn.office, dateOfPayment: { $lt: txn.dateOfPayment } })
+        .sort({ dateOfPayment: -1, _id: -1 })
+        .session(session);
+
+      const previousBalance = previous?.balanceAfter ?? 0;
+      const newBalance = previousBalance + credit - debit;
+
+      const updatedTxn = await this.txnModel.findByIdAndUpdate(
+        id,
+        {
+          ...updateDto,
+          chequeImage: chequeImageUrl,
+          debit,
+          credit,
+          balanceAfter: newBalance,
+        },
+        { new: true, session },
+      );
+
+      // Recalculate following transactions
+      await this.recalculateFollowing(txn.office, txn.dateOfPayment, newBalance, session);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return updatedTxn;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      console.error('❌ Error updating transaction:', error);
+      throw new InternalServerErrorException('Failed to update transaction');
+    }
+  }
+
+  // ================= REMOVE TRANSACTION =================
+  async remove(id: string) {
+    const session = await this.txnModel.db.startSession();
+    session.startTransaction();
+
+    try {
+      if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid ID');
+
+      const txn = await this.txnModel.findById(id).session(session);
+      if (!txn) throw new NotFoundException('Transaction not found');
+
+      if (txn.chequeImage)
+        await this.cloudinary.deleteByUrl(txn.chequeImage).catch(() => undefined);
+
+      await this.txnModel.findByIdAndDelete(id, { session });
+
+      // Previous transaction for balance
+      const previous = await this.txnModel
+        .findOne({ office: txn.office, dateOfPayment: { $lt: txn.dateOfPayment } })
+        .sort({ dateOfPayment: -1, _id: -1 })
+        .session(session);
+
+      const lastBalance = previous?.balanceAfter ?? 0;
+
+      // Recalculate following transactions
+      await this.recalculateFollowing(txn.office, txn.dateOfPayment, lastBalance, session);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return txn;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      console.error('❌ Error removing transaction:', error);
+      throw new InternalServerErrorException('Failed to remove transaction');
+    }
+  }
+
+  // ================= FIND ALL =================
   async findAll(query: QueryPettycashDto) {
     try {
       const page = Math.max(1, Number(query?.page ?? 1));
-      const limit = Math.max(1, Number(query?.limit ?? 10));
-      const filter: FilterQuery<Pettycash> = {};
+      const limit = Math.max(1, Number(query?.limit ?? 1000));
+      const filter: FilterQuery<PettyCashTransaction> = {};
 
-      // 🔹 Office filter
       if (query?.office) {
-        if (!Types.ObjectId.isValid(query.office)) {
-          throw new BadRequestException('Invalid office id');
-        }
+        if (!Types.ObjectId.isValid(query.office)) throw new BadRequestException('Invalid office id');
         filter.office = new Types.ObjectId(query.office);
       }
 
-      // 🔹 Month filter (assuming it's stored as string like "2025-10" or "October")
-      if (query?.month) {
-        filter.month = query.month;
-      }
+      if (query?.month) filter.month = query.month;
 
-      // 🔹 Date range filter (billDate)
       if (query?.startDate || query?.endDate) {
         const dateFilter: Record<string, Date> = {};
         if (query.startDate) dateFilter.$gte = new Date(query.startDate);
@@ -93,198 +213,92 @@ export class PettycashService {
         filter.dateOfPayment = dateFilter;
       }
 
-      // 🔹 Text search across multiple string fields
       if (query?.q) {
         const regex = new RegExp(query.q, 'i');
         filter.$or = [
-          { chequeNumber: regex },
+          { reference: regex },
           { bankName: regex },
-          { title: regex },
+          { description: regex },
         ];
       }
 
-      // 🔹 Pagination
       const skip = (page - 1) * limit;
-
       const [data, total] = await Promise.all([
-        this.pettycashModel
-          .find(filter).populate('office')
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit)
-          .exec(),
-        this.pettycashModel.countDocuments(filter).exec(),
+        this.txnModel.find(filter).populate('office').sort({ dateOfPayment: -1 }).skip(skip).limit(limit),
+        this.txnModel.countDocuments(filter),
       ]);
 
       return { data, total, page, limit };
     } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      throw new InternalServerErrorException('Failed to fetch pettycash records');
+      console.error(error);
+      throw new InternalServerErrorException('Failed to fetch transactions');
     }
   }
 
-
+  // ================= FIND ONE =================
   async findOne(id: string) {
     try {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid expense id');
-      }
-      const expense = await this.pettycashModel.findById(id).exec();
-      if (!expense) {
-        throw new NotFoundException('Expense not found');
-      }
-      return expense;
+      if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid transaction id');
+      const txn = await this.txnModel.findById(id).exec();
+      if (!txn) throw new NotFoundException('Transaction not found');
+      return txn;
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to fetch expense');
+      console.error(error);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Failed to fetch transaction');
     }
   }
 
-  async update(id: string, updatePettycashDto: UpdatePettycashDto, image?: any) {
-    try {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid pettycash id');
-      }
+  // ================= PRIVATE HELPERS =================
 
-      const pettycash = await this.pettycashModel.findById(id).exec();
-      if (!pettycash) {
-        throw new NotFoundException('Pettycash not found');
-      }
-
-      // Delete old cheque image if new one is uploaded
-      if (pettycash.chequeImage && image?.buffer) {
-        await this.cloudinary.deleteByUrl(pettycash.chequeImage).catch(() => undefined);
-      }
-
-      const pettycashUrl = image?.buffer
-        ? (await this.cloudinary.uploadBuffer(image.buffer, 'pettycash')).secure_url
-        : pettycash.chequeImage;
-
-      // Parse amounts
-      const amountRecieve = Number(updatePettycashDto.amountRecieve ?? pettycash.amountRecieve ?? 0);
-      const amountSpent = Number(updatePettycashDto.amountSpent ?? pettycash.amountSpent ?? 0);
-
-      // Get the previous pettycash (ordered by dateOfPayment)
-      const previous = await this.pettycashModel
-        .findOne({
-          office: pettycash.office,
-          dateOfPayment: { $lt: pettycash.dateOfPayment },
-        })
-        .sort({ dateOfPayment: -1 })
-        .exec();
-
-      const openingBalance = previous?.closingBalance ? Number(previous.closingBalance) : 0;
-      const closingBalance = openingBalance + amountRecieve - amountSpent;
-      const remainingAmount = closingBalance;
-
-      // Update the target pettycash
-      const updatedPettycash = await this.pettycashModel.findByIdAndUpdate(
-        id,
-        {
-          ...updatePettycashDto,
-          openingBalance: openingBalance.toString(),
-          closingBalance: closingBalance.toString(),
-          remainingAmount: remainingAmount.toString(),
-          chequeImage: pettycashUrl,
-        },
-        { new: true },
+  // Update summary intelligently
+  private async updateSummary(
+    office: Types.ObjectId,
+    month: string,
+    closingBalance: number,
+    session?: any,
+  ) {
+    let summary = await this.summaryModel.findOne({ office, month }).session(session);
+    if (summary) {
+      summary.closingBalance = closingBalance;
+      await summary.save({ session });
+    } else {
+      // Get previous month closing as opening
+      const prevSummary = await this.summaryModel
+        .findOne({ office })
+        .sort({ month: -1 })
+        .session(session);
+      const openingBalance = prevSummary?.closingBalance ?? 0;
+      await this.summaryModel.create(
+        [{ office, month, openingBalance, closingBalance }],
+        { session },
       );
-
-      // 🔹 Update all following pettycash records for this office
-      const following = await this.pettycashModel
-        .find({
-          office: pettycash.office,
-          dateOfPayment: { $gt: pettycash.dateOfPayment },
-        })
-        .sort({ dateOfPayment: 1 })
-        .exec();
-
-      let lastClosing = closingBalance;
-      for (const doc of following) {
-        const recv = Number(doc.amountRecieve ?? 0);
-        const spent = Number(doc.amountSpent ?? 0);
-        const newClosing = lastClosing + recv - spent;
-
-        await this.pettycashModel.findByIdAndUpdate(doc._id, {
-          openingBalance: lastClosing.toString(),
-          closingBalance: newClosing.toString(),
-          remainingAmount: newClosing.toString(),
-        });
-
-        lastClosing = newClosing;
-      }
-
-      return updatedPettycash;
-    } catch (error) {
-      console.error(error);
-      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('Failed to update pettycash');
     }
   }
 
-  async remove(id: string) {
-    try {
-      if (!Types.ObjectId.isValid(id)) {
-        throw new BadRequestException('Invalid pettycash id');
-      }
+  // Recalculate balances for all following transactions
+  private async recalculateFollowing(
+    office: Types.ObjectId,
+    fromDate: Date,
+    startingBalance: number,
+    session?: any,
+  ) {
+    const following = await this.txnModel
+      .find({ office, dateOfPayment: { $gt: fromDate } })
+      .sort({ dateOfPayment: 1, _id: 1 })
+      .session(session);
 
-      // Find the pettycash to remove
-      const pettycash = await this.pettycashModel.findById(id).exec();
-      if (!pettycash) {
-        throw new NotFoundException('Pettycash not found');
-      }
+    let lastBalance = startingBalance;
+    for (const txn of following) {
+      const debit = txn.transactionType === 'expense' ? txn.amount : 0;
+      const credit = txn.transactionType === 'income' ? txn.amount : 0;
+      const newBalance = lastBalance + credit - debit;
 
-      // Delete cheque image if exists
-      if (pettycash.chequeImage) {
-        await this.cloudinary.deleteByUrl(pettycash.chequeImage).catch(() => undefined);
-      }
+      await this.txnModel.findByIdAndUpdate(txn._id, { balanceAfter: newBalance }, { session });
+      lastBalance = newBalance;
 
-      // Delete the pettycash document
-      await this.pettycashModel.findByIdAndDelete(id).exec();
-
-      // Recalculate balances for following records of the same office
-      const following = await this.pettycashModel
-        .find({
-          office: pettycash.office,
-          dateOfPayment: { $gt: pettycash.dateOfPayment },
-        })
-        .sort({ dateOfPayment: 1 })
-        .exec();
-
-      // Get previous closing balance
-      const previous = await this.pettycashModel
-        .findOne({
-          office: pettycash.office,
-          dateOfPayment: { $lt: pettycash.dateOfPayment },
-        })
-        .sort({ dateOfPayment: -1 })
-        .exec();
-
-      let lastClosing = previous?.closingBalance ? Number(previous.closingBalance) : 0;
-
-      for (const doc of following) {
-        const recv = Number(doc.amountRecieve ?? 0);
-        const spent = Number(doc.amountSpent ?? 0);
-        const newClosing = lastClosing + recv - spent;
-
-        await this.pettycashModel.findByIdAndUpdate(doc._id, {
-          openingBalance: lastClosing.toString(),
-          closingBalance: newClosing.toString(),
-          remainingAmount: newClosing.toString(),
-        });
-
-        lastClosing = newClosing;
-      }
-
-      return pettycash;
-    } catch (error) {
-      console.error(error);
-      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('Failed to delete pettycash');
+      // Update summary for the month of this transaction
+      await this.updateSummary(txn.office, txn.month, newBalance, session);
     }
   }
-
 }
-

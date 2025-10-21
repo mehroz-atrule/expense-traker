@@ -1,72 +1,51 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreatePettycashDto {
-
-  @ApiProperty({ description: 'Petty Cash title' })
-  @IsString()
-  @IsOptional()
-  title?: string;
-
-  @ApiProperty({ description: 'Petty Cash description' })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @ApiProperty({ description: 'Office ID (ObjectId)' })
+  @ApiProperty({ description: 'Office ID (ObjectId)', example: '652fc123a8b9d43e17f6e345' })
   @IsString()
   @IsNotEmpty()
   office: string;
 
-  @ApiProperty({ description: 'Petty Cash amount spent' })
-  @IsString()
-  @IsOptional()
-  amountSpent: string;
-
-  @ApiProperty({ description: 'Petty Cash amount recieved' })
-  @IsString()
-  @IsOptional()
-  amountRecieve: string;
-
-  @ApiProperty({ description: 'Petty Cash remaining amount' })
-  @IsString()
-  @IsOptional()
-  remainingAmount: string;
-
-  @ApiProperty({ description: 'Petty Cash date' })
-  @IsString()
+  @ApiProperty({
+    description: 'Transaction type (income for receiving cash, expense for spending)',
+    enum: ['income', 'expense'],
+    example: 'income',
+  })
+  @IsEnum(['income', 'expense'])
   @IsNotEmpty()
-  dateOfPayment: Date;
+  transactionType: 'income' | 'expense';
 
-  @ApiProperty({ description: 'Petty Cash transaction number' })
+  @ApiProperty({ description: 'Transaction amount', example: 5000 })
+  @IsNumber()
+  @IsNotEmpty()
+  amount: number;
+
+  @ApiProperty({ description: 'Transaction description', example: 'Fuel reimbursement' })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiProperty({ description: 'Transaction number or reference ID', example: 'TXN-2025-001' })
   @IsString()
   @IsOptional()
   transactionNo?: string;
 
-  @ApiProperty({ description: 'Petty Cash cheque number' })
+  @ApiProperty({ description: 'Cheque number (if applicable)', example: 'CHQ-98765' })
   @IsString()
   @IsOptional()
   chequeNumber?: string;
 
-  @ApiProperty({ description: 'Petty Cash bank name' })
+  @ApiProperty({ description: 'Bank name (if applicable)', example: 'HBL Bank' })
   @IsString()
   @IsOptional()
   bankName?: string;
 
-
-  @ApiProperty({ description: 'Petty Cash opening balance' })
+  @ApiProperty({ description: 'Month of transaction (for reporting)', example: 'October' })
   @IsString()
-  @IsOptional()
-  openingBalance?: string;
-
-  @ApiProperty({ description: 'Petty Cash closing balance' })
-  @IsString()
-  @IsOptional()
-  closingBalance?: string;
-
-  @ApiProperty({ description: 'Petty Cash month' })
-  @IsString()
-  @IsOptional()
   month?: string;
 
+  @ApiProperty({ description: 'Date of payment', example: '2025-10-21T11:59:50.348Z' })
+  @IsOptional()
+  dateOfPayment?: Date;
 }

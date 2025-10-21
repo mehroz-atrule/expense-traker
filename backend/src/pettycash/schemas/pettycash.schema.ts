@@ -1,49 +1,45 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
+export type PettyCashTransactionDocument = PettyCashTransaction & Document;
+
 @Schema({ timestamps: true })
-export class Pettycash extends Document {
+export class PettyCashTransaction {
   @Prop({ type: Types.ObjectId, ref: 'Office', required: true })
   office: Types.ObjectId;
 
-  @Prop()
-  amountSpent?: string;
+  @Prop({ type: String, enum: ['income', 'expense'], required: true })
+  transactionType: 'income' | 'expense';
 
-  @Prop()
-  amountRecieve?: string;
+  @Prop({ type: String, default: '' })
+  description: string;
 
-  @Prop()
-  remainingAmount?: string;
+  @Prop({ type: Number, required: true })
+  amount: number;
+
+  @Prop({ type: Number, default: 0 })
+  debit: number; // expenses
+
+  @Prop({ type: Number, default: 0 })
+  credit: number; // incomes
+
+  @Prop({ type: Number, required: true })
+  balanceAfter: number; // auto-calculated after each txn
 
   @Prop({ type: Date, required: true })
   dateOfPayment: Date;
 
-  @Prop()
-  transactionNo?: string;
+  @Prop({ type: String, default: '' })
+  reference: string; // transactionNo or chequeNumber
 
-  @Prop()
-  chequeNumber?: string;
+  @Prop({ type: String, default: '' })
+  bankName: string;
 
-  @Prop()
-  bankName?: string;
+  @Prop({ type: String, default: '' })
+  chequeImage: string;
 
-  @Prop()
-  chequeImage?: string;
-
-  @Prop()
-  openingBalance?: string;
-
-  @Prop()
-  closingBalance?: string;
-
-  @Prop()
-  month?: string;
-
-  @Prop()
-  title?: string;
-
-  @Prop()
-  description?: string;
+  @Prop({ type: String, default: '' })
+  month: string; // e.g., "2025-10"
 }
 
-export const PettycashSchema = SchemaFactory.createForClass(Pettycash);
+export const PettyCashTransactionSchema = SchemaFactory.createForClass(PettyCashTransaction);
