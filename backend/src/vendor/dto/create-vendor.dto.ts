@@ -30,7 +30,6 @@ export class CreateVendorDto {
   @ApiProperty({ example: 'PK36SCBL0000001123456702' })
   @IsString()
   @IsOptional()
-  @Matches(/^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/)
   vendorIban: string;
 
   @ApiPropertyOptional()
