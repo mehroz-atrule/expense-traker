@@ -64,9 +64,9 @@ const CreatePettycashExpense: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async(e: FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     const formData = new FormData();
     formData.append("office", form.office);
     formData.append("title", form.title);
@@ -77,9 +77,15 @@ const CreatePettycashExpense: React.FC = () => {
     if (form.chequeImage) {
       formData.append("chequeImage", form.chequeImage);
     }
-
-    dispatch(createPettyCashExpense(formData) as any);
-    navigate(-1);
+try {
+  await dispatch(createPettyCashExpense(formData) as any);
+  navigate(-1);
+  
+} catch (error) {
+  console.error("Failed to create petty cash expense", error);
+}finally {
+  setLoading(false);
+  };
   };
 
   return (
@@ -217,9 +223,12 @@ const CreatePettycashExpense: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
-            >
-              Save
+              className={`px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={loading}
+            >{loading ?
+            
+              <Loader size="sm" text="Saving "  />: 'Save Expense' 
+            }
             </button>
           </div>
         </form>

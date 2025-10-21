@@ -8,7 +8,7 @@ import {
   updatePettyCashExpense,
 } from '../../api/pettycashApi';
 
-// ✅ Define API response structure (same as submitter)
+// ✅ Define API response structure
 interface PettyCashResponse {
   data: PettyCashRecord[];
   total: number;
@@ -42,6 +42,7 @@ const initialState: PettyCashState = {
 export const fetchPettyCash = createAsyncThunk(
   'pettycash/fetchPettyCash',
   async (params: Record<string, unknown> = {}) => {
+    console.log("Fetching petty cash with params:", params);
     const res = await getPettyCasheExpenses(params);
     return res as PettyCashResponse;
   }
@@ -96,7 +97,7 @@ const pettycashSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // 🟡 Fetch
-      .addCase(fetchPettyCash.pending, (state) => {
+     .addCase(fetchPettyCash.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -104,7 +105,7 @@ const pettycashSlice = createSlice({
         state.loading = false;
         state.pettyCashRecords = action.payload.data;
         state.total = action.payload.total;
-        state.page = action.payload.page;
+        state.page = action.payload.page; // ✅ Backend se page update karo
         state.limit = action.payload.limit;
       })
       .addCase(fetchPettyCash.rejected, (state, action) => {
@@ -119,7 +120,9 @@ const pettycashSlice = createSlice({
       })
       .addCase(createPettyCashExpense.fulfilled, (state, action: PayloadAction<PettyCashRecord>) => {
         state.loading = false;
-    
+        // Add new record to the beginning of the list
+        state.pettyCashRecords.unshift(action.payload);
+        state.total += 1;
       })
       .addCase(createPettyCashExpense.rejected, (state, action) => {
         state.loading = false;

@@ -12,45 +12,48 @@ export interface VendorValidationErrors {
 export const validateVendor = (data: CreateVendorPayload): VendorValidationErrors => {
     const errors: VendorValidationErrors = {};
 
-    // Vendor Name validation
+    // Vendor Name validation - REQUIRED
     if (!data.vendorName.trim()) {
         errors.vendorName = 'Vendor name is required';
     } else if (data.vendorName.trim().length < 2) {
         errors.vendorName = 'Vendor name must be at least 2 characters';
     }
 
-    // Location validation
+    // Location validation - REQUIRED
     if (!data.location.trim()) {
         errors.location = 'Location is required';
     } else if (data.location.trim().length < 2) {
         errors.location = 'Location must be at least 2 characters';
     }
 
-    // Customer ID validation
+    // Customer ID validation - REQUIRED
     if (!data.customerId.trim()) {
         errors.customerId = 'Customer ID is required';
     } else if (data.customerId.trim().length < 3) {
         errors.customerId = 'Customer ID must be at least 3 characters';
     }
 
-    // Preferred Bank Name validation
-    if (!data.preferredBankName.trim()) {
-        errors.preferredBankName = 'Bank name is required';
-    } else if (data.preferredBankName.trim().length < 2) {
-        errors.preferredBankName = 'Bank name must be at least 2 characters';
+    // Preferred Bank Name validation - OPTIONAL
+    // Sirf validate karo agar value provided hai
+    if (data.preferredBankName && data.preferredBankName.trim()) {
+        if (data.preferredBankName.trim().length < 2) {
+            errors.preferredBankName = 'Bank name must be at least 2 characters';
+        }
     }
+    // Agar empty hai ya nahi hai, toh koi error nahi
 
-    // Vendor Account Title validation
-    if (!data.vendorAccountTitle.trim()) {
-        errors.vendorAccountTitle = 'Account title is required';
-    } else if (data.vendorAccountTitle.trim().length < 3) {
-        errors.vendorAccountTitle = 'Account title must be at least 3 characters';
+    // Vendor Account Title validation - OPTIONAL
+    // Sirf validate karo agar value provided hai
+    if (data.vendorAccountTitle && data.vendorAccountTitle.trim()) {
+        if (data.vendorAccountTitle.trim().length < 3) {
+            errors.vendorAccountTitle = 'Account title must be at least 3 characters';
+        }
     }
+    // Agar empty hai ya nahi hai, toh koi error nahi
 
-    // IBAN validation
-    if (!data.vendorIban.trim()) {
-        errors.vendorIban = 'IBAN is required';
-    } else {
+    // IBAN validation - OPTIONAL
+    // Sirf validate karo agar value provided hai
+    if (data.vendorIban && data.vendorIban.trim()) {
         const iban = data.vendorIban.trim().toUpperCase();
         const ibanPattern = /^[A-Z]{2}\d{2}[A-Z\d]{1,30}$/;
 
@@ -68,8 +71,7 @@ export const validateVendor = (data: CreateVendorPayload): VendorValidationError
             }
         }
     }
-            
-
+    // Agar IBAN empty hai ya nahi hai, toh koi error nahi
 
     return errors;
 };

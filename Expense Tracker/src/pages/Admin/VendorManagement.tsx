@@ -21,6 +21,7 @@ import Modal from '../../components/Modal';
 import VendorCard from '../../components/Vendor/VendorCard';
 import VendorForm from '../../components/Vendor/VendorForm';
 import VendorSkeleton from '../../components/Vendor/VendorSkeleton';
+import Pagination from '../../components/Pagination';
 
 const VendorManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -522,7 +523,7 @@ const VendorManagement: React.FC = () => {
       )}
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
+      {/* {pagination.totalPages > 1 && (
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm text-gray-700 text-center sm:text-left">
             Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} vendors
@@ -565,7 +566,13 @@ const VendorManagement: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      )} */}
+
+      {<Pagination 
+        currentPage={pagination.page} 
+        totalPages={pagination.totalPages} 
+        onPageChange={handlePageChange}
+      />}
 
       {/* Add/Edit Vendor Modal */}
       <Modal

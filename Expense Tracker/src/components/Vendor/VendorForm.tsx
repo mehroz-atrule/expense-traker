@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EnhancedInput from '../Forms/EnhancedInput';
 import type { CreateVendorPayload } from '../../types/vendor';
 import { validateVendor } from '../../utils/vendorValidation';
@@ -17,13 +17,24 @@ const VendorForm: React.FC<VendorFormProps> = ({
   showValidation = false
 }) => {
   const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
-  const validationErrors = validateVendor(formData);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-const handleFieldChange = (field: keyof CreateVendorPayload, value: string) => {
-  onChange({
-    ...formData,
-    [field]: value,});
-};
+  // 🧠 Re-validate when formData changes
+  useEffect(() => {
+    const errors = validateVendor(formData);
+    setValidationErrors(errors);
+  }, [formData]);
+
+  const handleFieldChange = (field: keyof CreateVendorPayload, value: string) => {
+    const updatedForm = { ...formData, [field]: value };
+    onChange(updatedForm);
+
+    // 🩵 Remove error if user fixes the field
+    const newErrors = { ...validationErrors };
+    const newValidation = validateVendor(updatedForm);
+    if (!newValidation[field]) delete newErrors[field];
+    setValidationErrors(newErrors);
+  };
 
   const handleFieldBlur = (field: keyof CreateVendorPayload) => {
     setTouchedFields(prev => new Set(prev).add(field));
@@ -35,27 +46,9 @@ const handleFieldChange = (field: keyof CreateVendorPayload, value: string) => {
 
   return (
     <div className="space-y-6">
-      {/* Show validation summary only when explicitly requested (on save attempt) */}
-      {showValidation && Object.keys(validationErrors).length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <div className="flex items-start gap-2">
-            <div className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0">
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-medium text-red-800 mb-1">Please correct the following:</h4>
-              <div className="text-sm text-red-700 space-y-0.5">
-                {Object.entries(validationErrors).map(([field, error]) => (
-                  <div key={field}>• {error}</div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+     
 
+      {/* 🧱 Input Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <EnhancedInput
           label="Vendor Name"
@@ -89,18 +82,7 @@ const handleFieldChange = (field: keyof CreateVendorPayload, value: string) => {
           disabled={isLoading}
           error={shouldShowError('customerId') ? validationErrors.customerId : undefined}
         />
-        
-        {/* <EnhancedInput
-          label="WHT %"
-          value={(formData as any).WHT as any}
-          type='number'
-          onChange={(val) => handleFieldChange('WHT' as any, val)}
-          onBlur={() => handleFieldBlur('WHT' as any)}
-          placeholder="Enter withholding tax percentage (e.g., 17)"
-          disabled={isLoading}
-          error={shouldShowError('preferredBankName') ? validationErrors.preferredBankName : undefined}
-        /> */}
-        
+
         <EnhancedInput
           label="Preferred Bank Name"
           value={formData.preferredBankName}
@@ -135,9 +117,6 @@ const handleFieldChange = (field: keyof CreateVendorPayload, value: string) => {
           pattern="^[A-Z]{2}\d{2}[A-Z\d]{1,30}$"
         />
       </div>
-
-      {/* Helper text */}
-      
     </div>
   );
 };

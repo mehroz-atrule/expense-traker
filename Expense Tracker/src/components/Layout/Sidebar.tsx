@@ -21,7 +21,9 @@ const Sidebar: React.FC<SidebarProps> = ({ role, open, setOpen }) => {
     setExpanded((prev) => ({ ...prev, [path]: !prev[path] }));
   };
 
-  const isActive = (path: string) => location.pathname === `${basePath}/${path}`;
+  const isActive = (path: string) =>
+    location.pathname === `${basePath}/${path}` ||
+    (path === "" && location.pathname === basePath);
 
   return (
     <>
@@ -58,72 +60,100 @@ const Sidebar: React.FC<SidebarProps> = ({ role, open, setOpen }) => {
         {/* Menu */}
         <ul className="space-y-2">
           {routes.map((item) => {
-            const fullPath = `${basePath}/${item.path}`;
+            const fullPath =
+              item.path === "" ? basePath : `${basePath}/${item.path}`;
             const hasChildren = item.children && item.children.length > 0;
-
-            // Only collapse Vendor & PettyCash
             const isCollapsible =
               item.path === "vendor" || item.path === "pettycash";
 
             return (
               <li key={item.path}>
-                <div
-                  className={`flex items-center p-2 sm:p-3 rounded-lg transition-all duration-200 cursor-pointer ${
-                    isActive(item.path) ? "bg-gray-200 text-black" : "hover:bg-gray-100"
-                  } ${collapsed ? "justify-center" : ""}`}
-                  onClick={() =>
-                    isCollapsible ? toggleGroup(item.path) : setOpen(false)
-                  }
-                >
-                  <span
-                    className={`text-base sm:text-lg ${
-                      collapsed ? "" : "mr-2 sm:mr-3"
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-                  {!collapsed && (
-                    <div className="flex-1 flex justify-between items-center">
-                      <span className="font-medium sm:text-sm">{item.label}</span>
-                      {isCollapsible && (
-                        <ChevronDown
-                          size={16}
-                          className={`transition-transform ${
-                            expanded[item.path] ? "rotate-180" : ""
-                          }`}
-                        />
+                {/* Collapsible group (Vendor / PettyCash) */}
+                {isCollapsible ? (
+                  <>
+                    <div
+                      className={`flex items-center p-2 sm:p-3 rounded-lg transition-all duration-200 cursor-pointer ${
+                        isActive(item.path)
+                          ? "bg-gray-200 text-black"
+                          : "hover:bg-gray-100"
+                      } ${collapsed ? "justify-center" : ""}`}
+                      onClick={() => toggleGroup(item.path)}
+                    >
+                      <span
+                        className={`text-base sm:text-lg ${
+                          collapsed ? "" : "mr-2 sm:mr-3"
+                        }`}
+                      >
+                        {item.icon}
+                      </span>
+                      {!collapsed && (
+                        <div className="flex-1 flex justify-between items-center">
+                          <span className="font-medium sm:text-sm">
+                            {item.label}
+                          </span>
+                          <ChevronDown
+                            size={16}
+                            className={`transition-transform ${
+                              expanded[item.path] ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
 
-                {/* Dropdown for collapsible groups */}
-                {!collapsed &&
-                  isCollapsible &&
-                  expanded[item.path] &&
-                  item.children && (
-                    <ul className="ml-6 mt-1 space-y-1">
-                      {item.children.map((child) => {
-                        const childPath = `${fullPath}/${child.path}`;
-                        return (
-                          <li key={childPath}>
-                            <Link
-                              to={childPath}
-                              className={`flex items-center p-2 rounded-md text-sm transition-all duration-200 ${
-                                location.pathname === childPath
-                                  ? "bg-gray-100 font-medium"
-                                  : "hover:bg-gray-50 text-gray-700"
-                              }`}
-                              onClick={() => setOpen(false)}
-                            >
-                              <span className="text-xs mr-2">•</span>
-                              <span>{child.label}</span>
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
+                    {/* Dropdown children */}
+                    {!collapsed &&
+                      expanded[item.path] &&
+                      hasChildren &&
+                      item.children && (
+                        <ul className="ml-6 mt-1 space-y-1">
+                          {item.children.map((child) => {
+                            const childPath = `${fullPath}/${child.path}`;
+                            return (
+                              <li key={childPath}>
+                                <Link
+                                  to={childPath}
+                                  className={`flex items-center p-2 rounded-md text-sm transition-all duration-200 ${
+                                    location.pathname === childPath
+                                      ? "bg-gray-100 font-medium"
+                                      : "hover:bg-gray-50 text-gray-700"
+                                  }`}
+                                  onClick={() => setOpen(false)}
+                                >
+                                  <span className="text-xs mr-2">•</span>
+                                  <span>{child.label}</span>
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                  </>
+                ) : (
+                  // Non-collapsible (Dashboard, Users, Offices, etc.)
+                  <Link
+                    to={fullPath}
+                    className={`flex items-center p-2 sm:p-3 rounded-lg transition-all duration-200 ${
+                      isActive(item.path)
+                        ? "bg-gray-200 text-black"
+                        : "hover:bg-gray-100"
+                    } ${collapsed ? "justify-center" : ""}`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <span
+                      className={`text-base sm:text-lg ${
+                        collapsed ? "" : "mr-2 sm:mr-3"
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
+                    {!collapsed && (
+                      <span className="font-medium sm:text-sm">
+                        {item.label}
+                      </span>
+                    )}
+                  </Link>
+                )}
               </li>
             );
           })}
