@@ -52,7 +52,7 @@ export class VendorService {
 
     const [data, total] = await Promise.all([
       this.vendorModel
-        .find(filter)
+        .find(filter).sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .exec(),
