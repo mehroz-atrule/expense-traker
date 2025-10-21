@@ -12,13 +12,13 @@ export class Vendor extends Document {
   @Prop({ required: true, trim: true })
   customerId: string;
 
-  @Prop({ required: true, trim: true })
+  @Prop({ trim: true })
   preferredBankName: string;
 
-  @Prop({ required: true, trim: true })
+  @Prop({ trim: true })
   vendorAccountTitle: string;
 
-  @Prop({ required: true, trim: true, match: /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/ })
+  @Prop({ trim: true, match: /^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/ })
   vendorIban: string;
 
   @Prop()

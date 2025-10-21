@@ -19,17 +19,17 @@ export class CreateVendorDto {
 
   @ApiProperty({ example: 'Habib Bank' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   preferredBankName: string;
 
   @ApiProperty({ example: 'Acme Supplies Pvt Ltd' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   vendorAccountTitle: string;
 
   @ApiProperty({ example: 'PK36SCBL0000001123456702' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @Matches(/^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/)
   vendorIban: string;
 
