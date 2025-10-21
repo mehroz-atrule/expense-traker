@@ -17,9 +17,9 @@ export class CreatePettycashDto {
   transactionType: 'income' | 'expense';
 
   @ApiProperty({ description: 'Transaction amount', example: 5000 })
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
-  amount: number;
+  amount: string;
 
   @ApiProperty({ title: 'Transaction title', example: 'Fuel reimbursement' })
   @IsString()
