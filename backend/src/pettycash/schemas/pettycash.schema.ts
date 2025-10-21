@@ -12,6 +12,8 @@ export class PettyCashTransaction {
   transactionType: 'income' | 'expense';
 
   @Prop({ type: String, default: '' })
+  title: string;
+  @Prop({ type: String, default: '' })
   description: string;
 
   @Prop({ type: Number, required: true })
