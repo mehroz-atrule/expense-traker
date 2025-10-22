@@ -80,17 +80,17 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
       {/* Header Section with Opening Balance */}
       <div className="border-b border-gray-300 p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 max-sm:text-lg">
             Expense Sheet (ATRULE Technologies {officeName} )
           </h1>
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">
-            {records.length > 0 
-              ? getMonthFromDate(records[0].dateOfPayment) 
+          <h2 className="text-xl font-semibold text-gray-700 mb-4 max-sm:text-lg">
+            {records.length > 0
+              ? getMonthFromDate(records[0].dateOfPayment)
               : 'Current Month'
             }
           </h2>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
-            <p className="text-lg font-semibold text-blue-800">
+            <p className="text-lg font-semibold text-blue-800 max-sm:text-sm">
               Opening Balance: Rs. {formatCurrency(openingBalance)}
             </p>
           </div>
@@ -146,11 +146,10 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
               </tr>
             ) : (
               records.map((record, index) => (
-                <tr 
-                  key={record._id} 
-                  className={`border-b border-gray-200 hover:bg-gray-50 ${
-                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                  }`}
+                <tr
+                  key={record._id}
+                  className={`border-b border-gray-200 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                    }`}
                 >
                   <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
                     {formatTableDate(record.dateOfPayment)}
@@ -226,22 +225,19 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Footer with Closing Balance */}
-      <div className="bg-gray-100 border-t border-gray-300 p-4">
-        <div className="flex justify-between items-center text-sm text-gray-600">
-          <div>
-            Showing {records.length} of {records.length} records
-            {loading && <span className="ml-2 text-blue-500">Loading...</span>}
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              <span className="font-semibold text-green-800">
-                Closing Balance: Rs. {formatCurrency(closingBalance)}
-              </span>
+        <div className="bg-gray-100   border-t border-gray-300 p-4">
+          <div className="flex w-full  flex-wrap justify-between items-center gap-4 text-sm text-gray-600">
+            <div>
+              Showing {records.length} of {records.length} records
+              {loading && <span className="ml-2 text-blue-500">Loading...</span>}
             </div>
-            {/* <div>
+            <div className="flex items-center gap-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                <span className="font-semibold text-green-800">
+                  Closing Balance: Rs. {formatCurrency(closingBalance)}
+                </span>
+              </div>
+              {/* <div>
               Remaining Balance: Rs. {
                 formatCurrency(
                   records.length > 0 
@@ -250,9 +246,13 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
                 )
               }
             </div> */}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Footer with Closing Balance */}
+
     </div>
   );
 };

@@ -198,7 +198,7 @@ export class PettycashService {
 
       if (query.q) {
         const regex = new RegExp(query.q, 'i');
-        filter.$or = [{ reference: regex }, { bankName: regex }, { description: regex }];
+        filter.$or = [{ reference: regex }, { bankName: regex }, { description: regex }, { title: regex }];
       }
 
       const skip = (page - 1) * limit;

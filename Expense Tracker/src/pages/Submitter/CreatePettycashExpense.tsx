@@ -6,10 +6,10 @@ import EnhancedInput from "../../components/Forms/EnhancedInput";
 import { Upload, ZoomIn, FileText } from "lucide-react";
 import { useDispatch } from "react-redux";
 import type { PettyCashRecord } from "../../types/pettycash";
-import { 
-  createPettyCashExpense, 
-  getPettyCashExpense, 
-  updatePettyCashExpenseById 
+import {
+  createPettyCashExpense,
+  getPettyCashExpense,
+  updatePettyCashExpenseById
 } from "../../redux/pettycash/pettycashSlice";
 import { listOffices } from "../../api/adminApi";
 import type { Office, Option } from "../../types";
@@ -44,8 +44,8 @@ const CreatePettycashExpense: React.FC = () => {
     description: "",
     dateOfPayment: "",
     amount: "",
-    displayMonth: getCurrentMonthYear().display, 
-    month: getCurrentMonthYear().value, 
+    displayMonth: getCurrentMonthYear().display,
+    month: getCurrentMonthYear().value,
     chequeImage: null as File | null,
   });
   const [preview, setPreview] = useState<string | null>(null);
@@ -57,15 +57,15 @@ const CreatePettycashExpense: React.FC = () => {
   // Helper function to convert ISO date to yyyy-mm-dd format
   const formatDateForInput = (isoDateString: string): string => {
     if (!isoDateString) return '';
-    
+
     try {
       const date = new Date(isoDateString);
       if (isNaN(date.getTime())) return '';
-      
+
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');
-      
+
       return `${year}-${month}-${day}`;
     } catch {
       return '';
@@ -75,7 +75,7 @@ const CreatePettycashExpense: React.FC = () => {
   // Helper function to convert "MM-YYYY" to "Month-YYYY" display format
   const getMonthDisplay = (monthString: string): string => {
     if (!monthString) return getCurrentMonthYear().display;
-    
+
     try {
       const [month, year] = monthString.split('-');
       const date = new Date(parseInt(year), parseInt(month) - 1);
@@ -96,7 +96,7 @@ const CreatePettycashExpense: React.FC = () => {
           label: o.name,
         }));
         setOfficeOptions(opts);
-        
+
         if (opts.length > 0 && !form.office && !isEditMode) {
           setForm((prev) => ({ ...prev, office: opts[0].value }));
         }
@@ -115,19 +115,19 @@ const CreatePettycashExpense: React.FC = () => {
   useEffect(() => {
     const fetchExpenseData = async () => {
       if (!id) return;
-      
+
       try {
         setLoading(true);
         const response = await dispatch(getPettyCashExpense(id) as any).unwrap();
         const expenseData = response.pettycash;
-        
+
         console.log("Full API response:", response);
         console.log("Expense data:", expenseData);
-        
-        const officeId = typeof expenseData.office === 'string' 
-          ? expenseData.office 
+
+        const officeId = typeof expenseData.office === 'string'
+          ? expenseData.office
           : expenseData.office?._id || '';
-        
+
         console.log("Office ID:", officeId);
 
         setForm({
@@ -178,7 +178,7 @@ const CreatePettycashExpense: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     // ✅ Validation
     if (!form.office || !form.title || !form.amount || !form.dateOfPayment) {
       alert("Please fill all required fields");
@@ -186,7 +186,7 @@ const CreatePettycashExpense: React.FC = () => {
     }
 
     setLoading(true);
-    
+
     try {
       const formData = new FormData();
       formData.append("office", form.office);
@@ -194,7 +194,7 @@ const CreatePettycashExpense: React.FC = () => {
       formData.append("description", form.description);
       formData.append("dateOfPayment", form.dateOfPayment);
       formData.append("amount", form.amount);
-      formData.append("month", form.month); 
+      formData.append("month", form.month);
       formData.append("transactionType", "expense");
 
       if (form.chequeImage) {
@@ -211,9 +211,9 @@ const CreatePettycashExpense: React.FC = () => {
         // ✅ Create new expense
         await dispatch(createPettyCashExpense(formData) as any);
       }
-      
+
       navigate(-1); // ✅ Previous page pe wapas jao
-      
+
     } catch (error) {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} petty cash expense`, error);
       alert(`Failed to ${isEditMode ? 'update' : 'create'} expense`);
@@ -229,10 +229,10 @@ const CreatePettycashExpense: React.FC = () => {
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center space-x-3">
-              <h1 className="text-lg font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-gray-900 max-sm:text-sm">
                 {isEditMode ? 'Edit Pettycash Expense' : 'Create Pettycash Expense'}
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 max-sm:hidden">
                 {isEditMode ? 'Update existing expense' : 'Add a new petty cash expense'}
               </p>
             </div>
@@ -322,11 +322,10 @@ const CreatePettycashExpense: React.FC = () => {
 
             <div
               onClick={() => document.getElementById("chequeUpload")?.click()}
-              className={`relative w-full h-40 border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-200 overflow-hidden ${
-                preview || existingImage
-                  ? "border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50"
-                  : "border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50 active:scale-95"
-              }`}
+              className={`relative w-full h-40 border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-200 overflow-hidden ${preview || existingImage
+                ? "border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50"
+                : "border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50 active:scale-95"
+                }`}
             >
               {preview || existingImage ? (
                 <div className="relative w-full h-full">
