@@ -41,7 +41,7 @@ export class PettycashService {
       const chequeImageUrl = chequeImage
         ? (await this.cloudinary.uploadBuffer(chequeImage.buffer, 'pettycash')).secure_url
         : undefined;
-
+      const title = createDto.title;
       const amount = Number(createDto.amount);
       if (isNaN(amount) || amount <= 0) throw new BadRequestException('Invalid transaction amount');
 
@@ -86,6 +86,7 @@ export class PettycashService {
       const txn = await this.txnModel.create(
         [
           {
+            title,
             office: officeId,
             transactionType: createDto.transactionType,
             amount,
