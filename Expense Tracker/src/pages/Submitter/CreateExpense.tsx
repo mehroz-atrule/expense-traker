@@ -1,7 +1,7 @@
 "use client";
 
-import React, { use, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { ChevronLeft, Upload, FileText, CreditCard, Edit3, MoreVertical, Trash2 } from "lucide-react";
+import React, {  useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { ChevronLeft, FileText, Edit3, MoreVertical, Trash2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ExpenseStatusTracker from "../../components/Status Tracker/StatusTracker";
 import type { Office, Option } from "../../types";
@@ -11,7 +11,7 @@ import { createExpense, UpdateExpense, removeExpense, getExpense, clearExpenseDe
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { listOffices } from "../../api/adminApi";
 import type { RootState } from "../../app/store";
-import { fetchVendorDropdown, fetchVendors } from "../../redux/vendor/vendorSlice";
+import { fetchVendorDropdown } from "../../redux/vendor/vendorSlice";
 
 // Import components
 import ChequeDetailsSection from "../../components/ExpenseForm/ChequeDetailsSection";
@@ -127,11 +127,11 @@ const CreateExpenseView: React.FC = () => {
   const dispatch = useAppDispatch();
   const role = useAppSelector((s) => (s as any)?.auth?.user?.role || "submitter");
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
-  const { loading: submitterLoading, expenses } = useAppSelector((s: RootState) => s.submitter);
+  const { loading: submitterLoading, } = useAppSelector((s: RootState) => s.submitter);
   //   const viewExpense = useAppSelector((s: RootState) =>
   //   s.submitter.expenses.find(e => e._id === id)
   // );
-  const { loading, expenseDetails: viewExpense } = useAppSelector(
+  const {  expenseDetails: viewExpense } = useAppSelector(
     (state: RootState) => state.submitter
   );
   console.log({ viewExpense });
@@ -150,11 +150,9 @@ const CreateExpenseView: React.FC = () => {
 
 
   // Derived State
-  const state = (location.state as { expense?: Expense } | null) || null;
 
   // const viewExpense = state?.expense;
   const isViewMode = !!viewExpense;
-  const canEdit = role === "admin" || role === "submitter";
 
   const normalizeStatus = (s?: string) => (s || '').replace(/\s+/g, '').replace(/[^A-Za-z]/g, '');
   const currentStatusKey = normalizeStatus(viewExpense?.status);
@@ -321,7 +319,6 @@ const CreateExpenseView: React.FC = () => {
       // Calculate amount after tax
       const amountNum = parseFloat(String(updated.amount || "0")) || 0;
       const whtNum = parseFloat(String(updated.WHT || "0")) || 0;
-      const advanceTaxNum = parseFloat(String(updated.advanceTax || "0")) || 0;
 
       const total = amountNum -  whtNum;
       updated.amountAfterTax = Number(total.toFixed(2));
@@ -387,13 +384,13 @@ const CreateExpenseView: React.FC = () => {
         const result = await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
         if (result) {
           console.log("Expense updated successfully:", result);
-          navigate(-1);
+          navigate("/admin/vendor/my-expenses");
         }
       } else {
         const result = await dispatch(createExpense(dataToSend)).unwrap();
         if (result) {
           console.log("Expense created successfully:", result);
-          navigate(-1);
+          navigate("/admin/vendor/my-expenses");
         }
       }
     } catch (error) {

@@ -1,21 +1,3 @@
-// export interface PettyCashRecord {
-//     _id?: string;
-//   title?: string;
-//   description?: string;
-//   office?: string;
-//   amount?: string;
-//   remainingAmount?: string;
-//   dateOfPayment?: string; // ISO string (e.g. "2025-10-17T11:59:58.402Z")
-//   transactionNo?: string;
-//   chequeNumber?: string;
-//   bankName?: string;
-//   chequeImage?: string | File; // URL or File object
-//   openingBalance?: string;
-//   closingBalance?: string;
-//   month?: string;
-// }
-// types/pettycash.ts
-
 export interface PettyCashRecord {
   _id: string;
   office: string | {
@@ -37,8 +19,8 @@ export interface PettyCashRecord {
   bankName: string;
   chequeImage: string;
   month: string;
-  transactionNo?: string; // Optional field from your form
-  chequeNumber?: string; // Optional field from your form
+  transactionNo?: string;
+  chequeNumber?: string;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -68,18 +50,18 @@ export interface PettyCashState {
   summary: PettyCashSummary | null;
 }
 
-// Form data interface for create/edit
+// ✅ Form data interface for create/edit - Fix the syntax error
 export interface PettyCashFormData {
   office: string;
   amount: string;
   dateOfPayment: string;
-  transactionNo: string;
-  chequeNumber: string;
-  bankName: string;
-  chequeImage: string | null;
+  transactionNo?: string;
+  chequeNumber?: string;
+  bankName?: string;
+  chequeImage: File | null;  // ✅ Syntax error fix - semicolon add karo
   month: string;
   title: string;
   description: string;
-  reference: string;
-  transactionType: 'expense' | 'income';
+  reference?: string;
+  transactionType?: 'expense' | 'income';
 }

@@ -3,11 +3,12 @@ import { useDispatch } from 'react-redux';
 import type { PettyCashRecord } from '../../types/pettycash';
 import type { Office } from '../../types';
 import type { AppDispatch } from '../../app/store';
-import { createPettyCashExpense, updatePettyCashExpenseById } from '../../redux/pettycash/pettycashSlice';
+import { createPettyCashExpense, fetchPettyCash, updatePettyCashExpenseById } from '../../redux/pettycash/pettycashSlice';
 import SelectDropdown from '../Forms/SelectionDropDown';
 import EnhancedInput from '../Forms/EnhancedInput';
 import ImageUploadSection from '../ExpenseForm/ImageUploadSection';
 import Modal from '../Modal';
+import MonthYearPicker from '../MonthYearPicker';
 
 // Helper
 const getCurrentMonth = (): string => {
@@ -40,7 +41,7 @@ interface FormState {
   transactionNo: string;
   chequeNumber: string;
   bankName: string;
-  chequeImage: string | null;
+  chequeImage: File | null; // ✅ File object rakho, string nahi
   month: string;
   title: string;
   description: string;
@@ -61,7 +62,7 @@ const FormSection: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ title, children, className = '' }) => (
-  <div className={`bg-white rounded-lg border border-gray-200 overflow-hidden ${className}`}>
+  <div className={`bg-white rounded-lg border border-gray-200  ${className}`}>
     <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
       <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
     </div>
@@ -91,6 +92,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
 }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [loading, setLoading] = useState(false);
+  const [chequePreview, setChequePreview] = useState<string | null>(null); // ✅ Preview ke liye alag state
   
   const officeOptions = useMemo(() => 
     offices.map((office: Office) => ({
@@ -107,7 +109,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
     transactionNo: '',
     chequeNumber: '',
     bankName: '',
-    chequeImage: null,
+    chequeImage: null, // ✅ File object
     month: getCurrentMonth(),
     title: '',
     description: '',
@@ -137,11 +139,16 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
         transactionNo: selectedItem.transactionNo || '',
         chequeNumber: selectedItem.chequeNumber || '',
         bankName: selectedItem.bankName || '',
-        chequeImage: selectedItem.chequeImage || null,
+        chequeImage: null, // ✅ Edit mode mein file null rakho
         month: selectedItem.month || getCurrentMonth(),
         title: selectedItem.title || '',
         description: selectedItem.description || '',
       });
+
+      // ✅ Existing image ka preview set karo
+      if (selectedItem.chequeImage) {
+        setChequePreview(selectedItem.chequeImage);
+      }
     }
   }, [editMode, selectedItem]);
 
@@ -160,6 +167,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
         title: '',
         description: '',
       });
+      setChequePreview(null); // ✅ Preview bhi reset karo
     }
   }, [open, editMode, selectedOffice]);
 
@@ -171,35 +179,41 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
 
     setLoading(true);
 
-    const pettyCashData: any = {
-      office: form.office,
-      amount: form.amount,
-      dateOfPayment: form.dateOfPayment,
-      bankName: form.bankName,
-      chequeImage: form.chequeImage,
-      title: form.title || `Pettycash - ${form.dateOfPayment}`,
-      description: form.description || `Pettycash transaction for office`,
-      month: form.month,
-      transactionType: 'income', 
-    };
-
-    if (form.transactionNo) {
-      pettyCashData.transactionNo = form.transactionNo;
-    }
-    if (form.chequeNumber) {
-      pettyCashData.chequeNumber = form.chequeNumber;
-    }
-
     try {
+      // ✅ FormData use karo image upload ke liye
+      const formData = new FormData();
+      formData.append("office", form.office);
+      formData.append("amount", form.amount);
+      formData.append("dateOfPayment", form.dateOfPayment);
+      formData.append("bankName", form.bankName);
+      formData.append("title", form.title || `Pettycash - ${form.dateOfPayment}`);
+      formData.append("description", form.description || `Pettycash transaction for office`);
+      formData.append("month", form.month);
+      formData.append("transactionType", 'income');
+
+      if (form.transactionNo) {
+        formData.append("transactionNo", form.transactionNo);
+      }
+      if (form.chequeNumber) {
+        formData.append("chequeNumber", form.chequeNumber);
+      }
+      if (form.chequeImage) {
+        formData.append("chequeImage", form.chequeImage);
+      }
+
       if (editMode && selectedItem) {
         await dispatch(updatePettyCashExpenseById({
           id: selectedItem._id!,
-          payload: pettyCashData
+          payload: formData
         })).unwrap();
       } else {
-        await dispatch(createPettyCashExpense(pettyCashData)).unwrap();
+        await dispatch(createPettyCashExpense(formData)).unwrap();
+        
       }
-      
+      await dispatch(fetchPettyCash({
+        month: form.month,
+        office: form.office,
+      }));
       onClose();
       resetForm();
     } catch (error) {
@@ -207,6 +221,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
       alert(`Failed to ${editMode ? 'update' : 'create'} pettycash record`);
     } finally {
       setLoading(false);
+
     }
   };
 
@@ -223,6 +238,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
       title: '',
       description: '',
     });
+    setChequePreview(null);
   };
 
   const handleClose = () => {
@@ -255,12 +271,27 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
     setForm(prev => ({ ...prev, dateOfPayment: date }));
   };
 
+  // ✅ File change handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setForm(prev => ({ ...prev, chequeImage: file }));
+      setChequePreview(URL.createObjectURL(file));
+    }
+  };
+
+  // ✅ Remove image handler
+  const handleRemoveImage = () => {
+    setForm(prev => ({ ...prev, chequeImage: null }));
+    setChequePreview(null);
+  };
+
   return (
     <Modal
       open={open}
       title={editMode ? 'Edit Pettycash' : 'Add Pettycash'}
       onClose={handleClose}
-      widthClassName="max-w-4xl" // ✅ Increased width for better section layout
+      widthClassName="max-w-4xl"
       footer={
         <>
           <button
@@ -279,7 +310,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
         </>
       }
     >
-      <div className="space-4"> {/* Reduced space between sections */}
+      <div className="space-4">
         
         {/* ✅ Section 1: Basic Information */}
         <FormSection title="Basic Information" className="mb-4">
@@ -291,6 +322,8 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
               onChange={(opt: any) =>
                 setForm((prev) => ({ ...prev, office: opt?.value }))
               }
+                            isDisabled={editMode}
+
             />
             
             <EnhancedInput
@@ -340,21 +373,19 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
             />
           </FormGrid>
 
+          {/* ✅ Month Field - Now Editable with MonthYearPicker */}
           <div className="mt-4">
-            <FormGrid cols={1}>
-              <EnhancedInput
-                label="Month"
-                value={form.month}
-                placeholder="MM-YYYY"
-                onChange={(v) => setForm((prev) => ({ ...prev, month: v }))}
-                disabled={!editMode}
-              />
-            </FormGrid>
+            <MonthYearPicker
+              label="Month"
+              selectedValue={form.month}
+              onValueChange={(value) => setForm(prev => ({ ...prev, month: value }))}
+              showLabel={true}
+            />
           </div>
         </FormSection>
 
         {/* ✅ Section 3: Bank & Cheque Information */}
-        <FormSection title="Bank & Cheque Information" className="mb-4">
+        <FormSection title="Bank & Cheque Information" className="mb-4 " >
           <FormGrid>
             <SelectDropdown
               label="Bank Name"
@@ -380,7 +411,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
           <div className="space-y-4">
             <ImageUploadSection
               preview={null}
-              chequePreview={form.chequeImage}
+              chequePreview={chequePreview} // ✅ Use local preview state
               paymentSlipPreview={null}
               isViewMode={false}
               isEditing={editMode}
@@ -390,19 +421,21 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
               shouldShowPaymentSlip={false}
               showExpenseReceipt={false}
               onImageClick={() => {}}
-              onFileChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const url = URL.createObjectURL(file);
-                setForm((prev) => ({ ...prev, chequeImage: url }));
-              }}
+              onFileChange={handleFileChange} // ✅ Use local file handler
             />
             
-            {form.chequeImage && (
-              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            {(chequePreview || form.chequeImage) && (
+              <div className="flex justify-between items-center mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-700">
-                  ✅ Cheque image uploaded successfully
+                  ✅ Cheque image {form.chequeImage ? 'ready to upload' : 'attached'}
                 </p>
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="text-sm text-red-600 hover:text-red-800"
+                >
+                  Remove
+                </button>
               </div>
             )}
           </div>

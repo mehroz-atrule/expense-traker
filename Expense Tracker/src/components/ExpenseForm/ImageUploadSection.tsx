@@ -1,5 +1,5 @@
 import React from "react";
-import { Upload, FileText, CreditCard, ZoomIn, ExternalLink } from "lucide-react";
+import { Upload, FileText, CreditCard, ZoomIn,  } from "lucide-react";
 
 interface ImageUploadSectionProps {
   preview: string | null;
