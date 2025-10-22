@@ -284,6 +284,46 @@ export class PettycashService {
   }
 
   // =====================================================
+  // FIND ONE
+  // =====================================================
+  async findOne(id: string) {
+    try {
+      if (!Types.ObjectId.isValid(id)) {
+        throw new BadRequestException('Invalid pettycash id');
+      }
+
+      // Fetch pettycash transaction with office populated
+      const pettycash = await this.txnModel
+        .findById(id)
+        .populate('office')
+        .exec();
+
+      if (!pettycash) {
+        throw new NotFoundException('Pettycash record not found');
+      }
+
+      // Extract officeId and month from pettycash
+      const officeId = pettycash.office?._id;
+      const month = pettycash.month;
+
+      let summaryData = null;
+
+      // Fetch summary for same office and month if available
+      if (officeId && month) {
+        summaryData = await this.summaryModel.findOne({
+          office: officeId,
+          month,
+        });
+      }
+
+      return { pettycash, summaryData };
+    } catch (error) {
+      console.error('❌ Error in findOne:', error);
+      throw new InternalServerErrorException('Failed to fetch pettycash record');
+    }
+  }
+
+  // =====================================================
   // HELPERS
   // =====================================================
 
