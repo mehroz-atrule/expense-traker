@@ -140,7 +140,7 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
                 Bank Name
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-r border-gray-300">
-                Cheque Image
+                Receipt / Cheque 
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                 Actions

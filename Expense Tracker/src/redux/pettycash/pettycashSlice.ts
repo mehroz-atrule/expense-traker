@@ -134,9 +134,6 @@ const pettycashSlice = createSlice({
       })
       .addCase(createPettyCashExpense.fulfilled, (state, action: PayloadAction<PettyCashRecord>) => {
         state.loading = false;
-        // Add new record to the beginning of the list
-        state.pettyCashRecords.unshift(action.payload);
-        state.total += 1;
       })
       .addCase(createPettyCashExpense.rejected, (state, action) => {
         state.loading = false;

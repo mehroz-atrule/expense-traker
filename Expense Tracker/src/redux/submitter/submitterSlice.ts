@@ -105,11 +105,6 @@ const submitterSlice = createSlice({
       })
       .addCase(createExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
         state.loading = false;
-        const exists = state.expenses.some(e => e._id === action.payload._id);
-        if (!exists) {
-          state.expenses.unshift(action.payload);
-          state.total += 1; // ✅ Update total when new expense is added
-        }
       })
       .addCase(createExpense.rejected, (state, action) => {
         state.loading = false;

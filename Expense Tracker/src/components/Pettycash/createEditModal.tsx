@@ -25,6 +25,14 @@ const getCurrentDate = (): string => {
   return `${year}-${month}-${day}`;
 };
 
+// Bank Options
+const bankOptions = [
+  { value: "Atrule HBL PKR", label: "Atrule HBL PKR" },
+  { value: "Suleman Altaf HBL PKR", label: "Suleman Altaf HBL PKR" },
+  { value: "Lahore Pettycash", label: "Lahore Pettycash" },
+  { value: "Multan Pettycash", label: "Multan Pettycash" },
+];
+
 interface FormState {
   office: string;
   amount: string;
@@ -46,6 +54,32 @@ interface CreateEditModalProps {
   selectedOffice: string;
   onClose: () => void;
 }
+
+// ✅ Reusable Section Component
+const FormSection: React.FC<{
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}> = ({ title, children, className = '' }) => (
+  <div className={`bg-white rounded-lg border border-gray-200 overflow-hidden ${className}`}>
+    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+      <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+    </div>
+    <div className="p-4">
+      {children}
+    </div>
+  </div>
+);
+
+// ✅ Reusable Grid Container
+const FormGrid: React.FC<{
+  children: React.ReactNode;
+  cols?: number;
+}> = ({ children, cols = 2 }) => (
+  <div className={`grid grid-cols-1 ${cols === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-4`}>
+    {children}
+  </div>
+);
 
 const CreateEditModal: React.FC<CreateEditModalProps> = ({
   open,
@@ -84,7 +118,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
     if (officeOptions.length > 0 && selectedOffice && !form.office) {
       setForm(prev => ({ ...prev, office: selectedOffice }));
     }
-  }, [officeOptions.length, selectedOffice]); // ✅ Fixed dependencies
+  }, [officeOptions.length, selectedOffice]);
 
   // Setup form for editing - only when editMode or selectedItem changes
   useEffect(() => {
@@ -109,7 +143,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
         description: selectedItem.description || '',
       });
     }
-  }, [editMode, selectedItem]); // ✅ Removed selectedOffice from dependencies
+  }, [editMode, selectedItem]);
 
   // Reset form when modal opens for new record
   useEffect(() => {
@@ -127,7 +161,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
         description: '',
       });
     }
-  }, [open, editMode, selectedOffice]); // ✅ Reset when modal opens for new record
+  }, [open, editMode, selectedOffice]);
 
   const handleSave = async () => {
     if (!form.amount || !form.dateOfPayment || !form.office) {
@@ -206,7 +240,6 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
         if (!isNaN(dateObj.getTime())) {
           const year = dateObj.getFullYear();
           const month = dateObj.getMonth() + 1;
-          // ✅ Fixed month format to match your API (MM-YYYY instead of YYYY-MM)
           const monthString = `${month.toString().padStart(2, '0')}-${year}`;
           setForm(prev => ({ 
             ...prev, 
@@ -227,7 +260,7 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
       open={open}
       title={editMode ? 'Edit Pettycash' : 'Add Pettycash'}
       onClose={handleClose}
-      widthClassName="max-w-3xl"
+      widthClassName="max-w-4xl" // ✅ Increased width for better section layout
       footer={
         <>
           <button
@@ -246,97 +279,135 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
         </>
       }
     >
-      <div className="space-y-4">
-        <SelectDropdown
-          label="Office"
-          options={officeOptions}
-          value={officeOptions.find((o) => o.value === form.office) || null}
-          onChange={(opt: any) =>
-            setForm((prev) => ({ ...prev, office: opt?.value }))
-          }
-        />
+      <div className="space-4"> {/* Reduced space between sections */}
+        
+        {/* ✅ Section 1: Basic Information */}
+        <FormSection title="Basic Information" className="mb-4">
+          <FormGrid>
+            <SelectDropdown
+              label="Office"
+              options={officeOptions}
+              value={officeOptions.find((o) => o.value === form.office) || null}
+              onChange={(opt: any) =>
+                setForm((prev) => ({ ...prev, office: opt?.value }))
+              }
+            />
+            
+            <EnhancedInput
+              label="Amount"
+              type="number"
+              value={form.amount}
+              onChange={(v) => setForm((prev) => ({ ...prev, amount: v }))}
+              required
+            />
+          </FormGrid>
 
-        <EnhancedInput
-          label="Amount"
-          type="number"
-          value={form.amount}
-          onChange={(v) => setForm((prev) => ({ ...prev, amount: v }))}
-          required
-        />
+          <div className="mt-4">
+            <EnhancedInput
+              label="Title"
+              value={form.title}
+              onChange={(v) => setForm((prev) => ({ ...prev, title: v }))}
+              placeholder="Enter transaction title"
+            />
+          </div>
 
-        <EnhancedInput
-          label="Title"
-          value={form.title}
-          onChange={(v) => setForm((prev) => ({ ...prev, title: v }))}
-          placeholder="Enter transaction title"
-        />
+          <div className="mt-4">
+            <EnhancedInput
+              label="Description"
+              value={form.description}
+              onChange={(v) => setForm((prev) => ({ ...prev, description: v }))}
+              placeholder="Enter transaction description"
+            />
+          </div>
+        </FormSection>
 
-        <EnhancedInput
-          label="Description"
-          value={form.description}
-          onChange={(v) => setForm((prev) => ({ ...prev, description: v }))}
-          placeholder="Enter transaction description"
-        />
+        {/* ✅ Section 2: Transaction Details */}
+        <FormSection title="Transaction Details" className="mb-4">
+          <FormGrid>
+            <EnhancedInput
+              label="Date of Payment"
+              type="date"
+              value={form.dateOfPayment}
+              onChange={handleDateChange}
+              required
+            />
+            
+            <EnhancedInput
+              label="Transaction No"
+              value={form.transactionNo}
+              onChange={(v) => setForm((prev) => ({ ...prev, transactionNo: v }))}
+              placeholder="Enter transaction number"
+            />
+          </FormGrid>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <EnhancedInput
-            label="Date of Payment"
-            type="date"
-            value={form.dateOfPayment}
-            onChange={handleDateChange}
-            required
-          />
-          <EnhancedInput
-            label="Transaction No"
-            value={form.transactionNo}
-            onChange={(v) => setForm((prev) => ({ ...prev, transactionNo: v }))}
-            placeholder="Enter transaction number"
-          />
-        </div>
+          <div className="mt-4">
+            <FormGrid cols={1}>
+              <EnhancedInput
+                label="Month"
+                value={form.month}
+                placeholder="MM-YYYY"
+                onChange={(v) => setForm((prev) => ({ ...prev, month: v }))}
+                disabled={!editMode}
+              />
+            </FormGrid>
+          </div>
+        </FormSection>
 
-        <EnhancedInput
-          label="Cheque Number"
-          value={form.chequeNumber}
-          onChange={(v) => setForm((prev) => ({ ...prev, chequeNumber: v }))}
-          placeholder="Enter cheque number"
-        />
+        {/* ✅ Section 3: Bank & Cheque Information */}
+        <FormSection title="Bank & Cheque Information" className="mb-4">
+          <FormGrid>
+            <SelectDropdown
+              label="Bank Name"
+              options={bankOptions}
+              value={bankOptions.find((bank) => bank.value === form.bankName) || null}
+              onChange={(opt: any) =>
+                setForm((prev) => ({ ...prev, bankName: opt?.value || '' }))
+              }
+              placeholder="Select bank name"
+            />
+            
+            <EnhancedInput
+              label="Cheque Number"
+              value={form.chequeNumber}
+              onChange={(v) => setForm((prev) => ({ ...prev, chequeNumber: v }))}
+              placeholder="Enter cheque number"
+            />
+          </FormGrid>
+        </FormSection>
 
-        <EnhancedInput
-          label="Bank Name"
-          value={form.bankName}
-          onChange={(v) => setForm((prev) => ({ ...prev, bankName: v }))}
-          placeholder="Enter bank name"
-        />
+        {/* ✅ Section 4: Document Upload */}
+        <FormSection title="Document Upload">
+          <div className="space-y-4">
+            <ImageUploadSection
+              preview={null}
+              chequePreview={form.chequeImage}
+              paymentSlipPreview={null}
+              isViewMode={false}
+              isEditing={editMode}
+              isCashPayment={false}
+              isBankTransfer={false}
+              currentStatusKey={'ReviewedByFinance'}
+              shouldShowPaymentSlip={false}
+              showExpenseReceipt={false}
+              onImageClick={() => {}}
+              onFileChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const url = URL.createObjectURL(file);
+                setForm((prev) => ({ ...prev, chequeImage: url }));
+              }}
+            />
+            
+            {form.chequeImage && (
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-700">
+                  ✅ Cheque image uploaded successfully
+                </p>
+              </div>
+            )}
+          </div>
+        </FormSection>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <EnhancedInput
-            label="Month"
-            value={form.month}
-            placeholder="MM-YYYY"
-            onChange={(v) => setForm((prev) => ({ ...prev, month: v }))}
-            disabled={!editMode}
-          />
-        </div>
-
-        <ImageUploadSection
-          preview={null}
-          chequePreview={form.chequeImage}
-          paymentSlipPreview={null}
-          isViewMode={false}
-          isEditing={editMode}
-          isCashPayment={false}
-          isBankTransfer={false}
-          currentStatusKey={'ReviewedByFinance'}
-          shouldShowPaymentSlip={false}
-          showExpenseReceipt={false}
-          onImageClick={() => {}}
-          onFileChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            const url = URL.createObjectURL(file);
-            setForm((prev) => ({ ...prev, chequeImage: url }));
-          }}
-        />
       </div>
     </Modal>
   );
