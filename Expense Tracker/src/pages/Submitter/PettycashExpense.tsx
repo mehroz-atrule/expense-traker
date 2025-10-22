@@ -30,12 +30,12 @@ const getCurrentMonth = (): string => {
 };
 const PettycashExpense: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  
+
   // Redux state
   const { pettyCashRecords, total, page, limit, loading, summary } = useSelector(
     (state: RootState) => state.pettycash
   );
-  
+
   console.log("summary data:", summary);
   const { offices, loading: officesLoading } = useSelector(
     (state: RootState) => state.admin
@@ -64,6 +64,8 @@ const PettycashExpense: React.FC = () => {
   // Get summary data
   const openingBalance = summary?.openingBalance || 0;
   const closingBalance = summary?.closingBalance || 0;
+  const totalExpense = summary?.totalExpense || 0;
+  const TotalIncome = summary?.totalIncome || 0;
 
   // Set default office when offices load
   useEffect(() => {
@@ -80,17 +82,17 @@ const PettycashExpense: React.FC = () => {
     }
 
     // Fetch pettycash with office ID and current month
-    const params: Record<string, any> = { 
-      query: searchTerm, 
-      page: localPage, 
+    const params: Record<string, any> = {
+      query: searchTerm,
+      page: localPage,
       limit: localLimit,
       month: getCurrentMonth() // Add current month to params
     };
-    
+
     if (selectedOffice) {
       params.office = selectedOffice;
     }
-    
+
     dispatch(fetchPettyCash(params));
   }, [dispatch, searchTerm, localPage, localLimit, selectedOffice, offices.length]);
 
@@ -114,22 +116,22 @@ const PettycashExpense: React.FC = () => {
     setSelectedItem(null);
     setCreateModalOpen(true);
   };
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
-// PettycashExpense.tsx mein handleEdit function update karen
-const handleEdit = (record: PettyCashRecord) => {
-  setSelectedItem(record);
-  
-  // ✅ Type check karo
-  if (record.transactionType === 'expense') {
-    // Expense type hai toh CreatePettycashExpense page pe redirect karo
-navigate(`/admin/pettycash/create-expense?id=${record._id}`);
-  } else {
-    // Income type hai toh existing modal use karo
-    setEditMode(true);
-    setCreateModalOpen(true);
-  }
-};
+  // PettycashExpense.tsx mein handleEdit function update karen
+  const handleEdit = (record: PettyCashRecord) => {
+    setSelectedItem(record);
+
+    // ✅ Type check karo
+    if (record.transactionType === 'expense') {
+      // Expense type hai toh CreatePettycashExpense page pe redirect karo
+      navigate(`/admin/pettycash/create-expense?id=${record._id}`);
+    } else {
+      // Income type hai toh existing modal use karo
+      setEditMode(true);
+      setCreateModalOpen(true);
+    }
+  };
 
   const handleView = (record: PettyCashRecord) => {
     setSelectedItem(record);
@@ -192,6 +194,8 @@ navigate(`/admin/pettycash/create-expense?id=${record._id}`);
           officeName={getCurrentOfficeName()}
           openingBalance={openingBalance}
           closingBalance={closingBalance}
+          totalExpense={totalExpense}
+          totalIncome={TotalIncome}
           onEdit={handleEdit}
           onView={handleView}
           onDelete={handleDelete}
@@ -234,40 +238,40 @@ navigate(`/admin/pettycash/create-expense?id=${record._id}`);
         title="Cheque Image"
       />
 
-     <ConfirmDialog
-  open={confirmDeleteOpen}
-  title="Delete Pettycash Record"
-  message="Are you sure you want to delete this pettycash record? This action cannot be undone."
-  onConfirm={async () => {
-    if (!pendingDeleteId) return;
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Delete Pettycash Record"
+        message="Are you sure you want to delete this pettycash record? This action cannot be undone."
+        onConfirm={async () => {
+          if (!pendingDeleteId) return;
 
-    try {
-      // 🔥 Delete the record
-      await dispatch(deletePettyCashExpenseById(pendingDeleteId)).unwrap();
+          try {
+            // 🔥 Delete the record
+            await dispatch(deletePettyCashExpenseById(pendingDeleteId)).unwrap();
 
-      // ✅ Optionally re-fetch list (to refresh balances/summary)
-      dispatch(fetchPettyCash({
-        query: searchTerm,
-        page: localPage,
-        limit: localLimit,
-        month: getCurrentMonth(),
-        office: selectedOffice,
-      }));
+            // ✅ Optionally re-fetch list (to refresh balances/summary)
+            dispatch(fetchPettyCash({
+              query: searchTerm,
+              page: localPage,
+              limit: localLimit,
+              month: getCurrentMonth(),
+              office: selectedOffice,
+            }));
 
-      // ✅ Close modal & reset
-      setConfirmDeleteOpen(false);
-      setPendingDeleteId(null);
-      setSelectedItem(null);
-    } catch (error) {
-      console.error('Failed to delete petty cash expense:', error);
-    }
-  }}
-  onCancel={() => {
-    setConfirmDeleteOpen(false);
-    setPendingDeleteId(null);
-  }}
-  loading={loading}
-/>
+            // ✅ Close modal & reset
+            setConfirmDeleteOpen(false);
+            setPendingDeleteId(null);
+            setSelectedItem(null);
+          } catch (error) {
+            console.error('Failed to delete petty cash expense:', error);
+          }
+        }}
+        onCancel={() => {
+          setConfirmDeleteOpen(false);
+          setPendingDeleteId(null);
+        }}
+        loading={loading}
+      />
 
     </div>
   );

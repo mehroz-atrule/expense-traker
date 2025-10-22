@@ -58,6 +58,8 @@ interface ExpenseSheetTableProps {
   officeName: string;
   openingBalance: number;
   closingBalance: number;
+  totalExpense: number;
+  totalIncome: number;
   onEdit: (record: PettyCashRecord) => void;
   onView: (record: PettyCashRecord) => void;
   onDelete: (record: PettyCashRecord) => void;
@@ -70,6 +72,8 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
   officeName,
   openingBalance,
   closingBalance,
+  totalExpense,
+  totalIncome,
   onEdit,
   onView,
   onDelete,
@@ -78,7 +82,7 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
   return (
     <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
       {/* Header Section with Opening Balance */}
-      <div className="border-b border-gray-300 p-6">
+      <div className="border-b  border-gray-300 p-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2 max-sm:text-lg">
             Expense Sheet (ATRULE Technologies {officeName} )
@@ -89,10 +93,22 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
               : 'Current Month'
             }
           </h2>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
-            <p className="text-lg font-semibold text-blue-800 max-sm:text-sm">
-              Opening Balance: Rs. {formatCurrency(openingBalance)}
-            </p>
+          <div className='flex flex-wrap gap-2 justify-center items-center'>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
+              <p className="text-sm font-semibold text-blue-800 max-sm:text-sm">
+                Opening Balance: Rs. {formatCurrency(openingBalance)}
+              </p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
+              <p className="text-sm font-semibold text-blue-800 max-sm:text-sm">
+                Total Expense: Rs. {totalExpense}
+              </p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 inline-block">
+              <p className="text-sm font-semibold text-blue-800 max-sm:text-sm">
+                Total Income: Rs. {totalIncome}
+              </p>
+            </div>
           </div>
         </div>
       </div>

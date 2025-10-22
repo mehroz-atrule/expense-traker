@@ -42,6 +42,9 @@ export class PettyCashTransaction {
 
   @Prop({ type: String, default: '' })
   month: string; // e.g., "2025-10"
+
+  @Prop({ type: Boolean, default: true })
+  isEnable: boolean;
 }
 
 export const PettyCashTransactionSchema = SchemaFactory.createForClass(PettyCashTransaction);
