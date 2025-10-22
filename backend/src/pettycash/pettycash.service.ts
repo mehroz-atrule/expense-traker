@@ -261,7 +261,7 @@ export class PettycashService {
         total,
         page,
         limit,
-        summary: summary ? { summary, totalExpense, totalIncome } : { openingBalance: 0, closingBalance: 0, note: 'No summary found' },
+        summary: summary ? { ...summary, totalExpense, totalIncome } : { openingBalance: 0, closingBalance: 0, note: 'No summary found' },
       };
     } catch (err) {
       console.error('Error fetching transactions:', err);
