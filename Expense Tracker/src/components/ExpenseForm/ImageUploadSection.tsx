@@ -34,7 +34,8 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 }) => {
 
   const [pdfStates, setPdfStates] = React.useState<{ [key: string]: boolean }>({});
-  console.log("CurrentStatusKey:", currentStatusKey );
+  console.log("CurrentStatusKey:", currentStatusKey);
+  console.log("isEditing:", isEditing);
 
   // Move the PDF checking logic to component-level useEffect
   React.useEffect(() => {
@@ -111,8 +112,8 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
             ${currentPreview
               ? "border-gray-300 bg-white cursor-pointer hover:border-blue-400"
               : isFieldEnabled
-              ? "border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50"
-              : "border-gray-300 bg-gray-50 cursor-not-allowed opacity-60"}`}
+                ? "border-gray-300 bg-white cursor-pointer hover:border-blue-400 hover:bg-blue-50"
+                : "border-gray-300 bg-gray-50 cursor-not-allowed opacity-60"}`}
         >
           {currentPreview ? (
             pdfStates[type] ? (
@@ -135,7 +136,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                     <div className="bg-white bg-opacity-80 rounded-full p-2">
                       <ZoomIn className="w-6 h-6 text-gray-700" />
                     </div>
-                    {isEditing  || !currentStatusKey &&(
+                    {(isEditing || !currentStatusKey) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -144,7 +145,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                         className="bg-white bg-opacity-80 rounded-full p-2"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-blue-600">
-                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                         </svg>
                       </button>
                     )}
@@ -154,9 +155,9 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
             ) : (
               // ✅ Image Preview
               <div className="relative w-full h-full group">
-                <img 
-                  src={currentPreview} 
-                  alt={title} 
+                <img
+                  src={currentPreview}
+                  alt={title}
                   className="w-full h-full object-cover rounded-xl"
                   onError={(e) => {
                     // Fallback if image fails to load
@@ -169,16 +170,16 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                     <div className="bg-white bg-opacity-90 rounded-full p-2">
                       <ZoomIn className="w-6 h-6 text-gray-700" />
                     </div>
-                    {isEditing || !currentStatusKey && (
+                    {(isEditing || !currentStatusKey) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onEditClick?.(type);
                         }}
-                        className="bg-white bg-opacity-90 rounded-full p-2"
+                        className="bg-white bg-opacity-80 rounded-full p-2"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-blue-600">
-                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
                         </svg>
                       </button>
                     )}

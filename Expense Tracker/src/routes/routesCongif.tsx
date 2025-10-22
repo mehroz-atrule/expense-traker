@@ -73,7 +73,7 @@ const routesConfig: RoutesConfig = {
       },
       {
         path: "vendor",
-        element: <VendorManagement />,
+        element: <MyExpenses />,
         label: "Vendor",
         icon: <Building2 size={18} />,
         tooltip: "Vendor Section",
@@ -101,7 +101,7 @@ const routesConfig: RoutesConfig = {
       },
       {
         path: "pettycash",
-        element: <PettyCash />,
+        element: <PettycashExpense />,
         label: "PettyCash",
         icon: <CreditCard size={18} />,
         tooltip: "Manage petty cash",
