@@ -1,25 +1,23 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { deletePettyCashExpenseById, fetchPettyCash } from '../../redux/pettycash/pettycashSlice';
 import { fetchOffices } from '../../redux/admin/adminSlice';
-import type { Office } from '../../types/admin';
 
 // Components
-
 import ImageModal from '../../components/ImageViewModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Pagination from '../../components/Pagination';
-
-// Types
-import type { PettyCashRecord } from '../../types/pettycash';
-import type { AppDispatch, RootState } from '../../app/store';
 import PettyCashHeader from '../../components/Pettycash/pettycashHeader';
-import PettyCashSearch from '../../components/Pettycash/pettycashSearch';
+import PettyCashSearch from '../../components/Pettycash/pettycashSearch'; // ✅ Updated import
 import OfficeTabs from '../../components/Pettycash/officeTabs';
 import ExpenseSheetTable from '../../components/Pettycash/expenseSheetTable';
 import CreateEditModal from '../../components/Pettycash/createEditModal';
 import ViewModal from '../../components/Pettycash/viewModal';
 import { useNavigate } from 'react-router-dom';
+
+// Types
+import type { PettyCashRecord } from '../../types/pettycash';
+import type { AppDispatch, RootState } from '../../app/store';
 
 // Helper function to get current month
 const getCurrentMonth = (): string => {
@@ -28,6 +26,7 @@ const getCurrentMonth = (): string => {
   const month = date.getMonth() + 1;
   return `${month.toString().padStart(2, '0')}-${year}`;
 };
+
 const PettycashExpense: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   
@@ -36,16 +35,16 @@ const PettycashExpense: React.FC = () => {
     (state: RootState) => state.pettycash
   );
   
-  console.log("summary data:", summary);
   const { offices, loading: officesLoading } = useSelector(
     (state: RootState) => state.admin
   );
 
-  // Local state
+  // Local state - ✅ selectedMonth add kiya hai
   const [searchTerm, setSearchTerm] = useState('');
   const [localPage, setLocalPage] = useState(1);
   const [localLimit] = useState(10);
   const [selectedOffice, setSelectedOffice] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth()); // ✅ Month state
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -72,19 +71,19 @@ const PettycashExpense: React.FC = () => {
     }
   }, [offices, selectedOffice]);
 
-  // Fetch data when filters change
+  // Fetch data when filters change - ✅ selectedMonth dependency add ki hai
   useEffect(() => {
     // Fetch offices if not loaded
     if (offices.length === 0) {
       dispatch(fetchOffices());
     }
 
-    // Fetch pettycash with office ID and current month
+    // Fetch pettycash with office ID and selected month
     const params: Record<string, any> = { 
-      query: searchTerm, 
+      q: searchTerm, 
       page: localPage, 
       limit: localLimit,
-      month: getCurrentMonth() // Add current month to params
+      month: selectedMonth // ✅ selectedMonth use kiya hai
     };
     
     if (selectedOffice) {
@@ -92,11 +91,17 @@ const PettycashExpense: React.FC = () => {
     }
     
     dispatch(fetchPettyCash(params));
-  }, [dispatch, searchTerm, localPage, localLimit, selectedOffice, offices.length]);
+  }, [dispatch, searchTerm, localPage, localLimit, selectedOffice, selectedMonth, offices.length]);
 
   // Handlers
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+    setLocalPage(1);
+  };
+
+  // ✅ Month change handler add kiya hai
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
     setLocalPage(1);
   };
 
@@ -114,22 +119,19 @@ const PettycashExpense: React.FC = () => {
     setSelectedItem(null);
     setCreateModalOpen(true);
   };
-const navigate = useNavigate();
 
-// PettycashExpense.tsx mein handleEdit function update karen
-const handleEdit = (record: PettyCashRecord) => {
-  setSelectedItem(record);
-  
-  // ✅ Type check karo
-  if (record.transactionType === 'expense') {
-    // Expense type hai toh CreatePettycashExpense page pe redirect karo
-navigate(`/admin/pettycash/create-expense?id=${record._id}`);
-  } else {
-    // Income type hai toh existing modal use karo
-    setEditMode(true);
-    setCreateModalOpen(true);
-  }
-};
+  const navigate = useNavigate();
+
+  const handleEdit = (record: PettyCashRecord) => {
+    setSelectedItem(record);
+    
+    if (record.transactionType === 'expense') {
+      navigate(`/admin/pettycash/create-expense?id=${record._id}`);
+    } else {
+      setEditMode(true);
+      setCreateModalOpen(true);
+    }
+  };
 
   const handleView = (record: PettyCashRecord) => {
     setSelectedItem(record);
@@ -168,10 +170,12 @@ navigate(`/admin/pettycash/create-expense?id=${record._id}`);
       {/* Header */}
       <PettyCashHeader onCreateNew={handleCreateNew} />
 
-      {/* Search Bar */}
+      {/* ✅ Search Bar with Month Filter - props pass kiye hain */}
       <PettyCashSearch
         searchTerm={searchTerm}
         onSearch={handleSearch}
+        selectedMonth={selectedMonth}
+        onMonthChange={handleMonthChange} // ✅ Ye handler pass kiya hai
         totalRecords={totalRecords}
         loading={loading}
       />
@@ -234,41 +238,37 @@ navigate(`/admin/pettycash/create-expense?id=${record._id}`);
         title="Cheque Image"
       />
 
-     <ConfirmDialog
-  open={confirmDeleteOpen}
-  title="Delete Pettycash Record"
-  message="Are you sure you want to delete this pettycash record? This action cannot be undone."
-  onConfirm={async () => {
-    if (!pendingDeleteId) return;
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title="Delete Pettycash Record"
+        message="Are you sure you want to delete this pettycash record? This action cannot be undone."
+        onConfirm={async () => {
+          if (!pendingDeleteId) return;
 
-    try {
-      // 🔥 Delete the record
-      await dispatch(deletePettyCashExpenseById(pendingDeleteId)).unwrap();
+          try {
+            await dispatch(deletePettyCashExpenseById(pendingDeleteId)).unwrap();
 
-      // ✅ Optionally re-fetch list (to refresh balances/summary)
-      dispatch(fetchPettyCash({
-        query: searchTerm,
-        page: localPage,
-        limit: localLimit,
-        month: getCurrentMonth(),
-        office: selectedOffice,
-      }));
+            dispatch(fetchPettyCash({
+              query: searchTerm,
+              page: localPage,
+              limit: localLimit,
+              month: selectedMonth, // ✅ selectedMonth use kiya hai
+              office: selectedOffice,
+            }));
 
-      // ✅ Close modal & reset
-      setConfirmDeleteOpen(false);
-      setPendingDeleteId(null);
-      setSelectedItem(null);
-    } catch (error) {
-      console.error('Failed to delete petty cash expense:', error);
-    }
-  }}
-  onCancel={() => {
-    setConfirmDeleteOpen(false);
-    setPendingDeleteId(null);
-  }}
-  loading={loading}
-/>
-
+            setConfirmDeleteOpen(false);
+            setPendingDeleteId(null);
+            setSelectedItem(null);
+          } catch (error) {
+            console.error('Failed to delete petty cash expense:', error);
+          }
+        }}
+        onCancel={() => {
+          setConfirmDeleteOpen(false);
+          setPendingDeleteId(null);
+        }}
+        loading={loading}
+      />
     </div>
   );
 };

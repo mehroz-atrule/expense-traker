@@ -118,33 +118,34 @@ const CreatePettycashExpense: React.FC = () => {
 
       try {
         setLoading(true);
-        const response = await dispatch(getPettyCashExpense(id) as any).unwrap();
-        const expenseData = response.pettycash;
+     const response = await dispatch(getPettyCashExpense(id) as any).unwrap();
+const expenseData = response?.pettycash || response?.txn;
 
-        console.log("Full API response:", response);
-        console.log("Expense data:", expenseData);
+console.log("Full API response:", response);
+console.log("Expense data:", expenseData);
 
-        const officeId = typeof expenseData.office === 'string'
-          ? expenseData.office
-          : expenseData.office?._id || '';
+if (!expenseData) throw new Error("No petty cash expense data found");
 
-        console.log("Office ID:", officeId);
+const officeId = typeof expenseData.office === "string"
+  ? expenseData.office
+  : expenseData.office?._id || "";
 
-        setForm({
-          office: officeId,
-          title: expenseData.title || '',
-          description: expenseData.description || '',
-          dateOfPayment: formatDateForInput(expenseData.dateOfPayment),
-          amount: expenseData.amount?.toString() || '',
-          displayMonth: getMonthDisplay(expenseData.month),
-          month: expenseData.month || getCurrentMonthYear().value,
-          chequeImage: null,
-        });
+setForm({
+  office: officeId,
+  title: expenseData.title || "",
+  description: expenseData.description || "",
+  dateOfPayment: formatDateForInput(expenseData.dateOfPayment),
+  amount: expenseData.amount?.toString() || "",
+  displayMonth: getMonthDisplay(expenseData.month),
+  month: expenseData.month || getCurrentMonthYear().value,
+  chequeImage: null,
+});
 
-        if (expenseData.chequeImage) {
-          setExistingImage(expenseData.chequeImage);
-          setPreview(expenseData.chequeImage);
-        }
+if (expenseData.chequeImage) {
+  setExistingImage(expenseData.chequeImage);
+  setPreview(expenseData.chequeImage);
+}
+
 
       } catch (error) {
         console.error("Failed to fetch expense data", error);
@@ -195,6 +196,7 @@ const CreatePettycashExpense: React.FC = () => {
       formData.append("dateOfPayment", form.dateOfPayment);
       formData.append("amount", form.amount);
       formData.append("month", form.month);
+
       formData.append("transactionType", "expense");
 
       if (form.chequeImage) {
