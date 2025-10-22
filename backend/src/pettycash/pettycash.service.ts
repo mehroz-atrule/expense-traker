@@ -23,18 +23,23 @@ import {
 export class PettycashService {
   constructor(
     @InjectModel(PettyCashTransaction.name)
-    private txnModel: Model<PettyCashTransactionDocument>,
+    private readonly txnModel: Model<PettyCashTransactionDocument>,
     @InjectModel(PettyCashSummary.name)
-    private summaryModel: Model<PettyCashSummaryDocument>,
+    private readonly summaryModel: Model<PettyCashSummaryDocument>,
     private readonly cloudinary: CloudinaryService,
   ) { }
 
-  // ================= CREATE TRANSACTION =================
+  // =====================================================
+  // CREATE TRANSACTION
+  // =====================================================
   async create(createDto: CreatePettycashDto, chequeImage?: any) {
-    const session = await this.txnModel.db.startSession();
-    session.startTransaction();
+    const session: ClientSession = await this.txnModel.db.startSession();
+    await session.startTransaction();
 
     try {
+      if (!Types.ObjectId.isValid(createDto.office)) {
+        throw new BadRequestException('Invalid office ID');
+      }
       const officeId = new Types.ObjectId(createDto.office);
       const month = createDto.month || this.formatMonth(new Date()); // e.g. "11-2025"
 
@@ -51,18 +56,9 @@ export class PettycashService {
       const debit = isIncome ? 0 : amount;
       const credit = isIncome ? amount : 0;
 
-      // Find last txn for this office
-      let lastTxn = await this.txnModel
-        .findOne({ office: officeId })
-        .sort({ dateOfPayment: -1, _id: -1 })
-        .session(session);
-
+      // Check for previous month summary or last txn in current month
+      const hasTxnInMonth = await this.txnModel.exists({ office: officeId, month }).session(session);
       let lastBalance = 0;
-
-      // If this is first txn for this month → get previous month summary
-      const hasTxnInMonth = await this.txnModel
-        .exists({ office: officeId, month })
-        .session(session);
 
       if (!hasTxnInMonth) {
         const prevMonth = this.getPreviousMonth(month);
@@ -71,12 +67,15 @@ export class PettycashService {
           .session(session);
         lastBalance = prevSummary?.closingBalance ?? 0;
       } else {
+        const lastTxn = await this.txnModel
+          .findOne({ office: officeId })
+          .sort({ dateOfPayment: -1, _id: -1 })
+          .session(session);
         lastBalance = lastTxn?.balanceAfter ?? 0;
       }
 
       const balanceAfter = isIncome ? lastBalance + amount : lastBalance - amount;
 
-      // Create txn
       const [txn] = await this.txnModel.create(
         [
           {
@@ -87,12 +86,12 @@ export class PettycashService {
             debit,
             credit,
             balanceAfter,
-            description: createDto.description || '',
-            reference: createDto.transactionNo || createDto.chequeNumber || '',
-            bankName: createDto.bankName || '',
+            description: createDto.description ?? '',
+            reference: createDto.transactionNo ?? createDto.chequeNumber ?? '',
+            bankName: createDto.bankName ?? '',
             chequeImage: chequeImageUrl,
             month,
-            dateOfPayment: new Date(createDto.dateOfPayment || Date.now()),
+            dateOfPayment: new Date(createDto.dateOfPayment ?? Date.now()),
           },
         ],
         { session },
@@ -102,18 +101,21 @@ export class PettycashService {
 
       await session.commitTransaction();
       return txn;
-    } catch (err) {
+    } catch (error) {
       await session.abortTransaction();
+      console.error('❌ Error creating transaction:', error);
       throw new InternalServerErrorException('Failed to create transaction');
     } finally {
-      session.endSession();
+      await session.endSession();
     }
   }
 
-  // ================= UPDATE TRANSACTION =================
+  // =====================================================
+  // UPDATE TRANSACTION
+  // =====================================================
   async update(id: string, updateDto: UpdatePettycashDto, image?: any) {
-    const session = await this.txnModel.db.startSession();
-    session.startTransaction();
+    const session: ClientSession = await this.txnModel.db.startSession();
+    await session.startTransaction();
 
     try {
       if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid ID');
@@ -123,8 +125,9 @@ export class PettycashService {
 
       let chequeImageUrl = txn.chequeImage;
       if (image?.buffer) {
-        if (chequeImageUrl)
-          await this.cloudinary.deleteByUrl(chequeImageUrl).catch(() => undefined);
+        if (chequeImageUrl) {
+          await this.cloudinary.deleteByUrl(chequeImageUrl).catch(() => null);
+        }
         chequeImageUrl = (await this.cloudinary.uploadBuffer(image.buffer, 'pettycash')).secure_url;
       }
 
@@ -133,8 +136,11 @@ export class PettycashService {
       const debit = transactionType === 'expense' ? amount : 0;
       const credit = transactionType === 'income' ? amount : 0;
 
+      // keep office as ObjectId to avoid string conversion
+      const officeId = txn.office instanceof Types.ObjectId ? txn.office : new Types.ObjectId(txn.office);
+
       const previous = await this.txnModel
-        .findOne({ office: txn.office, dateOfPayment: { $lt: txn.dateOfPayment } })
+        .findOne({ office: officeId, dateOfPayment: { $lt: txn.dateOfPayment } })
         .sort({ dateOfPayment: -1, _id: -1 })
         .session(session);
 
@@ -145,6 +151,7 @@ export class PettycashService {
         id,
         {
           ...updateDto,
+          office: officeId,
           chequeImage: chequeImageUrl,
           debit,
           credit,
@@ -153,22 +160,25 @@ export class PettycashService {
         { new: true, session },
       );
 
-      await this.recalculateFollowing(txn.office, txn.dateOfPayment, newBalance, session);
+      await this.recalculateFollowing(officeId, txn.dateOfPayment, newBalance, session);
 
       await session.commitTransaction();
       return updatedTxn;
     } catch (err) {
       await session.abortTransaction();
+      console.error('❌ Error updating transaction:', err);
       throw new InternalServerErrorException('Failed to update transaction');
     } finally {
-      session.endSession();
+      await session.endSession();
     }
   }
 
-  // ================= REMOVE TRANSACTION =================
+  // =====================================================
+  // REMOVE TRANSACTION
+  // =====================================================
   async remove(id: string) {
-    const session = await this.txnModel.db.startSession();
-    session.startTransaction();
+    const session: ClientSession = await this.txnModel.db.startSession();
+    await session.startTransaction();
 
     try {
       if (!Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid ID');
@@ -176,8 +186,9 @@ export class PettycashService {
       const txn = await this.txnModel.findById(id).session(session);
       if (!txn) throw new NotFoundException('Transaction not found');
 
-      if (txn.chequeImage)
-        await this.cloudinary.deleteByUrl(txn.chequeImage).catch(() => undefined);
+      if (txn.chequeImage) {
+        await this.cloudinary.deleteByUrl(txn.chequeImage).catch(() => null);
+      }
 
       await this.txnModel.findByIdAndDelete(id, { session });
 
@@ -188,35 +199,39 @@ export class PettycashService {
 
       const lastBalance = previous?.balanceAfter ?? 0;
 
-      await this.recalculateFollowing(txn.office, txn.dateOfPayment, lastBalance, session);
+      await this.recalculateFollowing(txn.office as Types.ObjectId, txn.dateOfPayment, lastBalance, session);
 
       await session.commitTransaction();
       return txn;
     } catch (err) {
       await session.abortTransaction();
+      console.error('❌ Error removing transaction:', err);
       throw new InternalServerErrorException('Failed to remove transaction');
     } finally {
-      session.endSession();
+      await session.endSession();
     }
   }
 
-  // ================= FIND ALL =================
+  // =====================================================
+  // FIND ALL
+  // =====================================================
   async findAll(query: QueryPettycashDto) {
     try {
-      const page = Math.max(1, Number(query?.page ?? 1));
-      const limit = Math.max(1, Number(query?.limit ?? 1000));
+      const page = Math.max(1, Number(query.page ?? 1));
+      const limit = Math.max(1, Number(query.limit ?? 1000));
       const filter: FilterQuery<PettyCashTransaction> = {};
 
       if (query.office) {
-        if (!Types.ObjectId.isValid(query.office))
-          throw new BadRequestException('Invalid office id');
+        if (!Types.ObjectId.isValid(query.office)) {
+          throw new BadRequestException('Invalid office ID');
+        }
         filter.office = new Types.ObjectId(query.office);
       }
 
       if (query.month) filter.month = query.month;
 
       if (query.startDate || query.endDate) {
-        const dateFilter: any = {};
+        const dateFilter: Record<string, Date> = {};
         if (query.startDate) dateFilter.$gte = new Date(query.startDate);
         if (query.endDate) dateFilter.$lte = new Date(query.endDate);
         filter.dateOfPayment = dateFilter;
@@ -240,14 +255,12 @@ export class PettycashService {
           .sort({ dateOfPayment: -1 })
           .skip(skip)
           .limit(limit)
+          .lean()
           .exec(),
         this.txnModel.countDocuments(filter),
         query.office && query.month
           ? this.summaryModel
-            .findOne({
-              office: new Types.ObjectId(query.office),
-              month: query.month,
-            })
+            .findOne({ office: new Types.ObjectId(query.office), month: query.month })
             .populate('office')
             .lean()
           : null,
@@ -258,12 +271,11 @@ export class PettycashService {
         total,
         page,
         limit,
-        summary:
-          summary || {
-            openingBalance: 0,
-            closingBalance: 0,
-            note: 'No summary found for this office/month',
-          },
+        summary: summary ?? {
+          openingBalance: 0,
+          closingBalance: 0,
+          note: 'No summary found for this office/month',
+        },
       };
     } catch (error) {
       console.error(error);
@@ -271,27 +283,29 @@ export class PettycashService {
     }
   }
 
-  // ================= HELPERS =================
+  // =====================================================
+  // HELPERS
+  // =====================================================
 
   private async updateSummary(
     office: Types.ObjectId,
     month: string,
     closingBalance: number,
-    session?: ClientSession,
+    session: ClientSession | null,
   ) {
-    let summary = await this.summaryModel.findOne({ office, month }).session(session);
+    let summary = await this.summaryModel.findOne({ office, month }).session(session ?? null);
     if (summary) {
       summary.closingBalance = closingBalance;
-      await summary.save({ session });
+      await summary.save({ session: session ?? null });
     } else {
       const prevMonth = this.getPreviousMonth(month);
       const prevSummary = await this.summaryModel
         .findOne({ office, month: prevMonth })
-        .session(session);
+        .session(session ?? null);
       const openingBalance = prevSummary?.closingBalance ?? 0;
       await this.summaryModel.create(
         [{ office, month, openingBalance, closingBalance }],
-        { session },
+        { session: session ?? null },
       );
     }
   }
@@ -300,12 +314,12 @@ export class PettycashService {
     office: Types.ObjectId,
     fromDate: Date,
     startingBalance: number,
-    session?: ClientSession,
+    session: ClientSession | null,
   ) {
     const following = await this.txnModel
       .find({ office, dateOfPayment: { $gt: fromDate } })
       .sort({ dateOfPayment: 1, _id: 1 })
-      .session(session);
+      .session(session ?? null);
 
     let lastBalance = startingBalance;
 
@@ -314,23 +328,24 @@ export class PettycashService {
       const credit = txn.transactionType === 'income' ? txn.amount : 0;
       const newBalance = lastBalance + credit - debit;
 
-      await this.txnModel.findByIdAndUpdate(txn._id, { balanceAfter: newBalance }, { session });
+      await this.txnModel.findByIdAndUpdate(
+        txn._id,
+        { balanceAfter: newBalance },
+        { session: session ?? null },
+      );
       lastBalance = newBalance;
 
-      await this.updateSummary(txn.office, txn.month, newBalance, session);
+      await this.updateSummary(txn.office as Types.ObjectId, txn.month, newBalance, session);
     }
   }
 
-  // ================= MONTH HELPERS =================
-
-  // Return formatted month "MM-YYYY"
+  // MONTH HELPERS
   private formatMonth(date: Date): string {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
-    return `${month}-${year}`;
+    return `${month}-${year}`; // e.g. "11-2025"
   }
 
-  // Given "MM-YYYY" → returns previous month as "MM-YYYY"
   private getPreviousMonth(monthStr: string): string {
     const [mStr, yStr] = monthStr.split('-');
     let month = parseInt(mStr, 10);
