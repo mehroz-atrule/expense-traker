@@ -217,13 +217,20 @@ export class PettycashService {
           ? this.summaryModel.findOne({ office: new Types.ObjectId(query.office), month: query.month }).lean()
           : null,
       ]);
+      let totalExpense = 0
+      let totalIncome = 0
+      for (const element of data) {
+        totalExpense += element.debit
+        totalIncome += element.credit
+      }
+
 
       return {
         data,
         total,
         page,
         limit,
-        summary: summary ?? { openingBalance: 0, closingBalance: 0, note: 'No summary found' },
+        summary: summary ? { summary, totalExpense, totalIncome } : { openingBalance: 0, closingBalance: 0, note: 'No summary found' },
       };
     } catch (err) {
       console.error('Error fetching transactions:', err);
