@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreatePettycashDto {
-  @ApiProperty({ description: 'Office ID (ObjectId)', example: '652fc123a8b9d43e17f6e345' })
+  @ApiProperty({ description: 'Office ID (ObjectId)', example: '68e642462b16b15d0ce5a584' })
   @IsString()
   @IsNotEmpty()
   office: string;
@@ -46,7 +46,7 @@ export class CreatePettycashDto {
   @IsOptional()
   bankName?: string;
 
-  @ApiProperty({ description: 'Month of transaction (for reporting)', example: 'October' })
+  @ApiProperty({ description: 'Month of transaction (for reporting)', example: '10-2025' })
   @IsString()
   month?: string;
 
