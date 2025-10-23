@@ -388,16 +388,17 @@ const CombinedExpensesScreen: React.FC = () => {
   };
 
   const handleEditExpense = (expense: any) => {
+    const basePath = location.pathname.split('/')[1]; // Get the base segment (dashboard/admin/etc)
+    console.log('Base Path:', basePath);
     if (activeTab === 'vendor') {
-      navigate(`/dashboard/vendor/create-expense?id=${expense._id}`, { state: { expense } });
+      navigate(`/${basePath}/vendor/create-expense?id=${expense._id}, { state: { expense } }`);
     } else {
       if (expense.transactionType === 'expense') {
-        navigate(`/dashboard/pettycash/create-expense?id=${expense._id}`);
+        navigate(`/${basePath}/pettycash/create-expense?id=${expense._id}`);
       } else if (expense.transactionType === 'income') {
         // Open the modal for editing income
         setIsEditMode(true);
         setSelectedExpense(expense);
-        // setTransactionType('income');
         setCreateEditModalOpen(true);
       }
     }
