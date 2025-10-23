@@ -9,7 +9,7 @@ import { Vendor } from '../vendor/schemas/vendor.schema';
 import {
   PettyCashTransaction,
   PettyCashTransactionDocument,
-} from 'src/pettycash/schemas/pettycash.schema';
+} from '../pettycash/schemas/pettycash.schema';
 
 @Injectable()
 export class DashboardService {

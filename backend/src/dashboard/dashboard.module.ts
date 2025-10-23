@@ -4,8 +4,8 @@ import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { Expense, ExpenseSchema } from '../expense/schemas/expense.schema';
 import { Vendor, VendorSchema } from '../vendor/schemas/vendor.schema';
-import { PettyCashSummary, PettyCashSummarySchema } from 'src/pettycash/schemas/pettycashsummary.schema';
-import { PettyCashTransaction, PettyCashTransactionSchema } from 'src/pettycash/schemas/pettycash.schema';
+import { PettyCashSummary, PettyCashSummarySchema } from '../pettycash/schemas/pettycashsummary.schema';
+import { PettyCashTransaction, PettyCashTransactionSchema } from '../pettycash/schemas/pettycash.schema';
 
 @Module({
   imports: [
