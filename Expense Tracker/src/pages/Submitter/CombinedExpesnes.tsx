@@ -180,10 +180,27 @@ const CombinedExpensesScreen: React.FC = () => {
 
   const handleCreateNew = () => {
     if (activeTab === 'vendor') {
-      navigate('/vendor/create-expense');
+      navigate('/dashboard/vendor/create-expense');
     } else {
       navigate('/pettycash/create-expense');
     }
+  };
+  const handleAddIncome = () => {
+    if (activeTab === 'vendor') {
+      navigate('/dashboard/vendor/create-expense');
+    } else {
+      navigate('/pettycash/create-expense');
+    }
+  };
+  const handleAddExpense = () => {
+    if (activeTab === 'vendor') {
+      navigate('/dashboard/vendor/create-expense');
+    } else {
+      navigate('/pettycash/create-expense');
+    }
+  };
+    const handleNavigateBack = () => {  
+    navigate(-1);
   };
 
   const handleSearch = (value: string) => {
@@ -324,14 +341,16 @@ const CombinedExpensesScreen: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Combined Header */}
       <CombinedHeader
-        activeTab={activeTab}
-        tabs={tabs}
-        viewMode={viewMode}
-        onTabChange={handleTabChange}
-        onViewModeChange={setViewMode}
-        onCreateNew={handleCreateNew}
-        onNavigateBack={() => navigate(-1)}
-      />
+  activeTab={activeTab}
+  tabs={tabs}
+  viewMode={viewMode}
+  onTabChange={handleTabChange}
+  onViewModeChange={setViewMode}
+  onCreateNew={handleCreateNew}
+  onNavigateBack={handleNavigateBack}
+  onAddIncome={handleAddIncome} // For petty cash
+  onAddExpense={handleAddExpense} // For petty cash
+/>
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
