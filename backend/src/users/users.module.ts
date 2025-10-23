@@ -4,7 +4,7 @@ import { UsersController } from './users.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from 'src/auth/schemas/user.schema';
 import { JwtModule } from '@nestjs/jwt';
-import { Office, OfficeSchema } from 'src/office/schemas/office.schema';
+import { Office, OfficeSchema } from '../office/schemas/office.schema';
 
 @Module({
   imports: [

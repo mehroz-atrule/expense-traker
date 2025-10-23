@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { Role } from 'src/common/types/roles.enum';
-import { Office } from 'src/office/schemas/office.schema';
+import { Office } from '../office/schemas/office.schema';
 
 @Injectable()
 export class UsersService {
