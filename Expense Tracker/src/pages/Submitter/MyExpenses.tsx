@@ -16,7 +16,7 @@ import ImageModal from "../../components/ImageViewModal";
 const MyExpenses: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
@@ -83,7 +83,7 @@ const MyExpenses: React.FC = () => {
   // Image click handler function
   const handleImageClick = (imageUrl: string | null, title: string) => {
     if (!imageUrl) return;
-    
+
     setCurrentImage(imageUrl);
     setCurrentImageTitle(title);
     setImageModalOpen(true);
@@ -165,7 +165,7 @@ const MyExpenses: React.FC = () => {
   const handleDeleteExpense = (expense: any) => {
     setSelectedExpense(expense);
     setConfirmDeleteOpen(true);
-  };  
+  };
 
   const confirmDelete = () => {
     if (selectedExpense?._id) {
@@ -199,9 +199,8 @@ const MyExpenses: React.FC = () => {
       Paid: "bg-green-100 text-green-800",
       Rejected: "bg-red-100 text-red-800",
     };
-    return `px-3 py-1 rounded-full text-xs font-medium ${
-      status && STATUS_CLASSES[status] ? STATUS_CLASSES[status] : "bg-gray-100 text-gray-800"
-    }`;
+    return `px-3 py-1 rounded-full text-xs font-medium ${status && STATUS_CLASSES[status] ? STATUS_CLASSES[status] : "bg-gray-100 text-gray-800"
+      }`;
   };
 
   return (
@@ -218,7 +217,7 @@ const MyExpenses: React.FC = () => {
                 <ChevronLeft className="w-4 h-4 xs:w-5 xs:h-5 md:w-4 md:h-4" />
                 <span className="hidden md:inline text-sm">Back</span>
               </button>
-              
+
               <div className="flex items-center space-x-1 xs:space-x-2 sm:space-x-3 flex-1 min-w-0">
                 <div className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-blue-100 rounded-md sm:rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
                   <List className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-600" />
@@ -235,22 +234,20 @@ const MyExpenses: React.FC = () => {
               <div className="flex items-center bg-gray-100 rounded-md sm:rounded-lg p-0.5 sm:p-1">
                 <button
                   onClick={() => setViewMode('table')}
-                  className={`p-1 xs:p-1.5 sm:p-2 rounded-sm sm:rounded-md transition-colors touch-manipulation ${
-                    viewMode === 'table' 
-                      ? 'bg-white text-gray-900 shadow-sm' 
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-1 xs:p-1.5 sm:p-2 rounded-sm sm:rounded-md transition-colors touch-manipulation ${viewMode === 'table'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
                   title="Table View"
                 >
                   <List className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-1 xs:p-1.5 sm:p-2 rounded-sm sm:rounded-md transition-colors touch-manipulation ${
-                    viewMode === 'grid' 
-                      ? 'bg-white text-gray-900 shadow-sm' 
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-1 xs:p-1.5 sm:p-2 rounded-sm sm:rounded-md transition-colors touch-manipulation ${viewMode === 'grid'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                    }`}
                   title="Grid View"
                 >
                   <Grid3X3 className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
@@ -293,17 +290,17 @@ const MyExpenses: React.FC = () => {
 
           {/* Filters */}
           <div className="bg-white rounded-xl shadow-sm border mb-6">
-            <div 
-              className="flex justify-between items-center p-4 cursor-pointer select-none" 
+            <div
+              className="flex justify-between items-center p-4 cursor-pointer select-none"
               onClick={() => setShowFilters(!showFilters)}
             >
               <h2 className="font-semibold text-gray-700">Filters</h2>
               <div className="flex items-center text-sm text-blue-600 font-medium">
-                {showFilters ? 'Hide Filters' : 'Show Filters'} 
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
                 {showFilters ? <ChevronUp size={18} className="ml-1" /> : <ChevronDown size={18} className="ml-1" />}
               </div>
             </div>
-            
+
             {showFilters && (
               <div className="p-4 border-t space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -334,9 +331,9 @@ const MyExpenses: React.FC = () => {
                   {/* Status */}
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
-                    <select 
-                      value={filters.status} 
-                      onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))} 
+                    <select
+                      value={filters.status}
+                      onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
                       className="w-full border border-gray-300 rounded-lg p-2 text-sm"
                     >
                       <option value="all">All Statuses</option>
@@ -352,9 +349,9 @@ const MyExpenses: React.FC = () => {
                   {/* Category */}
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Category</label>
-                    <select 
-                      value={filters.category} 
-                      onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))} 
+                    <select
+                      value={filters.category}
+                      onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
                       className="w-full border border-gray-300 rounded-lg p-2 text-sm"
                     >
                       <option value="all">All Categories</option>
@@ -391,7 +388,7 @@ const MyExpenses: React.FC = () => {
                 </div>
 
                 <div className="flex justify-end gap-3 mt-4">
-                  <button 
+                  <button
                     onClick={handleResetFilters}
                     className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 text-sm"
                   >
@@ -449,7 +446,7 @@ const MyExpenses: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <span className="font-medium">Vendor:</span>
@@ -462,7 +459,7 @@ const MyExpenses: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col items-start sm:items-end gap-2 min-w-[120px]">
                       <span className="text-lg font-bold text-gray-900">Rs. {Number(exp.amount).toFixed(2)}</span>
                       <span className={getStatusColor(exp.status || "")}>
@@ -586,7 +583,7 @@ const MyExpenses: React.FC = () => {
                           {getOfficeName(exp.office)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
-                          Rs. {Number(exp.amountAfterTax??exp.amount).toFixed(2)}
+                          Rs. {Number(exp.amountAfterTax ?? exp.amount).toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={getStatusColor(exp.status || "")}>
@@ -740,12 +737,12 @@ const MyExpenses: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-600">Title</label>
                       <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedExpense.title}</p>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-600">Description</label>
                       <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedExpense.description}</p>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-600">Category</label>
                       <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedExpense.category}</p>
@@ -758,7 +755,7 @@ const MyExpenses: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-600">Office</label>
@@ -766,14 +763,14 @@ const MyExpenses: React.FC = () => {
                         {getOfficeName(selectedExpense.office)}
                       </p>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-600">Amount</label>
                       <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded font-bold">
                         Rs. {Number(selectedExpense.amount).toFixed(2)}
                       </p>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-600">Status</label>
                       <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">
