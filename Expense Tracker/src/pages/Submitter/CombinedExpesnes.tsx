@@ -47,11 +47,7 @@ const getCurrentMonth = (): string => {
 };
 
 // Helper to convert month format for display
-const formatMonthForDisplay = (month: string): string => {
-  if (!month) return '';
-  const [year, monthNum] = month.split('-');
-  return `${monthNum}-${year}`;
-};
+
 
 // Helper to convert month format for API
 const formatMonthForAPI = (month: string): string => {
@@ -116,12 +112,12 @@ const CombinedExpensesScreen: React.FC = () => {
   // Create/Edit Modal state for petty cash income
   const [createEditModalOpen, setCreateEditModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
+  // const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
 
   // Parse URL parameters and set filters
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    
+
     // Get active tab
     const tab = searchParams.get('tab') as ExpenseTab;
     if (tab) {
@@ -150,7 +146,7 @@ const CombinedExpensesScreen: React.FC = () => {
         dateTo: searchParams.get('dateTo') || ''
       };
       setPettyCashFilters(pettyCashFilterParams);
-      
+
       // Set selected office from URL
       const officeFromUrl = searchParams.get('office');
       if (officeFromUrl) {
@@ -213,15 +209,15 @@ const CombinedExpensesScreen: React.FC = () => {
   // Update URL when filters change
   const updateURL = (filters: any, tab: string, page: number, search: string, office?: string) => {
     const searchParams = new URLSearchParams();
-    
+
     // Always set tab
     searchParams.set('tab', tab);
-    
+
     // Set search term if exists
     if (search) {
       searchParams.set('search', search);
     }
-    
+
     // Set page
     searchParams.set('page', page.toString());
 
@@ -237,7 +233,7 @@ const CombinedExpensesScreen: React.FC = () => {
       if (office) {
         searchParams.set('office', office);
       }
-      
+
       Object.entries(filters).forEach(([key, value]) => {
         if (value && value !== 'all' && value !== '') {
           searchParams.set(key, value as string);
@@ -280,11 +276,11 @@ const CombinedExpensesScreen: React.FC = () => {
     setActiveTab(tab);
     setSearchTerm('');
     setShowFilters(false);
-    
+
     // Reset to first page when switching tabs
     setVendorPage(1);
     setPettyCashPage(1);
-    
+
     // Update URL with new tab and reset filters
     if (tab === 'vendor') {
       updateURL(defaultVendorFilters, 'vendor', 1, '');
@@ -305,21 +301,18 @@ const CombinedExpensesScreen: React.FC = () => {
     if (activeTab === 'pettycash') {
       setIsEditMode(false);
       setSelectedExpense(null);
-      setTransactionType('income');
+      // setTransactionType('income');
       setCreateEditModalOpen(true);
     }
   };
 
   const handleAddExpense = () => {
     if (activeTab === 'pettycash') {
-      setIsEditMode(false);
-      setSelectedExpense(null);
-      setTransactionType('expense');
-      setCreateEditModalOpen(true);
+      navigate('/dashboard/pettycash/create-expense');
     }
   };
 
-  const handleNavigateBack = () => {  
+  const handleNavigateBack = () => {
     navigate(-1);
   };
 
@@ -348,7 +341,7 @@ const CombinedExpensesScreen: React.FC = () => {
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     const newPage = 1;
-    
+
     if (activeTab === 'vendor') {
       setVendorPage(newPage);
       updateURL(vendorFilters, 'vendor', newPage, value);
@@ -404,7 +397,7 @@ const CombinedExpensesScreen: React.FC = () => {
         // Open the modal for editing income
         setIsEditMode(true);
         setSelectedExpense(expense);
-        setTransactionType('income');
+        // setTransactionType('income');
         setCreateEditModalOpen(true);
       }
     }
@@ -451,7 +444,7 @@ const CombinedExpensesScreen: React.FC = () => {
     setCreateEditModalOpen(false);
     setSelectedExpense(null);
     setIsEditMode(false);
-    setTransactionType('income');
+    // setTransactionType('income');
   };
 
   // Helper functions
@@ -497,8 +490,8 @@ const CombinedExpensesScreen: React.FC = () => {
         onViewModeChange={setViewMode}
         onCreateNew={handleCreateNew}
         onNavigateBack={handleNavigateBack}
-        onAddIncome={handleAddIncome} 
-        onAddExpense={handleAddExpense} 
+        onAddIncome={handleAddIncome}
+        onAddExpense={handleAddExpense}
       />
 
       {/* Main Content */}
@@ -597,7 +590,6 @@ const CombinedExpensesScreen: React.FC = () => {
               offices={offices}
               selectedOffice={selectedOffice}
               onClose={handleCreateEditModalClose}
-              transactionType={transactionType}
             />
           )}
 

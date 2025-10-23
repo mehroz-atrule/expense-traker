@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-  DollarSign,
   Users,
   Building2,
   CreditCard,
@@ -12,10 +11,11 @@ import {
   Settings,
   FileText,
   CheckCircle,
-  AlertCircle,
   RefreshCw,
   Clock,
-  XCircle
+  XCircle,
+  DollarSignIcon,
+  Store
 } from 'lucide-react'
 import type { RootState } from '../../app/store'
 import { getDashboardStats } from '../../redux/admin/adminSlice'
@@ -111,110 +111,85 @@ const AdminDashboard: React.FC = () => {
     openPopup('Create New Expense', content, 'md')
   }
 
-  // Example usage - Office Details Popup
-  const showOfficeDetails = (office: any) => {
-    const content = (
-      <div className="p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-gray-600">Office Name</label>
-            <p className="text-lg font-semibold">{office.office?.name || 'Unknown Office'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Total Expense</label>
-            <p className="text-lg font-semibold text-green-600">
-              Rs {office.total?.toLocaleString()}
-            </p>
-          </div>
-        </div>
-        {/* Add more office details here */}
-        <div className="mt-6 flex justify-end space-x-3">
-          <button
-            onClick={closePopup}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Close
-          </button>
-          <button
-            onClick={() => {
-              closePopup()
-              navigate('/admin/offices')
-            }}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Manage Office
-          </button>
-        </div>
-      </div>
-    )
-
-    openPopup(`Office Details - ${office.office?.name || 'Unknown Office'}`, content, 'lg')
+  // Status configuration for consistent styling
+  const statusConfig = {
+    WaitingForApproval: { color: 'bg-yellow-500', icon: Clock, label: 'Waiting For Approval' },
+    Approved: { color: 'bg-green-500', icon: CheckCircle, label: 'Approved' },
+    ReviewedByFinance: { color: 'bg-blue-500', icon: FileText, label: 'Reviewed By Finance' },
+    ReadyForPayment: { color: 'bg-purple-500', icon: CreditCard, label: 'Ready For Payment' },
+    Paid: { color: 'bg-green-600', icon: DollarSignIcon, label: 'Paid' },
+    Rejected: { color: 'bg-red-500', icon: XCircle, label: 'Rejected' }
   }
 
   const quickActions = [
     {
       label: 'Create Expense',
-      action: showCreateExpensePopup, // Yahan direct navigate ki jagah popup function use karein
+      action: showCreateExpensePopup,
       icon: Plus,
-      color: 'bg-blue-500'
+      color: 'bg-blue-500 hover:bg-blue-600'
     },
     {
       label: 'Manage Users',
       action: () => navigate('/admin/users'),
       icon: Users,
-      color: 'bg-green-500'
+      color: 'bg-green-500 hover:bg-green-600'
     },
     {
       label: 'Manage Offices',
       action: () => navigate('/admin/offices'),
       icon: Settings,
-      color: 'bg-orange-500'
+      color: 'bg-orange-500 hover:bg-orange-600'
     },
     {
       label: 'Vendor Management',
       action: () => navigate('/admin/vendor/manage'),
       icon: Building2,
-      color: 'bg-purple-500'
+      color: 'bg-purple-500 hover:bg-purple-600'
     },
   ]
 
-  // StatCard removed — kept implementation inline where needed.
-
-  const OfficeCard = ({ officeName, expense, icon: Icon, iconColor, bgColor, onClick }: any) => (
+  // Reusable Stat Card Component
+  const StatCard = ({ title, value, icon: Icon, iconColor, bgColor, onClick }: any) => (
     <div
-      className="bg-white rounded-xl shadow-sm p-4 md:p-6 cursor-pointer hover:shadow-md transition-shadow duration-200"
+      className={`bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
-      <div className="flex items-center space-x-3 mb-4">
-        <div className={`p-2 md:p-3 rounded-lg bg-gradient-to-br ${bgColor}`}>
-          <Icon className={`w-4 h-4 md:w-5 md:h-5 ${iconColor}`} />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900">
-          {officeName}
-        </h3>
-      </div>
-      <div className="space-y-2">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Total Expense</span>
-          <span className="font-bold text-gray-900">Rs {expense?.toLocaleString() || '0'}</span>
+      <div className="flex items-center justify-between ">
+        <div className="flex items-center max-sm:items-start space-x-4">
+          <div className={`p-3 rounded-lg ${bgColor}`}>
+            <Icon className={`w-6 h-6 ${iconColor}`} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              Rs {value?.toLocaleString() || '0'}
+            </p>
+          </div>
         </div>
       </div>
     </div>
   )
 
-  const StatusCard = ({ title, value, color, icon: Icon }: any) => (
-    <div className="bg-white rounded-xl shadow-sm p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-lg ${color}`}>
+  // Status Pill Component for horizontal display
+  const StatusPill = ({ status, count }: { status: string; count: number }) => {
+    const config = statusConfig[status as keyof typeof statusConfig]
+    if (!config) return null
+
+    const Icon = config.icon
+
+    return (
+      <div className="flex items-center justify-between w-full space-x-2 bg-white rounded-lg px-4 py-3 shadow-sm">
+
+        <div className='flex items-center gap-2'>
+          <div className={`p-2 rounded-lg ${config.color}`}>
             <Icon className="w-4 h-4 text-white" />
           </div>
-          <span className="text-sm font-medium text-gray-700">{title}</span>
+          <span className="text-sm font-medium text-gray-700">{config.label}</span>
         </div>
-        <span className="text-lg font-bold text-gray-900">{value || 0}</span>
+        <span className="text-lg font-bold text-right text-gray-900 ml-2">{count}</span>
       </div>
-    </div>
-  )
+    )
+  }
 
   if (loading) {
     return (
@@ -228,189 +203,119 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-3 py-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+    <div className="min-h-screen bg-gray-50 px-4 py-6">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-600 md:block hidden">
-              {dashboardStats?.month ? `Month: ${dashboardStats.month}` : 'Welcome back!'}
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Overview of your expenses and status
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Calendar className="w-4 h-4" />
-              <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-            </div>
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <Calendar className="w-4 h-4" />
+            <span>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
           </div>
         </div>
 
-        {/* Total Expense and Office Expenses in one row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
-          {/* Total Expense Card */}
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-                <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-xs md:text-sm font-medium text-gray-600">Total Expenses</h3>
-              <p className="text-lg md:text-xl font-bold text-gray-900">
-                Rs {dashboardStats?.totalExpense?.toLocaleString() || '0'}
-              </p>
-            </div>
+        {/* Financial Overview - Top Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Vendor Expenses Card */}
+          <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Vendor Expenses</h2>
+            <StatCard
+              title="Total Vendor Expenses"
+              value={dashboardStats?.totalExpense}
+              icon={Store}
+              iconColor="text-blue-600"
+              bgColor="bg-blue-50"
+            />
           </div>
 
-          {/* Office Expenses - First 2 offices */}
-          {dashboardStats?.officeWiseExpenses?.slice(0, 2).map((officeExpense: any, index: number) => (
-            <OfficeCard
-              key={index}
-              officeName={officeExpense.office?.name || 'Unknown Office'}
-              expense={officeExpense.total}
+          {/* Office Expenses Card */}
+          <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Office Expenses</h2>
+            <StatCard
+              title="Total PettyCash Expense"
+              value={dashboardStats?.totalPettyCashExpense}
               icon={Building2}
               iconColor="text-green-600"
-              bgColor="from-green-50 to-emerald-50"
-              onClick={() => showOfficeDetails(officeExpense)}
+              bgColor="bg-green-50"
             />
-          ))}
-        </div>
-
-        {/* Remaining Office Expenses */}
-        {dashboardStats?.officeWiseExpenses && dashboardStats.officeWiseExpenses.length > 2 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {dashboardStats.officeWiseExpenses.slice(2).map((officeExpense: any, index: number) => (
-              <OfficeCard
-                key={index + 2}
-                officeName={officeExpense.office?.name || 'Unknown Office'}
-                expense={officeExpense.total}
-                icon={Building2}
-                iconColor="text-green-600"
-                bgColor="from-green-50 to-emerald-50"
-                onClick={() => showOfficeDetails(officeExpense)}
-              />
-            ))}
           </div>
-        )}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Vendor Expenses by Office */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Vendor Expenses by Office</h2>
+            <div className="space-y-4">
+              {dashboardStats?.officeWiseExpenses?.map((office: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Building2 className="w-5 h-5 text-gray-400" />
+                    <span className="font-medium text-gray-700">{office.office?.name || 'Unknown Office'}</span>
+                  </div>
+                  <span className="font-bold text-gray-900">
+                    Rs {office.total?.toLocaleString() || '0'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Counts By Status */}
-        <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+          {/* Petty Cash by Office */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Petty Cash by Office</h2>
+            <div className="space-y-4">
+              {dashboardStats?.officeWisePettyCash?.map((pettyCash: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Building2 className="w-5 h-5 text-gray-400" />
+                    <span className="font-medium text-gray-700">{pettyCash.office?.name || 'Unknown Office'}</span>
+                  </div>
+                  <span className="font-bold text-gray-900">
+                    Rs {pettyCash.totalExpense?.toLocaleString() || '0'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Status Overview */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Counts By Status</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {dashboardStats?.countsByStatus && Object.entries(dashboardStats.countsByStatus).map(([status, count]) => (
-              <StatusCard
-                key={status}
-                title={status.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                value={count as number}
-                color={
-                  status === 'Approved' || status === 'Paid' ? 'bg-green-500' :
-                    status === 'WaitingForApproval' ? 'bg-yellow-500' :
-                      status === 'ReviewedByFinance' ? 'bg-blue-500' :
-                        status === 'ReadyForPayment' ? 'bg-purple-500' :
-                          status === 'Rejected' ? 'bg-red-500' : 'bg-gray-500'
-                }
-                icon={
-                  status === 'Approved' || status === 'Paid' ? CheckCircle :
-                    status === 'WaitingForApproval' ? Clock :
-                      status === 'ReviewedByFinance' ? FileText :
-                        status === 'ReadyForPayment' ? CreditCard :
-                          status === 'Rejected' ? XCircle : AlertCircle
-                }
-              />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
+            {dashboardStats?.countsByStatus &&
+              Object.entries(dashboardStats.countsByStatus).map(([status, count]) => (
+                <StatusPill
+                  key={status}
+                  status={status}
+                  count={count as number}
+                />
+              ))}
           </div>
         </div>
 
-        {/* Petty Cash Expenses */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* Total Petty Cash Expense */}
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50">
-                <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Total Petty Cash Expense</h3>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Amount</span>
-                <span className="font-bold text-gray-900">
-                  Rs {dashboardStats?.totalPettyCashExpense?.toLocaleString() || '0'}
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* Office Breakdown */}
 
-          {/* Office Wise Petty Cash - First 2 */}
-          {dashboardStats?.officeWisePettyCash?.slice(0, 2).map((pettyCash: any, index: number) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50">
-                  <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {pettyCash.office?.name || 'Unknown Office'} - Petty Cash
-                </h3>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Expense</span>
-                  <span className="font-bold text-gray-900">Rs {pettyCash.totalExpense?.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>Month</span>
-                  <span>{pettyCash.month}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Remaining Petty Cash Expenses */}
-        {dashboardStats?.officeWisePettyCash && dashboardStats.officeWisePettyCash.length > 2 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {dashboardStats.officeWisePettyCash.slice(2).map((pettyCash: any, index: number) => (
-              <div key={index + 2} className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50">
-                    <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {pettyCash.office?.name || 'Unknown Office'} - Petty Cash
-                  </h3>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Expense</span>
-                    <span className="font-bold text-gray-900">Rs {pettyCash.totalExpense?.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>Month</span>
-                    <span>{pettyCash.month}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map((action) => (
               <button
                 key={action.label}
                 onClick={action.action}
-                className="flex items-center p-3 md:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                className={`flex items-center justify-between p-4 text-white rounded-lg transition-all duration-200 ${action.color} hover:shadow-md`}
               >
-                <div className={`p-2 md:p-3 rounded-lg ${action.color} mr-3`}>
-                  <action.icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                <div className="flex items-center space-x-3">
+                  <action.icon className="w-5 h-5" />
+                  <span className="font-medium">{action.label}</span>
                 </div>
-                <span className="font-medium text-gray-700 text-sm md:text-base">{action.label}</span>
-                <ArrowUpRight className="w-4 h-4 text-gray-400 ml-auto" />
+                <ArrowUpRight className="w-4 h-4" />
               </button>
             ))}
           </div>
