@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 
 // Components
 import ImageModal from '../../components/ImageViewModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import Pagination from '../../components/Pagination';
 import CombinedHeader from '../../components/Expesnes/CombinedHeader';
 import SearchBar from '../../components/Expesnes/SearchBar';
 import DynamicFilters from '../../components/Expesnes/ExpenseFilter';
@@ -49,19 +48,19 @@ const getCurrentMonth = (): string => {
 const CombinedExpensesScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   // Redux states
-  const { expenses = [], total: vendorTotal = 0, loading: vendorLoading } = useSelector((s: any) => s.submitter);
-  const { pettyCashRecords = [], total: pettyCashTotal = 0, loading: pettyCashLoading, summary } = useSelector((s: any) => s.pettycash);
-  const { offices, loading: officesLoading } = useSelector((s: any) => s.admin);
+  const { expenses = [], total: vendorTotal = 0, loading: vendorLoading } = useAppSelector((s) => s.submitter);
+  const { pettyCashRecords = [], total: pettyCashTotal = 0, loading: pettyCashLoading, summary } = useAppSelector((s) => s.pettycash);
+  const { offices, loading: officesLoading } = useAppSelector((s) => s.admin);
 
   // Main state
   const [activeTab, setActiveTab] = useState<ExpenseTab>('vendor');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
-  
+
   // Pagination
   const [vendorPage, setVendorPage] = useState(1);
   const [pettyCashPage, setPettyCashPage] = useState(1);
@@ -126,11 +125,11 @@ const CombinedExpensesScreen: React.FC = () => {
       fetchPettyCashData();
     }
   }, [
-    activeTab, 
-    searchTerm, 
-    vendorFilters, 
-    vendorPage, 
-    pettyCashFilters, 
+    activeTab,
+    searchTerm,
+    vendorFilters,
+    vendorPage,
+    pettyCashFilters,
     pettyCashPage,
     selectedOffice // Add selectedOffice dependency for petty cash
   ]);
@@ -138,7 +137,7 @@ const CombinedExpensesScreen: React.FC = () => {
   // Fetch offices
   useEffect(() => {
     if (offices.length === 0) {
-      dispatch(fetchOffices());
+      dispatch(fetchOffices() as any);
     }
   }, [dispatch, offices.length]);
 
@@ -154,7 +153,7 @@ const CombinedExpensesScreen: React.FC = () => {
       page: vendorPage,
       limit,
     };
-    dispatch(fetchExpenses(params));
+    dispatch(fetchExpenses(params) as any);
   };
 
   const fetchPettyCashData = () => {
@@ -165,11 +164,12 @@ const CombinedExpensesScreen: React.FC = () => {
       month: pettyCashFilters.month,
       office: selectedOffice || undefined, // Use selectedOffice instead of pettyCashFilters.office
     };
-    dispatch(fetchPettyCash(params));
+    dispatch(fetchPettyCash(params) as any);
   };
 
   // Handlers
-  const handleTabChange = (tab: ExpenseTab) => {
+  const handleTabChange = (tabId: string) => {
+    const tab = (tabId === 'vendor' || tabId === 'pettycash') ? (tabId as ExpenseTab) : 'vendor';
     setActiveTab(tab);
     setSearchTerm('');
     setShowFilters(false);
@@ -260,10 +260,11 @@ const CombinedExpensesScreen: React.FC = () => {
 
     try {
       if (activeTab === 'vendor') {
-        await dispatch(removeExpense(selectedExpense._id));
+        await dispatch(removeExpense(selectedExpense._id) as any);
         fetchVendorExpenses();
       } else {
-        await dispatch(deletePettyCashExpenseById(selectedExpense._id)).unwrap();
+        // deletePettyCashExpenseById returns an async thunk - use typed dispatch or cast to any then unwrap
+        await (dispatch(deletePettyCashExpenseById(selectedExpense._id) as any)).unwrap?.();
         fetchPettyCashData();
       }
       setConfirmDeleteOpen(false);
@@ -287,22 +288,20 @@ const CombinedExpensesScreen: React.FC = () => {
   };
 
   // Helper functions
-const getOfficeName = (office) => {
+  const getOfficeName = (office: string | { _id?: string; name?: string } | undefined): string => {
     if (!office) return 'N/A';
 
     if (typeof office === 'string') {
-        // office is an ID
-        const found = offices.find((o) => o._id === office);
-        return found?.name || office;
+      const found = offices.find((o: any) => o._id === office);
+      return found?.name || office;
     }
 
     if (typeof office === 'object') {
-        // office is already an object
-        return office.name || 'N/A';
+      return office.name || 'N/A';
     }
 
     return 'N/A';
-};
+  };
 
 
   // Calculate totals
@@ -337,7 +336,7 @@ const getOfficeName = (office) => {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-          
+
           {/* Search Bar */}
           <SearchBar
             searchTerm={searchTerm}
@@ -398,7 +397,6 @@ const getOfficeName = (office) => {
               onEdit={handleEditExpense}
               onDelete={handleDeleteExpense}
               onImageClick={handleImageClick}
-              getOfficeName={getOfficeName}
               totalPages={pettyCashTotalPages}
               currentPage={pettyCashPage}
               onPageChange={handlePettyCashPageChange}

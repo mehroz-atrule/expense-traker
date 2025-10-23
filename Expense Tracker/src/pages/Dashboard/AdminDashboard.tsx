@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-  TrendingUp,
-  TrendingDown,
   DollarSign,
   Users,
   Building2,
@@ -27,7 +25,7 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { dashboardStats, loading } = useSelector((state: RootState) => state.admin)
-  
+
   // State for popup
   const [isPopupOpen, setIsPopupOpen] = useState(false)
   const [popupContent, setPopupContent] = useState<{
@@ -109,7 +107,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
     )
-    
+
     openPopup('Create New Expense', content, 'md')
   }
 
@@ -149,61 +147,41 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
     )
-    
+
     openPopup(`Office Details - ${office.office?.name || 'Unknown Office'}`, content, 'lg')
   }
 
   const quickActions = [
-    { 
-      label: 'Create Expense', 
+    {
+      label: 'Create Expense',
       action: showCreateExpensePopup, // Yahan direct navigate ki jagah popup function use karein
-      icon: Plus, 
-      color: 'bg-blue-500' 
+      icon: Plus,
+      color: 'bg-blue-500'
     },
-    { 
-      label: 'Manage Users', 
-      action: () => navigate('/admin/users'), 
-      icon: Users, 
-      color: 'bg-green-500' 
+    {
+      label: 'Manage Users',
+      action: () => navigate('/admin/users'),
+      icon: Users,
+      color: 'bg-green-500'
     },
-    { 
-      label: 'Manage Offices', 
-      action: () => navigate('/admin/offices'), 
-      icon: Settings, 
-      color: 'bg-orange-500' 
+    {
+      label: 'Manage Offices',
+      action: () => navigate('/admin/offices'),
+      icon: Settings,
+      color: 'bg-orange-500'
     },
-    { 
-      label: 'Vendor Management', 
-      action: () => navigate('/admin/vendor/manage'), 
-      icon: Building2, 
-      color: 'bg-purple-500' 
+    {
+      label: 'Vendor Management',
+      action: () => navigate('/admin/vendor/manage'),
+      icon: Building2,
+      color: 'bg-purple-500'
     },
   ]
 
-  const StatCard = ({ title, value, change, trend, icon: Icon, prefix = 'Rs ', showChange = true }: any) => (
-    <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-          <Icon className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
-        </div>
-        {showChange && change !== 0 && (
-          <div className={`flex items-center text-xs font-medium ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-            {trend === 'up' ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
-            {Math.abs(change)}%
-          </div>
-        )}
-      </div>
-      <div className="space-y-1">
-        <h3 className="text-xs md:text-sm font-medium text-gray-600">{title}</h3>
-        <p className="text-lg md:text-xl font-bold text-gray-900">
-          {prefix === 'Rs ' ? `Rs ${value?.toLocaleString() || '0'}` : value?.toLocaleString() || '0'}
-        </p>
-      </div>
-    </div>
-  )
+  // StatCard removed — kept implementation inline where needed.
 
   const OfficeCard = ({ officeName, expense, icon: Icon, iconColor, bgColor, onClick }: any) => (
-    <div 
+    <div
       className="bg-white rounded-xl shadow-sm p-4 md:p-6 cursor-pointer hover:shadow-md transition-shadow duration-200"
       onClick={onClick}
     >

@@ -3,14 +3,15 @@ import React from 'react';
 
 interface CustomInputFieldProps {
   // Basic input props
-  type?: 'text' | 'number' | 'email' | 'password' | 'date' | 'tel' | 'url';
+  // added 'month' because some inputs use type="month"
+  type?: 'text' | 'number' | 'email' | 'password' | 'date' | 'tel' | 'url' | 'month';
   value?: string | number;
   defaultValue?: string | number;
   placeholder?: string;
   label?: string;
   name?: string;
   id?: string;
-  
+
   // Validation props
   required?: boolean;
   disabled?: boolean;
@@ -19,18 +20,18 @@ interface CustomInputFieldProps {
   max?: number | string;
   step?: number;
   pattern?: string;
-  
+
   // Event handlers
   onChange?: (value: string, event: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;
-  
+
   // Custom styling
   className?: string;
   inputClassName?: string;
   labelClassName?: string;
   containerClassName?: string;
-  
+
   // Additional attributes
   autoComplete?: string;
   autoFocus?: boolean;
@@ -68,23 +69,22 @@ const Input: React.FC<CustomInputFieldProps> = ({
     }
   };
 
-const baseInputClasses = `w-full p-3 pl-0 border-gray-300 border-b focus:outline-none focus:border-b focus:border-gray-600 transition-colors duration-200 min-h-[42px] ${
-  disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'
-} ${readOnly ? 'bg-gray-50' : ''}`;
+  const baseInputClasses = `w-full p-3 pl-0 border-gray-300 border-b focus:outline-none focus:border-b focus:border-gray-600 transition-colors duration-200 min-h-[42px] ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'
+    } ${readOnly ? 'bg-gray-50' : ''}`;
 
- 
+
   return (
     <div className={` ${containerClassName}`}>
       {label && (
-        <label 
-          htmlFor={id} 
+        <label
+          htmlFor={id}
           className={`block text-sm font-medium text-gray-700 ${labelClassName}`}
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      
+
       <div className={className}>
         <input
           type={type}

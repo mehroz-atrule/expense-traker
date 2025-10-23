@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Printer } from 'lucide-react';
+// icons intentionally omitted since export/print buttons are disabled in markup
 
 interface PettyCashHeaderProps {
   onCreateNew: () => void;

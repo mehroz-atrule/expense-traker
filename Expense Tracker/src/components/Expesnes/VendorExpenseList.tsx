@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 import Pagination from '../../components/Pagination';
 
 interface VendorExpensesListProps {
@@ -49,9 +49,8 @@ const VendorExpensesList: React.FC<VendorExpensesListProps> = ({
       Paid: 'bg-green-100 text-green-800',
       Rejected: 'bg-red-100 text-red-800',
     };
-    return `px-3 py-1 rounded-full text-xs font-medium ${
-      status && STATUS_CLASSES[status] ? STATUS_CLASSES[status] : 'bg-gray-100 text-gray-800'
-    }`;
+    return `px-3 py-1 rounded-full text-xs font-medium ${status && STATUS_CLASSES[status] ? STATUS_CLASSES[status] : 'bg-gray-100 text-gray-800'
+      }`;
   };
 
   if (loading) {
@@ -102,7 +101,7 @@ const VendorExpensesList: React.FC<VendorExpensesListProps> = ({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                     <span className="flex items-center gap-1">
                       <span className="font-medium">Due:</span>
@@ -110,7 +109,7 @@ const VendorExpensesList: React.FC<VendorExpensesListProps> = ({
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col items-start sm:items-end gap-2 min-w-[120px]">
                   <span className="text-lg font-bold text-gray-900">Rs. {Number(exp.amount).toFixed(2)}</span>
                   <span className={getStatusColor(exp.status || '')}>

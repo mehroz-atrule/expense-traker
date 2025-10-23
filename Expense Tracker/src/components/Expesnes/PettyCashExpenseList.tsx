@@ -59,7 +59,6 @@ interface PettyCashExpensesListProps {
   onEdit: (record: any) => void;
   onDelete: (record: any) => void;
   onImageClick: (imageUrl: string | null, title: string) => void;
-  getOfficeName: (officeId: string) => string;
   totalPages: number;
   currentPage: number;
   onPageChange: (page: number) => void;
@@ -79,7 +78,6 @@ const PettyCashExpensesList: React.FC<PettyCashExpensesListProps> = ({
   onEdit,
   onDelete,
   onImageClick,
-  getOfficeName,
   totalPages,
   currentPage,
   onPageChange,
@@ -90,14 +88,14 @@ const PettyCashExpensesList: React.FC<PettyCashExpensesListProps> = ({
   totalExpense,
   totalIncome
 }) => {
-        console.log("Transforming Record:", records.map(r => r));
+  console.log("Transforming Record:", records.map(r => r));
 
   const transformedRecords = records.map(record => ({
     _id: record._id,
     dateOfPayment: record.date || record.createdAt,
     title: record.title,
     description: record.description || record.notes || '',
-    reference: record.reference ||  '-',
+    reference: record.reference || '-',
     debit: record.transactionType === 'expense' ? record.amount : 0,
     credit: record.transactionType === 'income' ? record.amount : 0,
     balanceAfter: record.balanceAfter || 0,
@@ -196,7 +194,7 @@ const PettyCashExpensesList: React.FC<PettyCashExpensesListProps> = ({
                   Bank Name
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-r border-gray-300">
-                  Receipt / Cheque 
+                  Receipt / Cheque
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
                   Actions
@@ -207,9 +205,8 @@ const PettyCashExpensesList: React.FC<PettyCashExpensesListProps> = ({
               {transformedRecords.map((record, index) => (
                 <tr
                   key={record._id}
-                  className={`border-b border-gray-200 hover:bg-gray-50 ${
-                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                  }`}
+                  className={`border-b border-gray-200 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                    }`}
                 >
                   <td className="px-4 py-3 text-sm text-gray-900 border-r border-gray-200">
                     {formatTableDate(record.dateOfPayment)}

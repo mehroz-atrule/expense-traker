@@ -1,6 +1,5 @@
 import React from 'react';
 import { Search } from 'lucide-react';
-import Input from '../../components/Forms/Input';
 import MonthFilter from '../Pettycash/monthFilter';
 
 interface SearchBarProps {
