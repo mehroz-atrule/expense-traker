@@ -59,9 +59,7 @@ const AdminDashboard: React.FC = () => {
     const content = (
       <div className="p-6 space-y-6">
         <div className="text-center">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-            <Plus className="h-6 w-6 text-blue-600" />
-          </div>
+         
           <h3 className="text-lg font-medium text-gray-900 mb-2">Create New Expense</h3>
           <p className="text-sm text-gray-500 mb-6">
             Choose how you want to create a new expense entry.
@@ -76,7 +74,7 @@ const AdminDashboard: React.FC = () => {
             }}
             className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200"
           >
-            <Building2 className="h-8 w-8 text-blue-600 mb-3" />
+            <Store className="h-8 w-8 text-blue-600 mb-3" />
             <span className="font-medium text-gray-900">Vendor Expense</span>
             <span className="text-sm text-gray-500 text-center mt-2">
               Create expense through vendor payment
@@ -90,8 +88,8 @@ const AdminDashboard: React.FC = () => {
             }}
             className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200"
           >
-            <CreditCard className="h-8 w-8 text-green-600 mb-3" />
-            <span className="font-medium text-gray-900">Petty Cash</span>
+            <Building2 className="h-8 w-8 text-green-600 mb-3" />
+            <span className="font-medium text-gray-900">Office Expense</span>
             <span className="text-sm text-gray-500 text-center mt-2">
               Create petty cash expense entry
             </span>
