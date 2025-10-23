@@ -391,7 +391,7 @@ const CombinedExpensesScreen: React.FC = () => {
     const basePath = location.pathname.split('/')[1]; // Get the base segment (dashboard/admin/etc)
     console.log('Base Path:', basePath);
     if (activeTab === 'vendor') {
-      navigate(`/${basePath}/vendor/create-expense?id=${expense._id}, { state: { expense } }`);
+      navigate(`/${basePath}/vendor/create-expense?id=${expense._id}`, { state: { expense } });
     } else {
       if (expense.transactionType === 'expense') {
         navigate(`/${basePath}/pettycash/create-expense?id=${expense._id}`);
