@@ -21,6 +21,8 @@ export interface Expense {
   paymentSlip?: string; // URL or base64 string of payment slip image
   chequeNumber?: string; // new: cheque number if payment is by cheque
   bankName?: string;   // new: bank name if payment is by cheque
+  expenseDate?: string; // new: date when the expense was incurred
+  paymentMethod?: string; // new: method of payment (e.g., Credit Card, Cheque, etc.)
 }
 
 export interface CreateExpensePayload extends Omit<Expense, '_id' | 'createdAt' | 'updatedAt'> {}

@@ -34,7 +34,6 @@ const FinancialDetailsSection: React.FC<FinancialDetailsSectionProps> = ({
   // 🔹 Auto-calculate "Amount After Tax" when amount, WHT, or advanceTax changes
   useEffect(() => {
     const amt = parseFloat(amount) || 0;
-    const whtAmt = parseFloat(WHT?.toString()) || 0;
     const advAmt = parseFloat(advanceTax?.toString()) || 0;
 
     if (showTaxFields) {

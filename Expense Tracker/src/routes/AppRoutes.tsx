@@ -1,12 +1,12 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Auth/Login";
-import routesConfig, { type Role } from "./routesCongif";
+import routesConfig from "./routesCongif";
 import DashboardLayout from "../components/Layout/dashboardLayout";
 
 const AppRoutes = () => {
-  const role: Role = "admin"; // mock (replace with real auth)
+  const isAuthenticated = true; // Replace with real auth logic
 
-  if (!role) {
+  if (!isAuthenticated) {
     return (
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -15,21 +15,24 @@ const AppRoutes = () => {
     );
   }
 
-  const { basePath, routes } = routesConfig[role];
+  const { basePath, routes } = routesConfig;
 
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path={basePath} element={<DashboardLayout role={role} />}>
+      <Route path={basePath} element={<DashboardLayout />}>
+      
         {routes.map((r, index) => {
           if (r.children) {
             return (
               <Route key={index} path={r.path}>
-                {/* Index route for the parent path */}
                 <Route index element={r.element} />
-                {/* Child routes */}
                 {r.children.map((child, childIndex) => (
-                  <Route key={`${index}-${childIndex}`} path={child.path} element={child.element} />
+                  <Route
+                    key={`${index}-${childIndex}`}
+                    path={child.path}
+                    element={child.element}
+                  />
                 ))}
               </Route>
             );

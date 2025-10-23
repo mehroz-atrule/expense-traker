@@ -1,79 +1,186 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Users, 
-  Building2, 
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Users,
+  Building2,
   CreditCard,
   ArrowUpRight,
   Calendar,
-  Clock,
   Plus,
-  Bell,
-  Settings
+  Settings,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  Clock,
+  XCircle
 } from 'lucide-react'
+import type { RootState } from '../../app/store'
+import { getDashboardStats } from '../../redux/admin/adminSlice'
+import Popup from '../../components/Dashboard/Popup'
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { dashboardStats, loading } = useSelector((state: RootState) => state.admin)
+  
+  // State for popup
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
+  const [popupContent, setPopupContent] = useState<{
+    title: string;
+    content: React.ReactNode;
+    size?: 'sm' | 'md' | 'lg' | 'xl';
+  }>({
+    title: '',
+    content: null,
+    size: 'md'
+  })
 
-  // Mock data - replace with real data from your API
-  const stats = {
-    totalExpenses: { value: 125000, change: 0, trend: 'up' },
-    pendingApprovals: { value: 23, change: 0, trend: 'down' },
-    activeVendors: { value: 156, change: 0, trend: 'up' },
-    officeExpense: { value: 45000, change: 0, trend: 'up' }
+  useEffect(() => {
+    dispatch(getDashboardStats() as any)
+  }, [dispatch])
+
+  // Function to open popup
+  const openPopup = (title: string, content: React.ReactNode, size?: 'sm' | 'md' | 'lg' | 'xl') => {
+    setPopupContent({ title, content, size })
+    setIsPopupOpen(true)
   }
 
-  const recentExpenses = [
-    { 
-      id: 1, 
-      title: 'Office Equipment Purchase', 
-      category: 'Equipment',
-      submitter: 'John Smith',
-      date: '2024-12-08', 
-      amount: 2500, 
-      status: 'Pending' 
-    },
-    { 
-      id: 2, 
-      title: 'Travel Reimbursement', 
-      category: 'Travel',
-      submitter: 'Sarah Johnson',
-      date: '2024-12-07', 
-      amount: 1200, 
-      status: 'Approved' 
-    },
-    { 
-      id: 3, 
-      title: 'Software License Renewal', 
-      category: 'Software',
-      submitter: 'Mike Davis',
-      date: '2024-12-06', 
-      amount: 800, 
-      status: 'Under Review' 
-    },
-  ]
+  // Function to close popup
+  const closePopup = () => {
+    setIsPopupOpen(false)
+  }
+
+  // Create Expense Popup
+  const showCreateExpensePopup = () => {
+    const content = (
+      <div className="p-6 space-y-6">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+            <Plus className="h-6 w-6 text-blue-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Create New Expense</h3>
+          <p className="text-sm text-gray-500 mb-6">
+            Choose how you want to create a new expense entry.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            onClick={() => {
+              closePopup()
+              navigate('/dashboard/vendor/create-expense')
+            }}
+            className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200"
+          >
+            <Building2 className="h-8 w-8 text-blue-600 mb-3" />
+            <span className="font-medium text-gray-900">Vendor Expense</span>
+            <span className="text-sm text-gray-500 text-center mt-2">
+              Create expense through vendor payment
+            </span>
+          </button>
+
+          <button
+            onClick={() => {
+              closePopup()
+              navigate('/dashboard/pettycash/create-expense')
+            }}
+            className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200"
+          >
+            <CreditCard className="h-8 w-8 text-green-600 mb-3" />
+            <span className="font-medium text-gray-900">Petty Cash</span>
+            <span className="text-sm text-gray-500 text-center mt-2">
+              Create petty cash expense entry
+            </span>
+          </button>
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <button
+            onClick={closePopup}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+    
+    openPopup('Create New Expense', content, 'md')
+  }
+
+  // Example usage - Office Details Popup
+  const showOfficeDetails = (office: any) => {
+    const content = (
+      <div className="p-6 space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-600">Office Name</label>
+            <p className="text-lg font-semibold">{office.office?.name || 'Unknown Office'}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">Total Expense</label>
+            <p className="text-lg font-semibold text-green-600">
+              Rs {office.total?.toLocaleString()}
+            </p>
+          </div>
+        </div>
+        {/* Add more office details here */}
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            onClick={closePopup}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => {
+              closePopup()
+              navigate('/admin/offices')
+            }}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Manage Office
+          </button>
+        </div>
+      </div>
+    )
+    
+    openPopup(`Office Details - ${office.office?.name || 'Unknown Office'}`, content, 'lg')
+  }
 
   const quickActions = [
-    { label: 'Create Expense', action: () => navigate('/admin/createexpense'), icon: Plus, color: 'bg-blue-500' },
-    { label: 'Manage Users', action: () => navigate('/admin/users'), icon: Users, color: 'bg-green-500' },
-    { label: 'Manage Offices', action: () => navigate('/admin/offices'), icon: Settings, color: 'bg-orange-500' },
-    { label: 'Vendor Management', action: () => navigate('/admin/vendors'), icon: Building2, color: 'bg-purple-500' },
+    { 
+      label: 'Create Expense', 
+      action: showCreateExpensePopup, // Yahan direct navigate ki jagah popup function use karein
+      icon: Plus, 
+      color: 'bg-blue-500' 
+    },
+    { 
+      label: 'Manage Users', 
+      action: () => navigate('/admin/users'), 
+      icon: Users, 
+      color: 'bg-green-500' 
+    },
+    { 
+      label: 'Manage Offices', 
+      action: () => navigate('/admin/offices'), 
+      icon: Settings, 
+      color: 'bg-orange-500' 
+    },
+    { 
+      label: 'Vendor Management', 
+      action: () => navigate('/admin/vendor/manage'), 
+      icon: Building2, 
+      color: 'bg-purple-500' 
+    },
   ]
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'approved': return 'bg-green-100 text-green-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'under review': return 'bg-blue-100 text-blue-800'
-      case 'rejected': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const StatCard = ({ title, value, change, trend, icon: Icon, prefix = '$', showChange = true }: any) => (
+  const StatCard = ({ title, value, change, trend, icon: Icon, prefix = 'Rs ', showChange = true }: any) => (
     <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
       <div className="flex items-center justify-between mb-3">
         <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -89,69 +196,229 @@ const AdminDashboard: React.FC = () => {
       <div className="space-y-1">
         <h3 className="text-xs md:text-sm font-medium text-gray-600">{title}</h3>
         <p className="text-lg md:text-xl font-bold text-gray-900">
-          {prefix === '$' ? `$${value.toLocaleString()}` : value.toLocaleString()}
+          {prefix === 'Rs ' ? `Rs ${value?.toLocaleString() || '0'}` : value?.toLocaleString() || '0'}
         </p>
       </div>
     </div>
   )
 
+  const OfficeCard = ({ officeName, expense, icon: Icon, iconColor, bgColor, onClick }: any) => (
+    <div 
+      className="bg-white rounded-xl shadow-sm p-4 md:p-6 cursor-pointer hover:shadow-md transition-shadow duration-200"
+      onClick={onClick}
+    >
+      <div className="flex items-center space-x-3 mb-4">
+        <div className={`p-2 md:p-3 rounded-lg bg-gradient-to-br ${bgColor}`}>
+          <Icon className={`w-4 h-4 md:w-5 md:h-5 ${iconColor}`} />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900">
+          {officeName}
+        </h3>
+      </div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600">Total Expense</span>
+          <span className="font-bold text-gray-900">Rs {expense?.toLocaleString() || '0'}</span>
+        </div>
+      </div>
+    </div>
+  )
+
+  const StatusCard = ({ title, value, color, icon: Icon }: any) => (
+    <div className="bg-white rounded-xl shadow-sm p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className={`p-2 rounded-lg ${color}`}>
+            <Icon className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-sm font-medium text-gray-700">{title}</span>
+        </div>
+        <span className="text-lg font-bold text-gray-900">{value || 0}</span>
+      </div>
+    </div>
+  )
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <RefreshCw className="w-6 h-6 text-blue-600 animate-spin" />
+          <span className="text-gray-600">Loading dashboard...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 px-3 py-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        
+
         {/* Mobile Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-sm text-gray-600 md:block hidden">Welcome back!</p>
+            <p className="text-sm text-gray-600 md:block hidden">
+              {dashboardStats?.month ? `Month: ${dashboardStats.month}` : 'Welcome back!'}
+            </p>
           </div>
           <div className="flex items-center space-x-2">
-            <button className="p-2 rounded-full bg-white shadow-sm">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
-            <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500">
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
               <Calendar className="w-4 h-4" />
               <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
             </div>
           </div>
         </div>
 
-        {/* Stats Grid - Mobile App Style */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-          <StatCard
-            title="Total Expenses"
-            value={stats.totalExpenses.value}
-            change={stats.totalExpenses.change}
-            trend={stats.totalExpenses.trend}
-            icon={DollarSign}
-            showChange={false}
-          />
-          <StatCard
-            title="Pending"
-            value={stats.pendingApprovals.value}
-            change={stats.pendingApprovals.change}
-            trend={stats.pendingApprovals.trend}
-            icon={Clock}
-            prefix=""
-          />
-          <StatCard
-            title="Vendors"
-            value={stats.activeVendors.value}
-            change={stats.activeVendors.change}
-            trend={stats.activeVendors.trend}
-            icon={Building2}
-            prefix=""
-          />
-          <StatCard
-            title="Office Expense"
-            value={stats.officeExpense.value}
-            change={stats.officeExpense.change}
-            trend={stats.officeExpense.trend}
-            icon={CreditCard}
-          />
+        {/* Total Expense and Office Expenses in one row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
+          {/* Total Expense Card */}
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+                <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xs md:text-sm font-medium text-gray-600">Total Expenses</h3>
+              <p className="text-lg md:text-xl font-bold text-gray-900">
+                Rs {dashboardStats?.totalExpense?.toLocaleString() || '0'}
+              </p>
+            </div>
+          </div>
+
+          {/* Office Expenses - First 2 offices */}
+          {dashboardStats?.officeWiseExpenses?.slice(0, 2).map((officeExpense: any, index: number) => (
+            <OfficeCard
+              key={index}
+              officeName={officeExpense.office?.name || 'Unknown Office'}
+              expense={officeExpense.total}
+              icon={Building2}
+              iconColor="text-green-600"
+              bgColor="from-green-50 to-emerald-50"
+              onClick={() => showOfficeDetails(officeExpense)}
+            />
+          ))}
         </div>
 
-        {/* Quick Actions - Mobile Optimized */}
+        {/* Remaining Office Expenses */}
+        {dashboardStats?.officeWiseExpenses && dashboardStats.officeWiseExpenses.length > 2 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {dashboardStats.officeWiseExpenses.slice(2).map((officeExpense: any, index: number) => (
+              <OfficeCard
+                key={index + 2}
+                officeName={officeExpense.office?.name || 'Unknown Office'}
+                expense={officeExpense.total}
+                icon={Building2}
+                iconColor="text-green-600"
+                bgColor="from-green-50 to-emerald-50"
+                onClick={() => showOfficeDetails(officeExpense)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Counts By Status */}
+        <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Counts By Status</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {dashboardStats?.countsByStatus && Object.entries(dashboardStats.countsByStatus).map(([status, count]) => (
+              <StatusCard
+                key={status}
+                title={status.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                value={count as number}
+                color={
+                  status === 'Approved' || status === 'Paid' ? 'bg-green-500' :
+                    status === 'WaitingForApproval' ? 'bg-yellow-500' :
+                      status === 'ReviewedByFinance' ? 'bg-blue-500' :
+                        status === 'ReadyForPayment' ? 'bg-purple-500' :
+                          status === 'Rejected' ? 'bg-red-500' : 'bg-gray-500'
+                }
+                icon={
+                  status === 'Approved' || status === 'Paid' ? CheckCircle :
+                    status === 'WaitingForApproval' ? Clock :
+                      status === 'ReviewedByFinance' ? FileText :
+                        status === 'ReadyForPayment' ? CreditCard :
+                          status === 'Rejected' ? XCircle : AlertCircle
+                }
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Petty Cash Expenses */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Total Petty Cash Expense */}
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50">
+                <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Total Petty Cash Expense</h3>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Amount</span>
+                <span className="font-bold text-gray-900">
+                  Rs {dashboardStats?.totalPettyCashExpense?.toLocaleString() || '0'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Office Wise Petty Cash - First 2 */}
+          {dashboardStats?.officeWisePettyCash?.slice(0, 2).map((pettyCash: any, index: number) => (
+            <div key={index} className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50">
+                  <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {pettyCash.office?.name || 'Unknown Office'} - Petty Cash
+                </h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Expense</span>
+                  <span className="font-bold text-gray-900">Rs {pettyCash.totalExpense?.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm text-gray-500">
+                  <span>Month</span>
+                  <span>{pettyCash.month}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Remaining Petty Cash Expenses */}
+        {dashboardStats?.officeWisePettyCash && dashboardStats.officeWisePettyCash.length > 2 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {dashboardStats.officeWisePettyCash.slice(2).map((pettyCash: any, index: number) => (
+              <div key={index + 2} className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="p-2 md:p-3 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50">
+                    <CreditCard className="w-4 h-4 md:w-5 md:h-5 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {pettyCash.office?.name || 'Unknown Office'} - Petty Cash
+                  </h3>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Expense</span>
+                    <span className="font-bold text-gray-900">Rs {pettyCash.totalExpense?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm text-gray-500">
+                    <span>Month</span>
+                    <span>{pettyCash.month}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Quick Actions */}
         <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -171,93 +438,16 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Recent Expenses - Mobile Optimized */}
-        <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Expenses</h2>
-            <button 
-              onClick={() => navigate('/admin/expenses')}
-              className="text-blue-600 font-medium text-sm"
-            >
-              View all
-            </button>
-          </div>
-          
-          <div className="space-y-3">
-            {recentExpenses.map((expense) => (
-              <button 
-                key={expense.id} 
-                className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-left"
-                onClick={() => navigate(`/admin/expenses/${expense.id}`)}
-              >
-                <div className="flex items-center space-x-3 min-w-0 flex-1">
-                  <div className="p-2 bg-white rounded-lg shadow-sm flex-shrink-0">
-                    <DollarSign className="w-4 h-4 text-gray-600" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-900 text-sm md:text-base truncate">{expense.title}</h3>
-                    <div className="text-xs md:text-sm text-gray-500 mt-1">
-                      <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
-                        <span>{expense.category}</span>
-                        <span className="hidden md:inline">•</span>
-                        <span className="md:inline">by {expense.submitter}</span>
-                        <span className="hidden md:inline">•</span>
-                        <span className="text-xs">{new Date(expense.date).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0 ml-3">
-                  <div className="font-bold text-gray-900 text-sm md:text-base">
-                    ${expense.amount.toLocaleString()}
-                  </div>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(expense.status)}`}>
-                    {expense.status}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Reusable Popup */}
+        <Popup
+          isOpen={isPopupOpen}
+          onClose={closePopup}
+          title={popupContent.title}
+          size={popupContent.size}
+        >
+          {popupContent.content}
+        </Popup>
 
-        {/* Bottom Summary - Mobile Optimized */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Today's Summary</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">Approved</span>
-                <span className="font-semibold text-green-600">15</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">Pending</span>
-                <span className="font-semibold text-yellow-600">8</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">Action Needed</span>
-                <span className="font-semibold text-red-600">3</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">System Status</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">Active Users</span>
-                <span className="font-semibold text-blue-600">142</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">System Health</span>
-                <span className="font-semibold text-green-600">Good</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">Last Sync</span>
-                <span className="font-semibold text-green-600">Now</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

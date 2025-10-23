@@ -103,7 +103,7 @@ const submitterSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
+      .addCase(createExpense.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(createExpense.rejected, (state, action) => {

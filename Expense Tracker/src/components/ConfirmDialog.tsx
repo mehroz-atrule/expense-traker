@@ -8,6 +8,7 @@ interface ConfirmDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  loading?: boolean;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({

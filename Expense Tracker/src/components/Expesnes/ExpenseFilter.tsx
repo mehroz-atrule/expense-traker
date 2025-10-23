@@ -1,0 +1,204 @@
+import React from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import SelectDropdown from '../../components/Forms/SelectionDropDown';
+import Input from '../../components/Forms/Input';
+
+interface DynamicFiltersProps {
+  showFilters: boolean;
+  setShowFilters: (show: boolean) => void;
+  activeTab: string;
+  vendorFilters: any;
+  pettyCashFilters: any;
+  onVendorFilterChange: (filters: any) => void;
+  onPettyCashFilterChange: (filters: any) => void;
+  onResetVendorFilters: () => void;
+  onResetPettyCashFilters: () => void;
+  offices: any[];
+}
+
+const DynamicFilters: React.FC<DynamicFiltersProps> = ({
+  showFilters,
+  setShowFilters,
+  activeTab,
+  vendorFilters,
+  pettyCashFilters,
+  onVendorFilterChange,
+  onPettyCashFilterChange,
+  onResetVendorFilters,
+  onResetPettyCashFilters,
+  offices
+}) => {
+  const officeOptions = offices.map(office => ({
+    value: office._id,
+    label: office.name
+  }));
+
+  const renderVendorFilters = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* Office */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Office</label>
+        <SelectDropdown
+          options={officeOptions}
+          value={vendorFilters.office ? officeOptions.find((o) => o.value === vendorFilters.office) || null : null}
+          onChange={(opt) => onVendorFilterChange({ ...vendorFilters, office: opt?.value || '' })}
+          isClearable
+          placeholder="Select Office"
+        />
+      </div>
+
+      {/* Status */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
+        <select 
+          value={vendorFilters.status} 
+          onChange={(e) => onVendorFilterChange({ ...vendorFilters, status: e.target.value })} 
+          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">All Statuses</option>
+          <option value="WaitingForApproval">Waiting For Approval</option>
+          <option value="Approved">Approved</option>
+          <option value="ReviewedByFinance">Reviewed By Finance</option>
+          <option value="ReadyForPayment">Ready For Payment</option>
+          <option value="Paid">Paid</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+
+      {/* Category */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Category</label>
+        <select 
+          value={vendorFilters.category} 
+          onChange={(e) => onVendorFilterChange({ ...vendorFilters, category: e.target.value })} 
+          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">All Categories</option>
+          <option value="Travel">Travel</option>
+          <option value="Office Supplies">Office Supplies</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Software">Software</option>
+          <option value="Services">Services</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      {/* Date From */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Date From</label>
+        <Input
+          type="date"
+          value={vendorFilters.dateFrom}
+          onChange={(v) => onVendorFilterChange({ ...vendorFilters, dateFrom: v })}
+          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+
+      {/* Date To */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Date To</label>
+        <Input
+          type="date"
+          value={vendorFilters.dateTo}
+          onChange={(v) => onVendorFilterChange({ ...vendorFilters, dateTo: v })}
+          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+    </div>
+  );
+
+  const renderPettyCashFilters = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* Office */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Office</label>
+        <SelectDropdown
+          options={officeOptions}
+          value={pettyCashFilters.office ? officeOptions.find((o) => o.value === pettyCashFilters.office) || null : null}
+          onChange={(opt) => onPettyCashFilterChange({ ...pettyCashFilters, office: opt?.value || '' })}
+          isClearable
+          placeholder="Select Office"
+        />
+      </div>
+
+      {/* Month */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Month</label>
+        <Input
+          type="month"
+          value={pettyCashFilters.month}
+          onChange={(v) => onPettyCashFilterChange({ ...pettyCashFilters, month: v })}
+          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+
+      {/* Transaction Type */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Transaction Type</label>
+        <select 
+          value={pettyCashFilters.transactionType} 
+          onChange={(e) => onPettyCashFilterChange({ ...pettyCashFilters, transactionType: e.target.value })} 
+          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="all">All Types</option>
+          <option value="income">Income</option>
+          <option value="expense">Expense</option>
+        </select>
+      </div>
+
+      {/* Date From */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Date From</label>
+        <Input
+          type="date"
+          value={pettyCashFilters.dateFrom}
+          onChange={(v) => onPettyCashFilterChange({ ...pettyCashFilters, dateFrom: v })}
+          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+
+      {/* Date To */}
+      <div>
+        <label className="block text-sm font-medium text-gray-600 mb-1">Date To</label>
+        <Input
+          type="date"
+          value={pettyCashFilters.dateTo}
+          onChange={(v) => onPettyCashFilterChange({ ...pettyCashFilters, dateTo: v })}
+          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border mb-6">
+      <div 
+        className="flex justify-between items-center p-4 cursor-pointer select-none" 
+        onClick={() => setShowFilters(!showFilters)}
+      >
+        <h2 className="font-semibold text-gray-700">Filters</h2>
+        <div className="flex items-center text-sm text-blue-600 font-medium">
+          {showFilters ? 'Hide Filters' : 'Show Filters'} 
+          {showFilters ? <ChevronUp size={18} className="ml-1" /> : <ChevronDown size={18} className="ml-1" />}
+        </div>
+      </div>
+      
+      {showFilters && (
+        <div className="p-4 border-t space-y-3">
+          {activeTab === 'vendor' ? renderVendorFilters() : renderPettyCashFilters()}
+
+          <div className="flex justify-end gap-3 mt-4">
+            <button 
+              onClick={activeTab === 'vendor' ? onResetVendorFilters : onResetPettyCashFilters}
+              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 text-sm font-medium transition-colors"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DynamicFilters;

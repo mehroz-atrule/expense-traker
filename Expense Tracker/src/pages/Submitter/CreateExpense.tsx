@@ -125,7 +125,6 @@ const CreateExpenseView: React.FC = () => {
   const mode = queryParams.get("mode");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const role = useAppSelector((s) => (s as any)?.auth?.user?.role || "submitter");
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
   const { loading: submitterLoading, } = useAppSelector((s: RootState) => s.submitter);
   //   const viewExpense = useAppSelector((s: RootState) =>

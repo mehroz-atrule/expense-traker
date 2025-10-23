@@ -4,7 +4,7 @@ import { AlertCircle } from 'lucide-react';
 interface EnhancedInputProps {
   label: string;
   value: string | number;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
   required?: boolean;
@@ -48,7 +48,7 @@ const EnhancedInput: React.FC<EnhancedInputProps> = ({
         <input
           type={type}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => onChange?.(e.target.value)}
           onBlur={onBlur}
           placeholder={placeholder}
           required={required}

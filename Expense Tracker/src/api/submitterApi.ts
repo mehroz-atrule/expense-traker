@@ -10,8 +10,15 @@ export interface ExpenseQueryParams {
   limit?: number;
 }
 
+export interface ExpensesResponse {
+  data: Expense[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
-export const listExpenses = (params?: ExpenseQueryParams) => axios.get<Expense[]>(`${API_BASE_URL}/expense`, { params }).then(r => r.data);
+export const listExpenses = (params?: ExpenseQueryParams) =>
+  axios.get<ExpensesResponse>(`${API_BASE_URL}/expense`, { params }).then(r => r.data);
 export const getExpenseById = (id: number | string) => axios.get<Expense>(`${API_BASE_URL}/expense/${id}`).then(r => r.data);
 export const postExpense = (payload: Expense) => axios.post<Expense>(`${API_BASE_URL}/expense`, payload).then(r => r.data);
 export const updateExpense = (id: number | string, payload: Partial<Expense>) => axios.patch<Expense>(`${API_BASE_URL}/expense/${id}`, payload).then(r => r.data);

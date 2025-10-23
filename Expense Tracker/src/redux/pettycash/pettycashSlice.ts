@@ -130,7 +130,7 @@ const pettycashSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createPettyCashExpense.fulfilled, (state, action: PayloadAction<PettyCashRecord>) => {
+      .addCase(createPettyCashExpense.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(createPettyCashExpense.rejected, (state, action) => {
@@ -141,7 +141,7 @@ const pettycashSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updatePettyCashExpenseById.fulfilled, (state, action: PayloadAction<PettyCashRecord>) => {
+      .addCase(updatePettyCashExpenseById.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(updatePettyCashExpenseById.rejected, (state, action) => {
@@ -152,7 +152,7 @@ const pettycashSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(deletePettyCashExpenseById.fulfilled, (state, action: PayloadAction<string | number>) => {
+      .addCase(deletePettyCashExpenseById.fulfilled, (state) => {
         state.loading = false;
       })
       .addCase(deletePettyCashExpenseById.rejected, (state, action) => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { ZoomIn, ZoomOut, RotateCw, Download, X, File, ExternalLink } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCw, Download, X, File } from "lucide-react";
 
 interface ImageModalProps {
   isOpen: boolean;

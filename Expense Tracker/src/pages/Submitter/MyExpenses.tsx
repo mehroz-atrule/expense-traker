@@ -32,7 +32,7 @@ const MyExpenses: React.FC = () => {
   const [officeOptions, setOfficeOptions] = useState<Option[]>([]);
   const [vendorOptions, setVendorOptions] = useState<Option[]>([]);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const limit = 10;
 
   const [filters, setFilters] = useState({
     office: "",
@@ -194,7 +194,6 @@ const MyExpenses: React.FC = () => {
       WaitingForApproval: "bg-yellow-100 text-yellow-800",
       Approved: "bg-green-100 text-green-800",
       ReviewedByFinance: "bg-purple-100 text-purple-800",
-      ReviewedByFinance: "bg-purple-100 text-purple-800",
       Readyforpayment: "bg-indigo-100 text-indigo-800",
       Preparing: "bg-orange-100 text-orange-800",
       Paid: "bg-green-100 text-green-800",
@@ -261,7 +260,8 @@ const MyExpenses: React.FC = () => {
               <button
                 onClick={() => {
                   const firstSeg = location.pathname.split("/")[1] || "submitter";
-                  navigate(`/${firstSeg}/createexpense`);
+                  console.log("Frst Segemnt" ,firstSeg);
+                  navigate(`/${firstSeg}/vendor/create-expense`);
                 }}
                 className="inline-flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-auto md:h-auto md:gap-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-full md:rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm active:scale-95 touch-manipulation ml-1"
               >

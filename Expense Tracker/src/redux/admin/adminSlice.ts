@@ -7,9 +7,12 @@ interface AdminState {
   users: User[];
   loading: boolean;
   error?: string | null;
+    dashboardStats: any; // or define a type if known
+ 
 }
 
-const initialState: AdminState = { offices: [], users: [], loading: false, error: null };
+const initialState: AdminState = { offices: [], users: [], loading: false, error: null ,   dashboardStats: null,
+ };
 
 export const fetchOffices = createAsyncThunk('admin/fetchOffices', async () => {
   const res = await api.listOffices();
@@ -80,6 +83,14 @@ export const removeUser = createAsyncThunk('admin/removeUser', async (id: string
   }
 });
 
+export const getDashboardStats = createAsyncThunk('admin/fetchDashboardStats', async (_, { rejectWithValue }) => {
+  try {
+    const res = await api.fetchDashboardStats();
+    return res as any;
+  } catch (err: any) {
+    return rejectWithValue(err?.response?.data ?? err);
+  }   
+});
 const adminSlice = createSlice({
   name: 'admin',
   initialState,
@@ -135,8 +146,24 @@ const adminSlice = createSlice({
       })
       .addCase(updateUser.rejected, (s, a) => { s.loading = false; s.error = a.error.message })
 
-      .addCase(removeUser.fulfilled, (s, a: PayloadAction<string>) => { s.users = s.users.filter(u => u._id !== a.payload) });
+      .addCase(removeUser.fulfilled, (s, a: PayloadAction<string>) => { s.users = s.users.filter(u => u._id !== a.payload) })
+
+
+      .addCase(getDashboardStats.pending, (s) => {
+  s.loading = true;
+  s.error = null;
+})
+.addCase(getDashboardStats.fulfilled, (s, a) => {
+  s.loading = false;
+  s.dashboardStats = a.payload; // Save stats in Redux
+})
+.addCase(getDashboardStats.rejected, (s, a) => {
+  s.loading = false;
+  s.error = a.error.message;
+})
+
   }
 });
+
 
 export default adminSlice.reducer;

@@ -212,7 +212,7 @@ const CreatePettycashExpense: React.FC = () => {
         await dispatch(createPettyCashExpense(formData) as any);
       }
 
-      navigate(-1);
+      navigate("/dashboard/pettycash/expenses");
 
     } catch (error) {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} petty cash expense`, error);

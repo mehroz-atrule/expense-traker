@@ -16,8 +16,7 @@ const PettyCashSearch: React.FC<PettyCashSearchProps> = ({
   onSearch,
   selectedMonth,
   onMonthChange,
-  totalRecords,
-  loading
+ 
 }) => {
   return (
     <div className="bg-white shadow">

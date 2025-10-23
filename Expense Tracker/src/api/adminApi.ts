@@ -16,3 +16,5 @@ export const listUsers = () => axios.get(`${API_BASE_URL}/users`).then(r => r.da
 export const createUser = (payload: CreateUserPayload) => axios.post(`${API_BASE_URL}/users`, payload).then(r => r.data);
 export const updateUser = (id: string, payload: UpdateUserPayload) => axios.patch(`${API_BASE_URL}/users/${id}`, payload).then(r => r.data);
 export const deleteUserApi = (id: string) => axios.delete(`${API_BASE_URL}/users/${id}`).then(r => r.data);
+// dashboard statistics
+export const fetchDashboardStats = () => axios.get(`${API_BASE_URL}/dashboard/stats`).then(r => r.data);
