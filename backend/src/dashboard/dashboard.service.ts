@@ -20,7 +20,7 @@ export class DashboardService {
     private readonly vendorModel: Model<Vendor>,
     @InjectModel(PettyCashTransaction.name)
     private readonly txnModel: Model<PettyCashTransactionDocument>,
-  ) { }
+  ) {}
 
   async getStats(officeId?: string, month?: string) {
     try {
@@ -51,16 +51,15 @@ export class DashboardService {
 
       // === 3️⃣ Status list ===
       const statusList = [
-        'New',
-        'Waiting for Approval',
+        'WaitingForApproval',
         'Approved',
-        'Reviewed by Finance',
-        'Preparing for payment',
-        'Ready for payment',
+        'ReviewedByFinance',
+        'ReadyForPayment',
         'Paid',
+        'Rejected',
       ];
 
-      // === 4️⃣ Expense aggregation ===
+      // === 4️⃣ Expense aggregation (with office name populate) ===
       const expenseAgg = this.expenseModel.aggregate([
         { $match: officeFilter },
         {
@@ -94,6 +93,26 @@ export class DashboardService {
                   total: { $sum: '$amount' },
                 },
               },
+              // ✅ Populate office name from "offices" collection
+              {
+                $lookup: {
+                  from: 'offices', // collection name in MongoDB
+                  localField: '_id',
+                  foreignField: '_id',
+                  as: 'officeData',
+                },
+              },
+              { $unwind: { path: '$officeData', preserveNullAndEmptyArrays: true } },
+              {
+                $project: {
+                  _id: 0,
+                  office: {
+                    _id: '$officeData._id',
+                    name: '$officeData.name',
+                  },
+                  total: 1,
+                },
+              },
             ],
             statusCounts: [
               {
@@ -107,7 +126,7 @@ export class DashboardService {
         },
       ]);
 
-      // === 5️⃣ Petty Cash (strict month + office filter) ===
+      // === 5️⃣ Petty Cash (strict month + office filter, with office name) ===
       const pettyCashAgg = this.txnModel.aggregate([
         {
           $match: {
@@ -122,10 +141,23 @@ export class DashboardService {
             totalExpense: { $sum: '$amount' },
           },
         },
+        // ✅ Lookup office name
+        {
+          $lookup: {
+            from: 'offices',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'officeData',
+          },
+        },
+        { $unwind: { path: '$officeData', preserveNullAndEmptyArrays: true } },
         {
           $project: {
             _id: 0,
-            office: '$_id',
+            office: {
+              _id: '$officeData._id',
+              name: '$officeData.name',
+            },
             totalExpense: 1,
             month: month,
           },
@@ -164,7 +196,7 @@ export class DashboardService {
       const expenseFacet = expenseResult?.[0] ?? {};
       const totals = expenseFacet.totals?.[0] ?? { totalAmount: 0, totalCount: 0 };
       const currentMonthObj = expenseFacet.currentMonth?.[0] ?? { currentSum: 0 };
-      const officeWiseExpensesRaw = expenseFacet.officeWise ?? [];
+      const officeWiseExpenses = expenseFacet.officeWise ?? [];
       const statusCountsRaw = expenseFacet.statusCounts ?? [];
 
       // normalize status counts
@@ -174,12 +206,6 @@ export class DashboardService {
         const key = row._id ?? 'Unknown';
         countsByStatus[key] = row.count;
       }
-
-      // format office-wise expenses
-      const officeWiseExpenses = officeWiseExpensesRaw.map((r) => ({
-        office: r._id,
-        total: r.total,
-      }));
 
       const totalPettyCashExpense = pettyCashTotals?.[0]?.totalPettyCashExpense ?? 0;
 
