@@ -49,7 +49,7 @@ const routesConfig = {
       },
     },
     {
-      path: "expenses", // ✅ New combined expenses route
+      path: "expenses",
       element: <CombinedExpensesScreen />,
       label: "Expenses",
       icon: <DollarSign size={18} />,
@@ -58,6 +58,7 @@ const routesConfig = {
         title: "Expenses"
       },
     },
+    // 👇 These routes exist but won't show in sidebar
     {
       path: "vendor",
       element: <MyExpenses />,

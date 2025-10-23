@@ -21,7 +21,6 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path={basePath} element={<DashboardLayout />}>
-      
         {routes.map((r, index) => {
           if (r.children) {
             return (

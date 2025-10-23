@@ -24,6 +24,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
     location.pathname === `${basePath}/${path}` ||
     (path === "" && location.pathname === basePath);
 
+  // 👇 Filter routes - only show these 3 in sidebar
+  const sidebarRoutes = routes.filter(route => 
+    ['', 'expenses', 'settings'].includes(route.path)
+  );
+
   return (
     <>
       {open && (
@@ -53,16 +58,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
           </button>
         </div>
 
-        {/* Menu */}
+        {/* Menu - Only show filtered routes */}
         <ul className="space-y-2">
-          {routes.map((item) => {
+          {sidebarRoutes.map((item) => {
             const fullPath = item.path === "" ? basePath : `${basePath}/${item.path}`;
             const hasChildren = item.children && item.children.length > 0;
-            const isCollapsible = item.path === "vendor" || item.path === "pettycash" || item.path === "settings";
+            const isCollapsible = item.path === "settings"; // Only settings is collapsible
 
             return (
               <li key={item.path}>
-                {/* Collapsible group (Vendor / PettyCash / Settings) */}
+                {/* Collapsible group (Settings) */}
                 {isCollapsible ? (
                   <>
                     <div
@@ -119,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
                     )}
                   </>
                 ) : (
-                  // Non-collapsible (Dashboard)
+                  // Non-collapsible (Dashboard, Expenses)
                   <Link
                     to={fullPath}
                     className={`flex items-center p-2 sm:p-3 rounded-lg transition-all duration-200 ${

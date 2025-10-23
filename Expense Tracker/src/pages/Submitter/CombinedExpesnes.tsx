@@ -12,6 +12,7 @@ import VendorExpensesList from '../../components/Expesnes/VendorExpenseList';
 import PettyCashExpensesList from '../../components/Expesnes/PettyCashExpenseList';
 import ViewExpenseModal from '../../components/Expesnes/viewExpenseModal';
 import OfficeTabs from '../../components/Pettycash/officeTabs';
+import CreateEditModal from '../../components/Pettycash/createEditModal';
 
 // Redux
 import { fetchExpenses, removeExpense } from '../../redux/submitter/submitterSlice';
@@ -40,9 +41,23 @@ interface PettyCashFilters {
 // Helper function to get current month
 const getCurrentMonth = (): string => {
   const date = new Date();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 01, 02, ..., 12
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
-  return `${month}-${year}`; // MM-YYYY
+  return `${year}-${month}`; // YYYY-MM format for input type="month"
+};
+
+// Helper to convert month format for display
+const formatMonthForDisplay = (month: string): string => {
+  if (!month) return '';
+  const [year, monthNum] = month.split('-');
+  return `${monthNum}-${year}`;
+};
+
+// Helper to convert month format for API
+const formatMonthForAPI = (month: string): string => {
+  if (!month) return getCurrentMonth();
+  const [year, monthNum] = month.split('-');
+  return `${monthNum}-${year}`;
 };
 
 const CombinedExpensesScreen: React.FC = () => {
@@ -66,25 +81,29 @@ const CombinedExpensesScreen: React.FC = () => {
   const [pettyCashPage, setPettyCashPage] = useState(1);
   const limit = 10;
 
-  // Office selection for petty cash (like in PettycashExpense)
+  // Office selection for petty cash
   const [selectedOffice, setSelectedOffice] = useState<string>('');
 
-  // Filters
-  const [vendorFilters, setVendorFilters] = useState<VendorFilters>({
+  // Default filters
+  const defaultVendorFilters = {
     office: '',
     vendor: '',
     status: 'all',
     category: 'all',
     dateFrom: '',
     dateTo: ''
-  });
+  };
 
-  const [pettyCashFilters, setPettyCashFilters] = useState<PettyCashFilters>({
+  const defaultPettyCashFilters = {
     month: getCurrentMonth(),
     transactionType: 'all',
     dateFrom: '',
     dateTo: ''
-  });
+  };
+
+  // Initialize filters from URL
+  const [vendorFilters, setVendorFilters] = useState<VendorFilters>(defaultVendorFilters);
+  const [pettyCashFilters, setPettyCashFilters] = useState<PettyCashFilters>(defaultPettyCashFilters);
 
   // Modals state
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -94,30 +113,87 @@ const CombinedExpensesScreen: React.FC = () => {
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [currentImageTitle, setCurrentImageTitle] = useState('');
 
-  // Get active tab from URL
+  // Create/Edit Modal state for petty cash income
+  const [createEditModalOpen, setCreateEditModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
+
+  // Parse URL parameters and set filters
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
+    
+    // Get active tab
     const tab = searchParams.get('tab') as ExpenseTab;
     if (tab) {
       setActiveTab(tab);
     }
-  }, [location.search]);
 
-  // Update URL when tab changes
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    searchParams.set('tab', activeTab);
-    navigate(`?${searchParams.toString()}`, { replace: true });
-  }, [activeTab, navigate, location.search]);
+    // Parse vendor filters from URL
+    if (tab === 'vendor' || !tab) {
+      const vendorFilterParams: VendorFilters = {
+        office: searchParams.get('office') || '',
+        vendor: searchParams.get('vendor') || '',
+        status: searchParams.get('status') || 'all',
+        category: searchParams.get('category') || 'all',
+        dateFrom: searchParams.get('dateFrom') || '',
+        dateTo: searchParams.get('dateTo') || ''
+      };
+      setVendorFilters(vendorFilterParams);
+    }
+
+    // Parse petty cash filters from URL
+    if (tab === 'pettycash') {
+      const pettyCashFilterParams: PettyCashFilters = {
+        month: searchParams.get('month') || getCurrentMonth(),
+        transactionType: searchParams.get('transactionType') || 'all',
+        dateFrom: searchParams.get('dateFrom') || '',
+        dateTo: searchParams.get('dateTo') || ''
+      };
+      setPettyCashFilters(pettyCashFilterParams);
+      
+      // Set selected office from URL
+      const officeFromUrl = searchParams.get('office');
+      if (officeFromUrl) {
+        setSelectedOffice(officeFromUrl);
+      }
+    }
+
+    // Set search term from URL
+    const searchFromUrl = searchParams.get('search');
+    if (searchFromUrl) {
+      setSearchTerm(searchFromUrl);
+    }
+
+    // Set page from URL
+    const pageFromUrl = searchParams.get('page');
+    if (pageFromUrl) {
+      const pageNum = parseInt(pageFromUrl);
+      if (tab === 'vendor') {
+        setVendorPage(pageNum);
+      } else {
+        setPettyCashPage(pageNum);
+      }
+    }
+  }, [location.search]);
 
   // Set default office when offices load
   useEffect(() => {
     if (offices.length > 0 && !selectedOffice && activeTab === 'pettycash') {
-      setSelectedOffice(offices[0]._id!);
+      const firstOffice = offices[0]._id!;
+      setSelectedOffice(firstOffice);
+      // Update URL with default office
+      updateURL(pettyCashFilters, 'pettycash', pettyCashPage, searchTerm, firstOffice);
     }
   }, [offices, selectedOffice, activeTab]);
 
-  // Fetch data based on active tab
+  // Fetch offices
+  useEffect(() => {
+    if (offices.length === 0) {
+      dispatch(fetchOffices() as any);
+    }
+  }, [dispatch, offices.length]);
+
+  // Fetch data based on active tab and URL parameters
   useEffect(() => {
     if (activeTab === 'vendor') {
       fetchVendorExpenses();
@@ -131,15 +207,46 @@ const CombinedExpensesScreen: React.FC = () => {
     vendorPage,
     pettyCashFilters,
     pettyCashPage,
-    selectedOffice // Add selectedOffice dependency for petty cash
+    selectedOffice
   ]);
 
-  // Fetch offices
-  useEffect(() => {
-    if (offices.length === 0) {
-      dispatch(fetchOffices() as any);
+  // Update URL when filters change
+  const updateURL = (filters: any, tab: string, page: number, search: string, office?: string) => {
+    const searchParams = new URLSearchParams();
+    
+    // Always set tab
+    searchParams.set('tab', tab);
+    
+    // Set search term if exists
+    if (search) {
+      searchParams.set('search', search);
     }
-  }, [dispatch, offices.length]);
+    
+    // Set page
+    searchParams.set('page', page.toString());
+
+    // Set filters based on active tab
+    if (tab === 'vendor') {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== 'all' && value !== '') {
+          searchParams.set(key, value as string);
+        }
+      });
+    } else if (tab === 'pettycash') {
+      // For petty cash, set office separately
+      if (office) {
+        searchParams.set('office', office);
+      }
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== 'all' && value !== '') {
+          searchParams.set(key, value as string);
+        }
+      });
+    }
+
+    navigate(`?${searchParams.toString()}`, { replace: true });
+  };
 
   const fetchVendorExpenses = () => {
     const params: any = {
@@ -161,8 +268,8 @@ const CombinedExpensesScreen: React.FC = () => {
       q: searchTerm,
       page: pettyCashPage,
       limit,
-      month: pettyCashFilters.month,
-      office: selectedOffice || undefined, // Use selectedOffice instead of pettyCashFilters.office
+      month: formatMonthForAPI(pettyCashFilters.month),
+      office: selectedOffice || undefined,
     };
     dispatch(fetchPettyCash(params) as any);
   };
@@ -173,9 +280,17 @@ const CombinedExpensesScreen: React.FC = () => {
     setActiveTab(tab);
     setSearchTerm('');
     setShowFilters(false);
+    
     // Reset to first page when switching tabs
     setVendorPage(1);
     setPettyCashPage(1);
+    
+    // Update URL with new tab and reset filters
+    if (tab === 'vendor') {
+      updateURL(defaultVendorFilters, 'vendor', 1, '');
+    } else {
+      updateURL(defaultPettyCashFilters, 'pettycash', 1, '', selectedOffice);
+    }
   };
 
   const handleCreateNew = () => {
@@ -185,30 +300,61 @@ const CombinedExpensesScreen: React.FC = () => {
       navigate('/pettycash/create-expense');
     }
   };
+
   const handleAddIncome = () => {
-    if (activeTab === 'vendor') {
-      navigate('/dashboard/vendor/create-expense');
-    } else {
-      navigate('/pettycash/create-expense');
+    if (activeTab === 'pettycash') {
+      setIsEditMode(false);
+      setSelectedExpense(null);
+      setTransactionType('income');
+      setCreateEditModalOpen(true);
     }
   };
+
   const handleAddExpense = () => {
-    if (activeTab === 'vendor') {
-      navigate('/dashboard/vendor/create-expense');
-    } else {
-      navigate('/pettycash/create-expense');
+    if (activeTab === 'pettycash') {
+      setIsEditMode(false);
+      setSelectedExpense(null);
+      setTransactionType('expense');
+      setCreateEditModalOpen(true);
     }
   };
-    const handleNavigateBack = () => {  
+
+  const handleNavigateBack = () => {  
     navigate(-1);
   };
 
+  // Vendor filter change handler
+  const handleVendorFilterChange = (newFilters: VendorFilters) => {
+    setVendorFilters(newFilters);
+    setVendorPage(1);
+    updateURL(newFilters, 'vendor', 1, searchTerm);
+  };
+
+  // Petty cash filter change handler
+  const handlePettyCashFilterChange = (newFilters: PettyCashFilters) => {
+    setPettyCashFilters(newFilters);
+    setPettyCashPage(1);
+    updateURL(newFilters, 'pettycash', 1, searchTerm, selectedOffice);
+  };
+
+  // Office change handler for petty cash
+  const handleOfficeChange = (officeId: string) => {
+    setSelectedOffice(officeId);
+    setPettyCashPage(1);
+    updateURL(pettyCashFilters, 'pettycash', 1, searchTerm, officeId);
+  };
+
+  // Search handler
   const handleSearch = (value: string) => {
     setSearchTerm(value);
+    const newPage = 1;
+    
     if (activeTab === 'vendor') {
-      setVendorPage(1);
+      setVendorPage(newPage);
+      updateURL(vendorFilters, 'vendor', newPage, value);
     } else {
-      setPettyCashPage(1);
+      setPettyCashPage(newPage);
+      updateURL(pettyCashFilters, 'pettycash', newPage, value, selectedOffice);
     }
   };
 
@@ -216,40 +362,31 @@ const CombinedExpensesScreen: React.FC = () => {
   const handleMonthChange = (month: string) => {
     setPettyCashFilters(prev => ({ ...prev, month }));
     setPettyCashPage(1);
+    updateURL({ ...pettyCashFilters, month }, 'pettycash', 1, searchTerm, selectedOffice);
   };
 
-  const handleOfficeChange = (officeId: string) => {
-    setSelectedOffice(officeId);
-    setPettyCashPage(1);
-  };
-
+  // Page change handlers
   const handleVendorPageChange = (newPage: number) => {
     setVendorPage(newPage);
+    updateURL(vendorFilters, 'vendor', newPage, searchTerm);
   };
 
   const handlePettyCashPageChange = (newPage: number) => {
     setPettyCashPage(newPage);
+    updateURL(pettyCashFilters, 'pettycash', newPage, searchTerm, selectedOffice);
   };
 
+  // Reset filter handlers
   const handleResetVendorFilters = () => {
-    setVendorFilters({
-      office: '',
-      vendor: '',
-      status: 'all',
-      category: 'all',
-      dateFrom: '',
-      dateTo: ''
-    });
+    setVendorFilters(defaultVendorFilters);
+    setVendorPage(1);
+    updateURL(defaultVendorFilters, 'vendor', 1, searchTerm);
   };
 
   const handleResetPettyCashFilters = () => {
-    setPettyCashFilters({
-      month: getCurrentMonth(),
-      transactionType: 'all',
-      dateFrom: '',
-      dateTo: ''
-    });
+    setPettyCashFilters(defaultPettyCashFilters);
     setPettyCashPage(1);
+    updateURL(defaultPettyCashFilters, 'pettycash', 1, searchTerm, selectedOffice);
   };
 
   const handleViewExpense = (expense: any) => {
@@ -259,10 +396,16 @@ const CombinedExpensesScreen: React.FC = () => {
 
   const handleEditExpense = (expense: any) => {
     if (activeTab === 'vendor') {
-      navigate(`/vendor/create-expense?id=${expense._id}`, { state: { expense } });
+      navigate(`/dashboard/vendor/create-expense?id=${expense._id}`, { state: { expense } });
     } else {
       if (expense.transactionType === 'expense') {
-        navigate(`/pettycash/create-expense?id=${expense._id}`);
+        navigate(`/dashboard/pettycash/create-expense?id=${expense._id}`);
+      } else if (expense.transactionType === 'income') {
+        // Open the modal for editing income
+        setIsEditMode(true);
+        setSelectedExpense(expense);
+        setTransactionType('income');
+        setCreateEditModalOpen(true);
       }
     }
   };
@@ -280,7 +423,6 @@ const CombinedExpensesScreen: React.FC = () => {
         await dispatch(removeExpense(selectedExpense._id) as any);
         fetchVendorExpenses();
       } else {
-        // deletePettyCashExpenseById returns an async thunk - use typed dispatch or cast to any then unwrap
         await (dispatch(deletePettyCashExpenseById(selectedExpense._id) as any)).unwrap?.();
         fetchPettyCashData();
       }
@@ -304,6 +446,14 @@ const CombinedExpensesScreen: React.FC = () => {
     setCurrentImageTitle('');
   };
 
+  // Handler for CreateEditModal close
+  const handleCreateEditModalClose = () => {
+    setCreateEditModalOpen(false);
+    setSelectedExpense(null);
+    setIsEditMode(false);
+    setTransactionType('income');
+  };
+
   // Helper functions
   const getOfficeName = (office: string | { _id?: string; name?: string } | undefined): string => {
     if (!office) return 'N/A';
@@ -319,7 +469,6 @@ const CombinedExpensesScreen: React.FC = () => {
 
     return 'N/A';
   };
-
 
   // Calculate totals
   const vendorTotalPages = Math.ceil(vendorTotal / limit);
@@ -341,16 +490,16 @@ const CombinedExpensesScreen: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Combined Header */}
       <CombinedHeader
-  activeTab={activeTab}
-  tabs={tabs}
-  viewMode={viewMode}
-  onTabChange={handleTabChange}
-  onViewModeChange={setViewMode}
-  onCreateNew={handleCreateNew}
-  onNavigateBack={handleNavigateBack}
-  onAddIncome={handleAddIncome} // For petty cash
-  onAddExpense={handleAddExpense} // For petty cash
-/>
+        activeTab={activeTab}
+        tabs={tabs}
+        viewMode={viewMode}
+        onTabChange={handleTabChange}
+        onViewModeChange={setViewMode}
+        onCreateNew={handleCreateNew}
+        onNavigateBack={handleNavigateBack}
+        onAddIncome={handleAddIncome} 
+        onAddExpense={handleAddExpense} 
+      />
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
@@ -383,8 +532,8 @@ const CombinedExpensesScreen: React.FC = () => {
               activeTab={activeTab}
               vendorFilters={vendorFilters}
               pettyCashFilters={pettyCashFilters}
-              onVendorFilterChange={setVendorFilters}
-              onPettyCashFilterChange={setPettyCashFilters}
+              onVendorFilterChange={handleVendorFilterChange}
+              onPettyCashFilterChange={handlePettyCashFilterChange}
               onResetVendorFilters={handleResetVendorFilters}
               onResetPettyCashFilters={handleResetPettyCashFilters}
               offices={offices}
@@ -438,6 +587,19 @@ const CombinedExpensesScreen: React.FC = () => {
             onImageClick={handleImageClick}
             activeTab={activeTab}
           />
+
+          {/* Create/Edit Modal for Petty Cash Income */}
+          {activeTab === 'pettycash' && (
+            <CreateEditModal
+              open={createEditModalOpen}
+              editMode={isEditMode}
+              selectedItem={selectedExpense}
+              offices={offices}
+              selectedOffice={selectedOffice}
+              onClose={handleCreateEditModalClose}
+              transactionType={transactionType}
+            />
+          )}
 
           <ImageModal
             isOpen={imageModalOpen}
