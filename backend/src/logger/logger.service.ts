@@ -1,11 +1,28 @@
 import { Injectable, LoggerService } from '@nestjs/common';
 import * as winston from 'winston';
+import { mkdirSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 @Injectable()
 export class AppLogger implements LoggerService {
-  private logger: winston.Logger;
+  private readonly logger: winston.Logger;
 
   constructor() {
+    // Ensure logs directory exists
+    const logsDir = join(process.cwd(), 'logs');
+    if (!existsSync(logsDir)) {
+      try {
+        mkdirSync(logsDir, { recursive: true });
+      } catch (error) {
+        console.error('Failed to create logs directory:', error);
+        // Fall back to console-only logging if file system is not writable
+        this.logger = winston.createLogger({
+          transports: [new winston.transports.Console()],
+        });
+        return;
+      }
+    }
+
     this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.combine(
@@ -40,5 +57,4 @@ export class AppLogger implements LoggerService {
     this.logger.debug(message, meta);
   }
 }
-export { LoggerService };
-
+export { LoggerService } from '@nestjs/common';
