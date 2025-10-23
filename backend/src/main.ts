@@ -31,9 +31,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // --- CORS ---
-  const clientUrl = configService.get<string>('CLIENT_URL') || 'http://localhost:5173';
+  // const clientUrl = configService.get<string>('CLIENT_URL') || 'http://localhost:5173';
   app.enableCors({
-    origin: [clientUrl, 'http://localhost:5173', 'http://localhost:3000'],
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
     exposedHeaders: 'Content-Disposition',
