@@ -5,7 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 
 import { PettycashService } from './pettycash.service';
 import { PettycashController } from './pettycash.controller';
-import { CloudinaryService } from 'src/upload/cloudinary.service';
+import { CloudinaryService } from '../upload/cloudinary.service';
 
 import { PettyCashTransaction, PettyCashTransactionSchema } from './schemas/pettycash.schema';
 import { PettyCashSummary, PettyCashSummarySchema } from './schemas/pettycashsummary.schema';

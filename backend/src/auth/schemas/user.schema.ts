@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Office } from 'src/office/schemas/office.schema';
+import { Office } from '../../office/schemas/office.schema';
 
 @Schema({ timestamps: true })
 export class User extends Document {

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, ClientSession } from 'mongoose';
-import { CloudinaryService } from 'src/upload/cloudinary.service';
+import { CloudinaryService } from '../upload/cloudinary.service';
 import { CreatePettycashDto } from './dto/create-pettycash.dto';
 import { UpdatePettycashDto } from './dto/update-pettycash.dto';
 import { QueryPettycashDto } from './dto/query-pettycash.dto';
