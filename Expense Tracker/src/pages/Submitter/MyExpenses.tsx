@@ -260,7 +260,6 @@ const MyExpenses: React.FC = () => {
               <button
                 onClick={() => {
                   const firstSeg = location.pathname.split("/")[1] || "submitter";
-                  console.log("Frst Segemnt" ,firstSeg);
                   navigate(`/${firstSeg}/vendor/create-expense`);
                 }}
                 className="inline-flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-auto md:h-auto md:gap-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-full md:rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm active:scale-95 touch-manipulation ml-1"

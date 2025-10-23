@@ -16,7 +16,6 @@ const baseSteps = [
 const ExpenseStatusTracker: React.FC<ExpenseStatusTrackerProps> = ({
   currentStatus,
 }) => {
-  console.log("Rendering ExpenseStatusTracker with status:", currentStatus);
 
   // Normalize status
   const lowered = (currentStatus || "").toLowerCase();

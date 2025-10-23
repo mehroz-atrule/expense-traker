@@ -35,7 +35,6 @@ export class UsersService {
       }
     }
     const checkOfficeId = await this.officeModel.findById(createUserDto.officeId);
-    console.log(checkOfficeId);
     if (!checkOfficeId) {
       throw new NotFoundException('Office not found');
     }
@@ -88,7 +87,6 @@ export class UsersService {
     message: string;
     user: Partial<User>;
   }> {
-    console.log(id);
     const user = await this.userModel.findById(id);
     if (!user) {
       throw new InternalServerErrorException('Could not retrieve user');

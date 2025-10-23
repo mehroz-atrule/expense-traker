@@ -22,7 +22,6 @@ export class AuthRoleGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
     const authHeader = req.headers.authorization;
-    console.log('Auth Header:', authHeader); // Debug log
     if (!authHeader?.startsWith('Bearer '))
       throw new UnauthorizedException('Missing or invalid token');
 
@@ -34,7 +33,6 @@ export class AuthRoleGuard implements CanActivate {
       payload = this.jwtService.verify(token, {
         secret: this.config.get('JWT_SECRET'),
       });
-      console.log('JWT Payload:', payload); // Debug log
       req.user = payload; // attach user
     } catch (err) {
       throw new UnauthorizedException('Invalid or expired token');
@@ -45,8 +43,6 @@ export class AuthRoleGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    console.log('JWT Payload:', req.user);
-    console.log('Required Roles:', requiredRoles);
 
     if (!requiredRoles || requiredRoles.length === 0) return true;
 

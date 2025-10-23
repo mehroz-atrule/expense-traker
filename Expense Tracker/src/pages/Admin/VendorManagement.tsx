@@ -168,7 +168,6 @@ const VendorManagement: React.FC = () => {
 
     // If invalid, stop here (no API call)
     if (!isFormValid()) return;
-    console.log('Saving vendor with data:', formData);
     if (editModalOpen && selectedVendor) {
       dispatch(updateVendor({ id: selectedVendor._id, payload: (formData) }));
       setEditModalOpen(false);

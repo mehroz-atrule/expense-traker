@@ -35,7 +35,6 @@ const getFileNameFromUrl = (url: string): string => {
 };
 
 const getMonthFromDate = (dateString: string): string => {
-  console.log("Date String for Month Extraction:", dateString);
   if (!dateString) return 'N/A';
 
   try {

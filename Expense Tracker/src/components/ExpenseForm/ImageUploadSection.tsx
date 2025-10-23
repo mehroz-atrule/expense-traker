@@ -34,8 +34,6 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 }) => {
 
   const [pdfStates, setPdfStates] = React.useState<{ [key: string]: boolean }>({});
-  console.log("CurrentStatusKey:", currentStatusKey);
-  console.log("isEditing:", isEditing);
 
   // Move the PDF checking logic to component-level useEffect
   React.useEffect(() => {
@@ -84,7 +82,6 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       ? (!isViewMode || isEditing)
       : isEnabled;
 
-    console.log(`isPdf for ${type}:`, currentPreview, pdfStates[type]);
 
     const handleClick = (e: React.MouseEvent) => {
       e.preventDefault();

@@ -11,7 +11,6 @@ export interface PettycashQueryParams {
 }
 
 export const getPettyCasheExpenses = async (params?: PettycashQueryParams) => {
-  console.log("API Call with params:", params);
   const res = await axios.get(`${API_BASE_URL}/pettycash`, { params });
   return res.data;
 };

@@ -92,7 +92,6 @@ export class AuthService {
       sub: user._id,
       role: user.role
     };
-    console.log('JWT Payload for token generation:', payload);
 
     const accessToken = this.jwtService.sign(payload,
       {

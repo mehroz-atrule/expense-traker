@@ -21,10 +21,8 @@ const CreatePettycashExpense: React.FC = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
 
-  console.log("Received ID:", id);
 
   const isEditMode = Boolean(id);
-  console.log("Is Edit Mode:", isEditMode);
 
   // Function to get current month in "MM-YYYY" format
   const getCurrentMonthYear = () => {
@@ -122,8 +120,6 @@ const CreatePettycashExpense: React.FC = () => {
         const response = await dispatch(getPettyCashExpense(id) as any).unwrap();
         const expenseData = response?.pettycash || response?.txn;
 
-        console.log("Full API response:", response);
-        console.log("Expense data:", expenseData);
 
         if (!expenseData) throw new Error("No petty cash expense data found");
 
@@ -156,7 +152,6 @@ const CreatePettycashExpense: React.FC = () => {
     };
 
     if (isEditMode && id) {
-      console.log("Fetching expense data for ID:", id);
       fetchExpenseData();
     }
   }, [id, isEditMode, dispatch, navigate]);

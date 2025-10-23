@@ -1,6 +1,6 @@
 "use client";
 
-import React, {  useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import React, { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { ChevronLeft, FileText, Edit3, MoreVertical, Trash2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ExpenseStatusTracker from "../../components/Status Tracker/StatusTracker";
@@ -122,7 +122,6 @@ const CreateExpenseView: React.FC = () => {
   const queryParams = new URLSearchParams(location.search);
 
   const id = queryParams.get("id");
-  const mode = queryParams.get("mode");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
@@ -130,12 +129,10 @@ const CreateExpenseView: React.FC = () => {
   //   const viewExpense = useAppSelector((s: RootState) =>
   //   s.submitter.expenses.find(e => e._id === id)
   // );
-  const {  expenseDetails: viewExpense } = useAppSelector(
+  const { expenseDetails: viewExpense } = useAppSelector(
     (state: RootState) => state.submitter
   );
-  console.log({ viewExpense });
 
-  console.log({ id, mode });
 
   useEffect(() => {
     if (id) {
@@ -282,7 +279,6 @@ const CreateExpenseView: React.FC = () => {
     if (!file) return;
 
     const url = URL.createObjectURL(file);
-    console.log("Generated URL:", url);
 
     setFormData(prev => ({
       ...prev,
@@ -319,7 +315,7 @@ const CreateExpenseView: React.FC = () => {
       const amountNum = parseFloat(String(updated.amount || "0")) || 0;
       const whtNum = parseFloat(String(updated.WHT || "0")) || 0;
 
-      const total = amountNum -  whtNum;
+      const total = amountNum - whtNum;
       updated.amountAfterTax = Number(total.toFixed(2));
 
       return updated;
@@ -382,13 +378,11 @@ const CreateExpenseView: React.FC = () => {
       if (viewExpense?._id) {
         const result = await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
         if (result) {
-          console.log("Expense updated successfully:", result);
           navigate("/admin/vendor/my-expenses");
         }
       } else {
         const result = await dispatch(createExpense(dataToSend)).unwrap();
         if (result) {
-          console.log("Expense created successfully:", result);
           navigate("/admin/vendor/my-expenses");
         }
       }

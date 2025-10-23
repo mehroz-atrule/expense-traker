@@ -47,7 +47,6 @@ export class DashboardService {
       }
       const startOfNextMonth = new Date(startOfMonth);
       startOfNextMonth.setMonth(startOfNextMonth.getMonth() + 1);
-      console.log('startOfNextMonth :', startOfNextMonth);
 
       // === 2️⃣ Office filter ===
       const officeFilter = officeId ? { office: new Types.ObjectId(officeId) } : {};
@@ -135,7 +134,6 @@ export class DashboardService {
       }
       const formattedMonth = formatMonthYear(startOfMonth);
       const formattedNextMonth = formatMonthYear(startOfNextMonth);
-      console.log('formattedMonth :', formattedMonth);
       // === 5️⃣ Petty Cash Aggregations (STRICT by month + office) ===
       const pettyCashMatch = {
         transactionType: 'expense',

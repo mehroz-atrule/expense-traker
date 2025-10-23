@@ -35,7 +35,6 @@ const PettycashExpense: React.FC = () => {
     (state: RootState) => state.pettycash
   );
 
-  console.log("summary data:", summary);
   const { offices, loading: officesLoading } = useSelector(
     (state: RootState) => state.admin
   );

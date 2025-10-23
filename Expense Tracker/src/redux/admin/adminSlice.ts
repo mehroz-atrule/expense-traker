@@ -7,22 +7,22 @@ interface AdminState {
   users: User[];
   loading: boolean;
   error?: string | null;
-    dashboardStats: any; // or define a type if known
- 
+  dashboardStats: any; // or define a type if known
+
 }
 
-const initialState: AdminState = { offices: [], users: [], loading: false, error: null ,   dashboardStats: null,
- };
+const initialState: AdminState = {
+  offices: [], users: [], loading: false, error: null, dashboardStats: null,
+};
 
 export const fetchOffices = createAsyncThunk('admin/fetchOffices', async () => {
   const res = await api.listOffices();
-  console.log('Fetched offices:', res);
   return res as Office[];
 });
 
 export const addOffice = createAsyncThunk('admin/addOffice', async (payload: { name: string }, { rejectWithValue }) => {
   try {
-  const res = await api.createOffice(payload as import('../../types/admin').CreateOfficePayload);
+    const res = await api.createOffice(payload as import('../../types/admin').CreateOfficePayload);
     return res as Office;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
@@ -31,7 +31,7 @@ export const addOffice = createAsyncThunk('admin/addOffice', async (payload: { n
 
 export const updateOffice = createAsyncThunk('admin/updateOffice', async ({ id, payload }: { id: string; payload: { name: string } }, { rejectWithValue }) => {
   try {
-  const res = await api.updateOffice(id, payload as import('../../types/admin').UpdateOfficePayload);
+    const res = await api.updateOffice(id, payload as import('../../types/admin').UpdateOfficePayload);
     return res as Office;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
@@ -58,7 +58,7 @@ export const fetchUsers = createAsyncThunk('admin/fetchUsers', async (_, { rejec
 
 export const addUser = createAsyncThunk('admin/addUser', async (payload: { username: string; email: string; password?: string; role?: string; officeId?: string }, { rejectWithValue }) => {
   try {
-  const res = await api.createUser(payload as import('../../types/admin').CreateUserPayload);
+    const res = await api.createUser(payload as import('../../types/admin').CreateUserPayload);
     return res as User;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
@@ -67,7 +67,7 @@ export const addUser = createAsyncThunk('admin/addUser', async (payload: { usern
 
 export const updateUser = createAsyncThunk('admin/updateUser', async ({ id, payload }: { id: string; payload: { username?: string; email?: string; role?: string; officeId?: string } }, { rejectWithValue }) => {
   try {
-  const res = await api.updateUser(id, payload as import('../../types/admin').UpdateUserPayload);
+    const res = await api.updateUser(id, payload as import('../../types/admin').UpdateUserPayload);
     return res as User;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
@@ -89,7 +89,7 @@ export const getDashboardStats = createAsyncThunk('admin/fetchDashboardStats', a
     return res as any;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
-  }   
+  }
 });
 const adminSlice = createSlice({
   name: 'admin',
@@ -107,9 +107,9 @@ const adminSlice = createSlice({
 
       .addCase(updateOffice.pending, (s) => { s.loading = true; s.error = null })
       .addCase(updateOffice.fulfilled, (s, a: any) => {
-        s.loading = false;                            
+        s.loading = false;
         const payload = a.payload || {};
-        const arg = a.meta?.arg || {};        
+        const arg = a.meta?.arg || {};
         const updatedId = payload._id || arg.id;
         const patch = Object.keys(payload).length ? payload : { _id: updatedId, ...arg.payload };
         s.offices = s.offices.map((o: any) => (o._id === updatedId ? { ...o, ...patch } : o));
@@ -150,17 +150,17 @@ const adminSlice = createSlice({
 
 
       .addCase(getDashboardStats.pending, (s) => {
-  s.loading = true;
-  s.error = null;
-})
-.addCase(getDashboardStats.fulfilled, (s, a) => {
-  s.loading = false;
-  s.dashboardStats = a.payload; // Save stats in Redux
-})
-.addCase(getDashboardStats.rejected, (s, a) => {
-  s.loading = false;
-  s.error = a.error.message;
-})
+        s.loading = true;
+        s.error = null;
+      })
+      .addCase(getDashboardStats.fulfilled, (s, a) => {
+        s.loading = false;
+        s.dashboardStats = a.payload; // Save stats in Redux
+      })
+      .addCase(getDashboardStats.rejected, (s, a) => {
+        s.loading = false;
+        s.error = a.error.message;
+      })
 
   }
 });

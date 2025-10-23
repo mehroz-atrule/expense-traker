@@ -86,7 +86,6 @@ const UserManagement: React.FC = () => {
   }
 
   const confirmDelete = () => {
-    console.log('Deleting user with id:', pendingDeleteId)
     if (pendingDeleteId) {
       dispatch(removeUser(pendingDeleteId))
         .unwrap()

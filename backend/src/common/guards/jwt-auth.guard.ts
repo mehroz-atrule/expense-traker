@@ -12,7 +12,6 @@ export class JwtAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest();
     const authHeader = req.headers.authorization;
-    console.log(req.headers);
     // ✅ Allow public routes like signup/login
     if (req.path.includes('/auth/signup') || req.path.includes('/auth/login')) {
       return true;
