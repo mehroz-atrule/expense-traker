@@ -20,17 +20,20 @@ export class DashboardService {
     private readonly vendorModel: Model<Vendor>,
     @InjectModel(PettyCashTransaction.name)
     private readonly txnModel: Model<PettyCashTransactionDocument>,
-  ) {}
+  ) { }
 
   async getStats(officeId?: string, month?: string) {
     try {
-      // === 1️⃣ Parse month (supports "10-2025" or "October-2025") ===
+      // === 1️⃣ Parse month (supports "11-2025" or "October-2025") ===
       let startOfMonth: Date;
+
       if (month) {
         if (/^\d{2}-\d{4}$/.test(month)) {
+          // Format: "11-2025"
           const [m, y] = month.split('-');
           startOfMonth = new Date(Number(y), Number(m) - 1, 1);
         } else if (/^[A-Za-z]+-\d{4}$/.test(month)) {
+          // Format: "October-2025"
           const [name, y] = month.split('-');
           const m = new Date(`${name} 1, ${y}`).getMonth();
           startOfMonth = new Date(Number(y), m, 1);
@@ -42,14 +45,14 @@ export class DashboardService {
         startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         month = `${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
       }
-
       const startOfNextMonth = new Date(startOfMonth);
       startOfNextMonth.setMonth(startOfNextMonth.getMonth() + 1);
+      console.log('startOfNextMonth :', startOfNextMonth);
 
       // === 2️⃣ Office filter ===
       const officeFilter = officeId ? { office: new Types.ObjectId(officeId) } : {};
 
-      // === 3️⃣ Status list ===
+      // === 3️⃣ Valid status list ===
       const statusList = [
         'WaitingForApproval',
         'Approved',
@@ -59,7 +62,7 @@ export class DashboardService {
         'Rejected',
       ];
 
-      // === 4️⃣ Expense aggregation (with office name populate) ===
+      // === 4️⃣ Expense Aggregation ===
       const expenseAgg = this.expenseModel.aggregate([
         { $match: officeFilter },
         {
@@ -93,10 +96,9 @@ export class DashboardService {
                   total: { $sum: '$amount' },
                 },
               },
-              // ✅ Populate office name from "offices" collection
               {
                 $lookup: {
-                  from: 'offices', // collection name in MongoDB
+                  from: 'offices',
                   localField: '_id',
                   foreignField: '_id',
                   as: 'officeData',
@@ -125,23 +127,31 @@ export class DashboardService {
           },
         },
       ]);
+      function formatMonthYear(dateStr: string | Date): string {
+        const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
+        const year = date.getFullYear();
+        return `${month}-${year}`;
+      }
+      const formattedMonth = formatMonthYear(startOfMonth);
+      const formattedNextMonth = formatMonthYear(startOfNextMonth);
+      console.log('formattedMonth :', formattedMonth);
+      // === 5️⃣ Petty Cash Aggregations (STRICT by month + office) ===
+      const pettyCashMatch = {
+        transactionType: 'expense',
+        month: { $gte: formattedMonth, $lt: formattedNextMonth },
+        ...(officeId ? { office: new Types.ObjectId(officeId) } : {}),
+      };
 
-      // === 5️⃣ Petty Cash (strict month + office filter, with office name) ===
+      // 👉 Office-wise petty cash totals for current month
       const pettyCashAgg = this.txnModel.aggregate([
-        {
-          $match: {
-            transactionType: 'expense',
-            dateOfPayment: { $gte: startOfMonth, $lt: startOfNextMonth },
-            ...officeFilter,
-          },
-        },
+        { $match: pettyCashMatch },
         {
           $group: {
             _id: '$office',
             totalExpense: { $sum: '$amount' },
           },
         },
-        // ✅ Lookup office name
         {
           $lookup: {
             from: 'offices',
@@ -164,15 +174,9 @@ export class DashboardService {
         },
       ]);
 
-      // === 6️⃣ Total petty cash (month filtered) ===
+      // 👉 Total petty cash expense for current month
       const pettyCashTotalAgg = this.txnModel.aggregate([
-        {
-          $match: {
-            transactionType: 'expense',
-            dateOfPayment: { $gte: startOfMonth, $lt: startOfNextMonth },
-            ...officeFilter,
-          },
-        },
+        { $match: pettyCashMatch },
         {
           $group: {
             _id: null,
@@ -181,10 +185,10 @@ export class DashboardService {
         },
       ]);
 
-      // === 7️⃣ Vendor Count ===
+      // === 6️⃣ Vendor Count ===
       const vendorCountPromise = this.vendorModel.countDocuments({}).exec();
 
-      // === 8️⃣ Run all in parallel ===
+      // === 7️⃣ Execute all in parallel ===
       const [expenseResult, pettyCashTotals, officeWisePettyCash, vendorCount] =
         await Promise.all([
           expenseAgg.exec(),
@@ -193,13 +197,14 @@ export class DashboardService {
           vendorCountPromise,
         ]);
 
+      // === 8️⃣ Process results ===
       const expenseFacet = expenseResult?.[0] ?? {};
       const totals = expenseFacet.totals?.[0] ?? { totalAmount: 0, totalCount: 0 };
       const currentMonthObj = expenseFacet.currentMonth?.[0] ?? { currentSum: 0 };
       const officeWiseExpenses = expenseFacet.officeWise ?? [];
       const statusCountsRaw = expenseFacet.statusCounts ?? [];
 
-      // normalize status counts
+      // Normalize status counts
       const countsByStatus: Record<string, number> = {};
       for (const s of statusList) countsByStatus[s] = 0;
       for (const row of statusCountsRaw) {
