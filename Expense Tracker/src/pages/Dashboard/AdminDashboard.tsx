@@ -15,7 +15,8 @@ import {
   Clock,
   XCircle,
   DollarSignIcon,
-  Store
+  Store,
+  Banknote
 } from 'lucide-react'
 import type { RootState } from '../../app/store'
 import { getDashboardStats } from '../../redux/admin/adminSlice'
@@ -117,7 +118,7 @@ const AdminDashboard: React.FC = () => {
     Approved: { color: 'bg-green-500', icon: CheckCircle, label: 'Approved' },
     ReviewedByFinance: { color: 'bg-blue-500', icon: FileText, label: 'Reviewed By Finance' },
     ReadyForPayment: { color: 'bg-purple-500', icon: CreditCard, label: 'Ready For Payment' },
-    Paid: { color: 'bg-green-600', icon: DollarSignIcon, label: 'Paid' },
+    Paid: { color: 'bg-green-600', icon: Banknote, label: 'Paid' },
     Rejected: { color: 'bg-red-500', icon: XCircle, label: 'Rejected' }
   }
 
@@ -130,19 +131,19 @@ const AdminDashboard: React.FC = () => {
     },
     {
       label: 'Manage Users',
-      action: () => navigate('/admin/users'),
+      action: () => navigate('/dashboard/settings/users'),
       icon: Users,
       color: 'bg-green-500 hover:bg-green-600'
     },
     {
       label: 'Manage Offices',
-      action: () => navigate('/admin/offices'),
+      action: () => navigate('/dashboard/settings/offices'),
       icon: Settings,
       color: 'bg-orange-500 hover:bg-orange-600'
     },
     {
       label: 'Vendor Management',
-      action: () => navigate('/admin/vendor/manage'),
+      action: () => navigate('/dashboard/vendor/manage'),
       icon: Building2,
       color: 'bg-purple-500 hover:bg-purple-600'
     },
@@ -151,7 +152,7 @@ const AdminDashboard: React.FC = () => {
   // Reusable Stat Card Component
   const StatCard = ({ title, value, icon: Icon, iconColor, bgColor, onClick }: any) => (
     <div
-      className={`bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''}`}
+      className={`bg-white rounded-xl p-6 transition-shadow duration-200 ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between ">
@@ -178,7 +179,7 @@ const AdminDashboard: React.FC = () => {
     const Icon = config.icon
 
     return (
-      <div className="flex items-center justify-between w-full space-x-2 bg-white rounded-lg px-4 py-3 shadow-sm">
+      <div className="flex items-center justify-between w-full space-x-2 bg-white rounded-lg px-4 py-3 shadow-sm cursor hover:shadow-md" onClick={() => navigate("/dashboard/expenses?tab=vendor&page=1&status=" + status)}>
 
         <div className='flex items-center gap-2'>
           <div className={`p-2 rounded-lg ${config.color}`}>
@@ -223,7 +224,7 @@ const AdminDashboard: React.FC = () => {
         {/* Financial Overview - Top Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Vendor Expenses Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0">
+          <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0 cursor-pointer hover:shadow-md" onClick={() => navigate("/dashboard/expenses?tab=vendor&page=1")}>
             <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Vendor Expenses</h2>
             <StatCard
               title="Total Vendor Expenses"
@@ -235,7 +236,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Office Expenses Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0">
+          <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0 cursor-pointer hover:shadow-md" onClick={() => navigate("/dashboard/expenses?tab=pettycash&page=1")}>
             <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Office Expenses</h2>
             <StatCard
               title="Total PettyCash Expense"
@@ -252,7 +253,7 @@ const AdminDashboard: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Vendor Expenses by Office</h2>
             <div className="space-y-4">
               {dashboardStats?.officeWiseExpenses?.map((office: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:shadow-md" onClick={() => navigate(`/dashboard/expenses?tab=vendor&page=1&office=${office.office?._id}`)}>
                   <div className="flex items-center space-x-3">
                     <Building2 className="w-5 h-5 text-gray-400" />
                     <span className="font-medium text-gray-700">{office.office?.name || 'Unknown Office'}</span>
@@ -267,10 +268,10 @@ const AdminDashboard: React.FC = () => {
 
           {/* Petty Cash by Office */}
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Petty Cash by Office</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Petty Cash Expenses by Office</h2>
             <div className="space-y-4">
               {dashboardStats?.officeWisePettyCash?.map((pettyCash: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:shadow-md" onClick={() => navigate(`/dashboard/expenses?tab=pettyCash&page=1&office=${pettyCash.office?._id}&month=${new Date().getMonth() + 1}-${new Date().getFullYear()}`)}>
                   <div className="flex items-center space-x-3">
                     <Building2 className="w-5 h-5 text-gray-400" />
                     <span className="font-medium text-gray-700">{pettyCash.office?.name || 'Unknown Office'}</span>

@@ -41,13 +41,13 @@ const Navbar: React.FC<NavbarProps> = ({
         ))}
       </div>
 
-    
 
-      <div className="flex items-center gap-4">
+
+      {/* <div className="flex items-center gap-4">
         <span className="sm:inline bg-gray-900 h-8 w-8 rounded-full text-white text-center text-sm/7 font-medium">
           ZK
         </span>
-      </div>
+      </div> */}
     </nav>
   );
 };

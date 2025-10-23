@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
-import { 
-  Home, 
-  FileText, 
-  ClipboardList, 
-  CreditCard, 
-  Users, 
-  Settings, 
+import {
+  Home,
+  FileText,
+  ClipboardList,
+  CreditCard,
+  Users,
+  Settings,
   Building2,
-  DollarSign 
+  DollarSign,
+  BanknoteArrowDown
 } from "lucide-react";
 
 export interface RouteItem {
@@ -52,7 +53,7 @@ const routesConfig = {
       path: "expenses",
       element: <CombinedExpensesScreen />,
       label: "Expenses",
-      icon: <DollarSign size={18} />,
+      icon: <BanknoteArrowDown size={18} />,
       tooltip: "All Expenses",
       navbar: {
         title: "Expenses"

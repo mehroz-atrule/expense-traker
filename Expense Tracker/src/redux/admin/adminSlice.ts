@@ -86,6 +86,7 @@ export const removeUser = createAsyncThunk('admin/removeUser', async (id: string
 export const getDashboardStats = createAsyncThunk('admin/fetchDashboardStats', async (_, { rejectWithValue }) => {
   try {
     const res = await api.fetchDashboardStats();
+    console.log(res)
     return res as any;
   } catch (err: any) {
     return rejectWithValue(err?.response?.data ?? err);
