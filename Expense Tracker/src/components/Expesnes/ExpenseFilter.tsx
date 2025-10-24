@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import SelectDropdown from '../../components/Forms/SelectionDropDown';
-import Input from '../../components/Forms/Input';
+import EnhancedInput from '../../components/Forms/EnhancedInput';
 
 interface DynamicFiltersProps {
   showFilters: boolean;
@@ -33,6 +33,16 @@ const DynamicFilters: React.FC<DynamicFiltersProps> = ({
     label: office.name
   }));
 
+  const statusOptions = [
+    { value: "all", label: "All Statuses" },
+    { value: "WaitingForApproval", label: "Waiting For Approval" },
+    { value: "Approved", label: "Approved" },
+    { value: "ReviewedByFinance", label: "Reviewed By Finance" },
+    { value: "ReadyForPayment", label: "Ready For Payment" },
+    { value: "Paid", label: "Paid" },
+    { value: "Rejected", label: "Rejected" }
+  ];
+
   const categoryOptions = [
     { value: "all", label: "All Categories" },
     { value: "Internet Bill", label: "Internet Bill" },
@@ -49,16 +59,22 @@ const DynamicFilters: React.FC<DynamicFiltersProps> = ({
     { value: "Computer Hardware", label: "Computer Hardware" },
     { value: "Salaries", label: "Salaries" },
     { value: "Salaries WHT", label: "Salaries WHT" },
-    { value: "EOBI Employer’s Share", label: "EOBI Employer’s Share" },
+    { value: "EOBI Employer's Share", label: "EOBI Employer's Share" },
     { value: "Others", label: "Others" },
     { value: "Misc.", label: "Misc." }
+  ];
+
+  const transactionTypeOptions = [
+    { value: "all", label: "All Types" },
+    { value: "income", label: "Income" },
+    { value: "expense", label: "Expense" }
   ];
 
   const renderVendorFilters = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {/* Office */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Office</label>
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Office</label>
         <SelectDropdown
           options={officeOptions}
           value={vendorFilters.office ? officeOptions.find((o) => o.value === vendorFilters.office) || null : null}
@@ -69,59 +85,48 @@ const DynamicFilters: React.FC<DynamicFiltersProps> = ({
       </div>
 
       {/* Status */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Status</label>
-        <select 
-          value={vendorFilters.status} 
-          onChange={(e) => onVendorFilterChange({ ...vendorFilters, status: e.target.value })} 
-          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">All Statuses</option>
-          <option value="WaitingForApproval">Waiting For Approval</option>
-          <option value="Approved">Approved</option>
-          <option value="ReviewedByFinance">Reviewed By Finance</option>
-          <option value="ReadyForPayment">Ready For Payment</option>
-          <option value="Paid">Paid</option>
-          <option value="Rejected">Rejected</option>
-        </select>
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Status</label>
+        <SelectDropdown
+          options={statusOptions}
+          value={vendorFilters.status ? statusOptions.find((o) => o.value === vendorFilters.status) || null : null}
+          onChange={(opt) => onVendorFilterChange({ ...vendorFilters, status: opt?.value || '' })}
+          isClearable
+          placeholder="Select Status"
+        />
       </div>
 
       {/* Category */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Category</label>
-        <select 
-          value={vendorFilters.category} 
-          onChange={(e) => onVendorFilterChange({ ...vendorFilters, category: e.target.value })} 
-          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          {categoryOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-          
-        </select>
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Category</label>
+        <SelectDropdown
+          options={categoryOptions}
+          value={vendorFilters.category ? categoryOptions.find((o) => o.value === vendorFilters.category) || null : null}
+          onChange={(opt) => onVendorFilterChange({ ...vendorFilters, category: opt?.value || '' })}
+          isClearable
+          placeholder="Select Category"
+        />
       </div>
 
       {/* Date From */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Date From</label>
-        <Input
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Date From</label>
+        <EnhancedInput
+        label=''
           type="date"
           value={vendorFilters.dateFrom}
           onChange={(v) => onVendorFilterChange({ ...vendorFilters, dateFrom: v })}
-          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
       {/* Date To */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Date To</label>
-        <Input
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Date To</label>
+        <EnhancedInput
+        label=''
           type="date"
           value={vendorFilters.dateTo}
           onChange={(v) => onVendorFilterChange({ ...vendorFilters, dateTo: v })}
-          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
     </div>
@@ -130,8 +135,8 @@ const DynamicFilters: React.FC<DynamicFiltersProps> = ({
   const renderPettyCashFilters = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {/* Office */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Office</label>
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Office</label>
         <SelectDropdown
           options={officeOptions}
           value={pettyCashFilters.office ? officeOptions.find((o) => o.value === pettyCashFilters.office) || null : null}
@@ -142,49 +147,47 @@ const DynamicFilters: React.FC<DynamicFiltersProps> = ({
       </div>
 
       {/* Month */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Month</label>
-        <Input
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Month</label>
+        <EnhancedInput
+        label=''
           type="month"
           value={pettyCashFilters.month}
           onChange={(v) => onPettyCashFilterChange({ ...pettyCashFilters, month: v })}
-          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
       {/* Transaction Type */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Transaction Type</label>
-        <select 
-          value={pettyCashFilters.transactionType} 
-          onChange={(e) => onPettyCashFilterChange({ ...pettyCashFilters, transactionType: e.target.value })} 
-          className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="all">All Types</option>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Transaction Type</label>
+        <SelectDropdown
+          options={transactionTypeOptions}
+          value={pettyCashFilters.transactionType ? transactionTypeOptions.find((o) => o.value === pettyCashFilters.transactionType) || null : null}
+          onChange={(opt) => onPettyCashFilterChange({ ...pettyCashFilters, transactionType: opt?.value || '' })}
+          isClearable
+          placeholder="Select Type"
+        />
       </div>
 
       {/* Date From */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Date From</label>
-        <Input
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Date From</label>
+        <EnhancedInput
+        label=''
           type="date"
           value={pettyCashFilters.dateFrom}
           onChange={(v) => onPettyCashFilterChange({ ...pettyCashFilters, dateFrom: v })}
-          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
       {/* Date To */}
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-1">Date To</label>
-        <Input
+      <div className="space-y-1">
+        <label className="block text-sm font-medium text-gray-600">Date To</label>
+        <EnhancedInput
+        label=''
           type="date"
           value={pettyCashFilters.dateTo}
           onChange={(v) => onPettyCashFilterChange({ ...pettyCashFilters, dateTo: v })}
-          inputClassName="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
     </div>

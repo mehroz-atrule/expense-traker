@@ -53,6 +53,17 @@ const CreatePettycashExpense: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [existingImage, setExistingImage] = useState<string | null>(null);
 
+  // Check if all required fields are filled
+  const isFormValid = () => {
+    return (
+      form.office?.trim() &&
+      form.title?.trim() &&
+      form.amount?.trim() &&
+      form.dateOfPayment?.trim() &&
+      form.month?.trim()
+    );
+  };
+
   const formatDateForInput = (isoDateString: string): string => {
     if (!isoDateString) return '';
 
@@ -172,7 +183,7 @@ const CreatePettycashExpense: React.FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!form.office || !form.title || !form.amount || !form.dateOfPayment) {
+    if (!isFormValid()) {
       alert("Please fill all required fields");
       return;
     }
@@ -251,12 +262,12 @@ const CreatePettycashExpense: React.FC = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-xl shadow-sm border p-6 space-y-4"
         >
-          {/* Office */}
+          {/* Office - Required */}
           {loading && officeOptions.length === 0 ? (
             <Loader size="sm" text="Loading offices..." />
           ) : (
             <SelectDropdown
-              label="Office"
+              label="Office "
               options={officeOptions}
               value={officeOptions.find((o) => o.value === form.office) || null}
               onChange={(opt: any) => handleChange("office", opt?.value)}
@@ -264,36 +275,45 @@ const CreatePettycashExpense: React.FC = () => {
             />
           )}
 
-          {/* Month Field */}
-          <MonthYearPicker
-            label="Month"
-            selectedValue={form.month}
-            onValueChange={handleMonthChange}
-            showLabel={true}
-          />
+          {/* Month Field - Required */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Month 
+            </label>
+            <MonthYearPicker
+              selectedValue={form.month}
+              onValueChange={handleMonthChange}
+              showLabel={false}
+            />
+          </div>
 
-          {/* Title */}
+          {/* Title - Required */}
           <EnhancedInput
-            label="Title"
+            label="Title "
             value={form.title}
             onChange={(v) => handleChange("title", v)}
             placeholder="Expense title"
             required
           />
 
-          {/* Description */}
-          <textarea
-            placeholder="Enter description"
-            rows={4}
-            className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-            value={form.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-          />
+          {/* Description - Optional */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <textarea
+              placeholder="Enter description (optional)"
+              rows={4}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              value={form.description}
+              onChange={(e) => handleChange("description", e.target.value)}
+            />
+          </div>
 
-          {/* Date + Amount */}
+          {/* Date + Amount - Both Required */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <EnhancedInput
-              label="Payment Date"
+              label="Payment Date "
               type="date"
               value={form.dateOfPayment}
               onChange={(v) => handleChange("dateOfPayment", v)}
@@ -308,7 +328,7 @@ const CreatePettycashExpense: React.FC = () => {
             />
           </div>
 
-          {/* Cheque Image Upload using reusable component */}
+          {/* Cheque Image Upload - Optional */}
           <ImageUploadField
             type="cheque"
             label="Cheque / Receipt Image"
@@ -329,15 +349,19 @@ const CreatePettycashExpense: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-4 py-2 rounded border bg-white hover:bg-gray-50"
+              className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors font-medium"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={loading}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                !isFormValid() || loading
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+              disabled={!isFormValid() || loading}
             >
               {loading ? (
                 <Loader size="sm" text={isEditMode ? "Updating..." : "Saving..."} />
@@ -346,6 +370,8 @@ const CreatePettycashExpense: React.FC = () => {
               )}
             </button>
           </div>
+
+          
         </form>
       </div>
     </div>

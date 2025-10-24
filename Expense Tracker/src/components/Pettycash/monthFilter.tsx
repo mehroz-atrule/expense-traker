@@ -1,4 +1,5 @@
 import React from "react";
+import SelectDropdown from "../../components/Forms/SelectionDropDown";
 
 interface MonthFilterProps {
   selectedMonth: string; // Format: "MM-YYYY"
@@ -14,59 +15,54 @@ const MonthFilter: React.FC<MonthFilterProps> = ({ selectedMonth, onMonthChange 
     ? selectedMonth.split("-").map((v) => parseInt(v))
     : [currentDate.getMonth() + 1, currentYear];
 
-  // 🧩 Generate month names
-  const months = Array.from({ length: 12 }, (_, i) => ({
+  // 🧩 Generate month options
+  const monthOptions = Array.from({ length: 12 }, (_, i) => ({
     value: (i + 1).toString().padStart(2, "0"),
     label: new Date(0, i).toLocaleString("en-US", { month: "long" }),
   }));
 
   // 🧩 Generate year options (current year ± 5 years)
-  const years = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
+  const yearOptions = Array.from({ length: 11 }, (_, i) => ({
+    value: (currentYear - 5 + i).toString(),
+    label: (currentYear - 5 + i).toString(),
+  }));
 
   const handleMonthChange = (month: string) => {
     onMonthChange(`${month}-${selectedYear}`);
   };
 
-  const handleYearChange = (year: number) => {
+  const handleYearChange = (year: string) => {
     const month = selectedMonthNum.toString().padStart(2, "0");
     onMonthChange(`${month}-${year}`);
   };
 
   return (
-    <div className="flex items-center space-x-2">
-      <label
-        htmlFor="month-filter"
-        className="text-sm font-medium text-gray-700 whitespace-nowrap max-sm:hidden"
-      >
+    <div className="flex items-center space-x-3">
+      <label className="text-sm font-medium text-gray-700 whitespace-nowrap max-sm:hidden">
         Filter by Month:
       </label>
 
-      {/* Month Dropdown */}
-      <select
-        id="month-filter"
-        value={selectedMonthNum.toString().padStart(2, "0")}
-        onChange={(e) => handleMonthChange(e.target.value)}
-        className="block w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-      >
-        {months.map((m) => (
-          <option key={m.value} value={m.value}>
-            {m.label}
-          </option>
-        ))}
-      </select>
+      <div className="flex items-center space-x-2">
+        {/* Month Dropdown */}
+        <div className="w-32">
+          <SelectDropdown
+            options={monthOptions}
+            value={monthOptions.find(m => m.value === selectedMonthNum.toString().padStart(2, "0")) || null}
+            onChange={(opt) => handleMonthChange(opt?.value || "01")}
+            placeholder="Select Month"
+          />
+        </div>
 
-      {/* Year Dropdown */}
-      <select
-        value={selectedYear}
-        onChange={(e) => handleYearChange(Number(e.target.value))}
-        className="block w-28 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-      >
-        {years.map((y) => (
-          <option key={y} value={y}>
-            {y}
-          </option>
-        ))}
-      </select>
+        {/* Year Dropdown */}
+        <div className="w-28">
+          <SelectDropdown
+            options={yearOptions}
+            value={yearOptions.find(y => y.value === selectedYear.toString()) || null}
+            onChange={(opt) => handleYearChange(opt?.value || currentYear.toString())}
+            placeholder="Select Year"
+          />
+        </div>
+      </div>
     </div>
   );
 };

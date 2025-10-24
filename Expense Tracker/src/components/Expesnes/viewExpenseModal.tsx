@@ -99,7 +99,7 @@ const ViewExpenseModal: React.FC<ViewExpenseModalProps> = ({
               {/* Expense Receipt */}
               {expense.image && (
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-600">Expense Receipt</label>
+                  <label className="text-xs font-medium text-gray-600">Expense Receipt test</label>
                   {pdfStates['image'] ? (
                     <div
                       onClick={() => onImageClick(expense.image, 'Expense Receipt')}
