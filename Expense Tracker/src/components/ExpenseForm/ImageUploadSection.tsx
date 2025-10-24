@@ -68,7 +68,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
         title={title}
         color={color}
         isEnabled={isFieldEnabled}
-        isEditMode={isEditing || currentStatusKey === ""}
+        isEditMode={isEditing || currentStatusKey === "" || currentStatusKey === "Approved" || currentStatusKey === "ReadyForPayment"}
         onImageClick={onImageClick}
         onFileChange={(file) => handleFileChange(file, type)}
         onEditClick={
