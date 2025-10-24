@@ -353,13 +353,11 @@ const CreateExpenseView: React.FC = () => {
       image: viewExpense?.image || undefined,
       chequeImage: viewExpense?.chequeImage || undefined,
       paymentSlip: viewExpense?.paymentSlip || undefined,
-      status: viewExpense?.status || "WaitingForApproval"
+      status: viewExpense?.status=== "Rejected" ? "WaitingForApproval" : viewExpense?.status || "WaitingForApproval"
     };
-
     if (isApprove && effectiveNextStatus) {
       payload.status = isCashPayment ? "Paid" : effectiveNextStatus;
     }
-
     let dataToSend: any = payload;
     if (formData.image || formData.chequeImage || formData.paymentSlip) {
       const form = new FormData();
