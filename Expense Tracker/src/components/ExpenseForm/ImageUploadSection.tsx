@@ -42,7 +42,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
         files: file ? [file] : []
       }
     } as unknown as React.ChangeEvent<HTMLInputElement>;
-    
+
     onFileChange(syntheticEvent, type as "image" | "cheque" | "paymentSlip");
   };
 
@@ -68,7 +68,7 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
         title={title}
         color={color}
         isEnabled={isFieldEnabled}
-        isEditMode={isEditing}
+        isEditMode={isEditing || currentStatusKey === ""}
         onImageClick={onImageClick}
         onFileChange={(file) => handleFileChange(file, type)}
         onEditClick={
