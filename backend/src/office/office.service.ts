@@ -11,7 +11,7 @@ import { CreateOfficeDto } from './dto/create-office.dto';
 import { UpdateOfficeDto } from './dto/update-office.dto';
 import { Expense } from '../expense/schemas/expense.schema';
 import { PettyCashTransaction } from '../pettycash/schemas/pettycash.schema';
-import { PettyCashSummary, PettyCashSummaryDocument } from 'src/pettycash/schemas/pettycashsummary.schema';
+import { PettyCashSummary, PettyCashSummaryDocument } from '../pettycash/schemas/pettycashsummary.schema';
 
 @Injectable()
 export class OfficeService {
