@@ -16,6 +16,7 @@ import Loader from "../../components/Loader";
 import MonthYearPicker from "../../components/MonthYearPicker";
 import type { PettyCashFormData } from "../../types/pettycash";
 import ImageUploadField from "../../components/Forms/ImageUpload";
+import { useToast, formatApiError } from "../../components/Toast";
 
 const CreatePettycashExpense: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const CreatePettycashExpense: React.FC = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
   const isEditMode = Boolean(id);
+  const { showToast } = useToast(); // Use toast hook
 
   const getCurrentMonthYear = () => {
     const date = new Date();
@@ -52,6 +54,17 @@ const CreatePettycashExpense: React.FC = () => {
   const [officeOptions, setOfficeOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
   const [existingImage, setExistingImage] = useState<string | null>(null);
+
+  // Check if all required fields are filled
+  const isFormValid = () => {
+    return (
+      form.office?.trim() &&
+      form.title?.trim() &&
+      form.amount?.trim() &&
+      form.dateOfPayment?.trim() &&
+      form.month?.trim()
+    );
+  };
 
   const formatDateForInput = (isoDateString: string): string => {
     if (!isoDateString) return '';
@@ -88,13 +101,14 @@ const CreatePettycashExpense: React.FC = () => {
       } catch (err) {
         console.error("Failed to load offices", err);
         setOfficeOptions([]);
+       
       } finally {
         setLoading(false);
       }
     };
 
     fetchOffices();
-  }, []);
+  }, [isEditMode]);
 
   // Fetch existing expense data if in edit mode
   useEffect(() => {
@@ -129,7 +143,11 @@ const CreatePettycashExpense: React.FC = () => {
 
       } catch (error) {
         console.error("Failed to fetch expense data", error);
-        alert("Failed to load expense data");
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: formatApiError(error) || 'Failed to load expense data'
+        });
         navigate(-1);
       } finally {
         setLoading(false);
@@ -139,7 +157,7 @@ const CreatePettycashExpense: React.FC = () => {
     if (isEditMode && id) {
       fetchExpenseData();
     }
-  }, [id, isEditMode, dispatch, navigate]);
+  }, [id, isEditMode, dispatch, navigate, showToast]);
 
   const handleChange = (k: string, v: any) =>
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -172,8 +190,12 @@ const CreatePettycashExpense: React.FC = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!form.office || !form.title || !form.amount || !form.dateOfPayment) {
-      alert("Please fill all required fields");
+    if (!isFormValid()) {
+      showToast({
+        type: 'warning',
+        title: 'Validation Error',
+        message: 'Please fill all required fields'
+      });
       return;
     }
 
@@ -193,20 +215,39 @@ const CreatePettycashExpense: React.FC = () => {
         formData.append("chequeImage", form.chequeImage);
       }
 
+      let result;
       if (isEditMode && id) {
-        await dispatch(updatePettyCashExpenseById({
+        result = await dispatch(updatePettyCashExpenseById({
           id: id,
           payload: formData
-        }) as any);
+        }) as any).unwrap();
+        
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Petty cash expense updated successfully!'
+        });
       } else {
-        await dispatch(createPettyCashExpense(formData) as any);
+        result = await dispatch(createPettyCashExpense(formData) as any).unwrap();
+        
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Petty cash expense created successfully!'
+        });
       }
 
-      navigate(`/dashboard/expenses?tab=pettycash&page=1&office=${form.office}&month=10-2025`);
+      if (result) {
+        navigate(`/dashboard/expenses?tab=pettycash&page=1&office=${form.office}&month=10-2025`);
+      }
 
     } catch (error) {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} petty cash expense`, error);
-      alert(`Failed to ${isEditMode ? 'update' : 'create'} expense`);
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: formatApiError(error) || `Failed to ${isEditMode ? 'update' : 'create'} petty cash expense. Please try again.`
+      });
     } finally {
       setLoading(false);
     }
@@ -224,7 +265,6 @@ const CreatePettycashExpense: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-2 text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
-                {/* <span className="text-sm">Back</span> */}
               </button>
 
               <div className="flex items-center space-x-3">
@@ -251,12 +291,12 @@ const CreatePettycashExpense: React.FC = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-xl shadow-sm border p-6 space-y-4"
         >
-          {/* Office */}
+          {/* Office - Required */}
           {loading && officeOptions.length === 0 ? (
             <Loader size="sm" text="Loading offices..." />
           ) : (
             <SelectDropdown
-              label="Office"
+              label="Office *"
               options={officeOptions}
               value={officeOptions.find((o) => o.value === form.office) || null}
               onChange={(opt: any) => handleChange("office", opt?.value)}
@@ -264,43 +304,52 @@ const CreatePettycashExpense: React.FC = () => {
             />
           )}
 
-          {/* Month Field */}
-          <MonthYearPicker
-            label="Month"
-            selectedValue={form.month}
-            onValueChange={handleMonthChange}
-            showLabel={true}
-          />
+          {/* Month Field - Required */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Month *
+            </label>
+            <MonthYearPicker
+              selectedValue={form.month}
+              onValueChange={handleMonthChange}
+              showLabel={false}
+            />
+          </div>
 
-          {/* Title */}
+          {/* Title - Required */}
           <EnhancedInput
-            label="Title"
+            label="Title *"
             value={form.title}
             onChange={(v) => handleChange("title", v)}
             placeholder="Expense title"
             required
           />
 
-          {/* Description */}
-          <textarea
-            placeholder="Enter description"
-            rows={4}
-            className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-            value={form.description}
-            onChange={(e) => handleChange("description", e.target.value)}
-          />
+          {/* Description - Optional */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <textarea
+              placeholder="Enter description (optional)"
+              rows={4}
+              className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              value={form.description}
+              onChange={(e) => handleChange("description", e.target.value)}
+            />
+          </div>
 
-          {/* Date + Amount */}
+          {/* Date + Amount - Both Required */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <EnhancedInput
-              label="Payment Date"
+              label="Payment Date *"
               type="date"
               value={form.dateOfPayment}
               onChange={(v) => handleChange("dateOfPayment", v)}
               required
             />
             <EnhancedInput
-              label="Amount"
+              label="Amount *"
               type="number"
               value={form.amount}
               onChange={(v) => handleChange("amount", v)}
@@ -308,7 +357,7 @@ const CreatePettycashExpense: React.FC = () => {
             />
           </div>
 
-          {/* Cheque Image Upload using reusable component */}
+          {/* Cheque Image Upload - Optional */}
           <ImageUploadField
             type="cheque"
             label="Cheque / Receipt Image"
@@ -329,15 +378,19 @@ const CreatePettycashExpense: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="px-4 py-2 rounded border bg-white hover:bg-gray-50"
+              className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors font-medium"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={loading}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                !isFormValid() || loading
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+              disabled={!isFormValid() || loading}
             >
               {loading ? (
                 <Loader size="sm" text={isEditMode ? "Updating..." : "Saving..."} />
@@ -346,6 +399,8 @@ const CreatePettycashExpense: React.FC = () => {
               )}
             </button>
           </div>
+
+         
         </form>
       </div>
     </div>

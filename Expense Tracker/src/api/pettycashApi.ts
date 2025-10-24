@@ -20,10 +20,8 @@ export const addPettyCashExpense = async (payload: FormData | Omit<PettyCashForm
   let finalPayload;
   
   if (payload instanceof FormData) {
-    // FormData ko direct use karo
     finalPayload = payload;
   } else {
-    // Regular object ko JSON mein convert karo
     const { chequeImage, ...rest } = payload;
     finalPayload = rest;
     
@@ -39,9 +37,14 @@ export const addPettyCashExpense = async (payload: FormData | Omit<PettyCashForm
       finalPayload = formData;
     }
   }
+  try {
+    const res = await axios.post(`${API_BASE_URL}/pettycash`, finalPayload);
+    return res.data;
+    
+  } catch (error:any) {
+    throw error.response?.data?.message[0] ||error.message|| 'Error adding petty cash expense';
+  }
   
-  const res = await axios.post(`${API_BASE_URL}/pettycash`, finalPayload);
-  return res.data;
 };
 
 // ✅ Properly type the payload
@@ -53,14 +56,27 @@ export const updatePettyCashExpense = async (id: string | number, payload: FormD
   } else {
     finalPayload = payload;
   }
+
   
-  const res = await axios.patch(`${API_BASE_URL}/pettycash/${id}`, finalPayload);
+    try {
+     const res = await axios.patch(`${API_BASE_URL}/pettycash/${id}`, finalPayload);
   return res.data;
+    
+  } catch (error:any) {
+    throw error.response?.data?.message[0] ||error.message|| 'Error adding petty cash expense';
+  }
+ 
 };
 
 export const deletePettyCashExpense = async (id: string | number) => {
-  const res = await axios.delete(`${API_BASE_URL}/pettycash/${id}`);
+  try {
+    const res = await axios.delete(`${API_BASE_URL}/pettycash/${id}`);
   return res.data;
+    
+  } catch (error:any) {
+    throw error.response?.data?.message[0] ||error.message|| 'Error adding petty cash expense';
+  }
+ 
 };
 
 export const getPettyCasheExpenseById = async (id: string | number) => {

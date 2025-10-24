@@ -17,7 +17,7 @@ const ImageModal: React.FC<ImageModalProps> = ({
   const [scale, setScale] = React.useState(1);
   const [rotation, setRotation] = React.useState(0);
   const [isPdf, setIsPdf] = React.useState(false);
-
+console.log("Image URL:", imageUrl);
 
   React.useEffect(() => {
     const checkFileType = async () => {

@@ -11,7 +11,7 @@ interface EnhancedInputProps {
   disabled?: boolean;
   readOnly?: boolean;
   error?: string;
-  type?: 'text' | 'email' | 'password' | 'tel'| 'number' | 'date';
+  type?: 'text' | 'email' | 'password' | 'tel'| 'number' | 'date'|'month';
   pattern?: string;
   className?: string;
   min?: string; // 👈 Add this new prop
