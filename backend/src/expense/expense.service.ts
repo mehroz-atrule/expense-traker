@@ -52,7 +52,7 @@ export class ExpenseService {
           ? new Date(createExpenseDto.paymentDate)
           : null,
         WHT: createExpenseDto.WHT != null ? Number(createExpenseDto.WHT) : 0,
-        advanceTax: createExpenseDto.advanceTax != null ? Number(createExpenseDto.advanceTax) : 0,
+        advanceTax: createExpenseDto.advanceTax != null ? createExpenseDto.advanceTax : 0,
         amountAfterTax: amountNumber,
         status: Status.WaitingForApproval,
         chequeImage: chequeImage,
@@ -219,7 +219,7 @@ async update(
     }
 
     if (updatePayload.advanceTax !== undefined) {
-      const advNumber = Number(updatePayload.advanceTax);
+      const advNumber = updatePayload.advanceTax;
       if (Number.isNaN(advNumber)) {
         throw new BadRequestException('advanceTax must be a number');
       }
