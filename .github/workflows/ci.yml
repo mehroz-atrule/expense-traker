@@ -1,7 +1,5 @@
 name: CI - Build & Test Frontend + Backend
-uses: 'vercel/repository-dispatch/actions/status@v1'
-with:
-  name: Vercel - expense-traker: build
+
 on:
   push:
     branches: [ main, master, dev ]
