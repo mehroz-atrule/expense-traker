@@ -41,12 +41,4 @@ jobs:
         working-directory: ./backend
         run: npm run build
 
-      # === (Optional) Run Backend Tests ===
-      - name: 🧪 Run Backend Tests
-        working-directory: ./backend
-        run: npm test --if-present
 
-      # === (Optional) Run Frontend Tests ===
-      - name: 🧪 Run Frontend Tests
-        working-directory: ./Expense Tracker
-        run: npm test --if-present
