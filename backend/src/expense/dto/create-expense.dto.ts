@@ -88,9 +88,7 @@ export class CreateExpenseDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  // Accept string from multipart/form-data; convert in service
-  @IsNumber()
-  advanceTax?: number;
+  advanceTax?: number | string;
 
   @ApiProperty()
   @IsString()
