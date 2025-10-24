@@ -224,7 +224,7 @@ const CreatePettycashExpense: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-2 text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
-                <span className="text-sm">Back</span>
+                {/* <span className="text-sm">Back</span> */}
               </button>
 
               <div className="flex items-center space-x-3">

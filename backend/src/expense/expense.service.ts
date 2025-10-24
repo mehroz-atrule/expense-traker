@@ -92,12 +92,20 @@ export class ExpenseService {
         filter.status = query.status;
       }
 
-      // 🔹 Date range filter (on billDate)
+      // 🔹 Date range filter (on createdAt) — treat startDate as 00:00:00 and endDate as 23:59:59.999 UTC
       if (query?.startDate || query?.endDate) {
         const dateFilter: any = {};
-        if (query.startDate) dateFilter.$gte = new Date(query.startDate);
-        if (query.endDate) dateFilter.$lte = new Date(query.endDate);
-        filter.billDate = dateFilter;
+        if (query.startDate) {
+          const start = new Date(query.startDate);
+          start.setUTCHours(0, 0, 0, 0);
+          dateFilter.$gte = start;
+        }
+        if (query.endDate) {
+          const end = new Date(query.endDate);
+          end.setUTCHours(23, 59, 59, 999);
+          dateFilter.$lte = end;
+        }
+        filter.createdAt = dateFilter;
       }
 
       // 🔹 Text search — merge instead of overwriting

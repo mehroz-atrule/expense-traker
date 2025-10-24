@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronLeft, Plus, List, Grid3X3 } from 'lucide-react';
+import { ChevronLeft, Plus, List } from 'lucide-react';
 
 interface Tab {
   id: string;
@@ -10,9 +10,9 @@ interface Tab {
 interface CombinedHeaderProps {
   activeTab: string;
   tabs: Tab[];
-  viewMode: 'table' | 'grid';
+  viewMode?: 'table' | 'grid';
   onTabChange: (tabId: string) => void;
-  onViewModeChange: (mode: 'table' | 'grid') => void;
+  onViewModeChange?: (mode: 'table' | 'grid') => void;
   onCreateNew: () => void;
   onNavigateBack: () => void;
   onAddIncome?: () => void;
@@ -22,9 +22,7 @@ interface CombinedHeaderProps {
 const CombinedHeader: React.FC<CombinedHeaderProps> = ({
   activeTab,
   tabs,
-  viewMode,
   onTabChange,
-  onViewModeChange,
   onCreateNew,
   onNavigateBack,
   onAddIncome,
@@ -62,7 +60,7 @@ const CombinedHeader: React.FC<CombinedHeaderProps> = ({
           {/* Right Section - Actions */}
           <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
             {/* View Mode Toggle - Only show for vendor tab */}
-            {activeTab === 'vendor' && (
+            {/* {activeTab === 'vendor' && (
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => onViewModeChange('table')}
@@ -85,7 +83,7 @@ const CombinedHeader: React.FC<CombinedHeaderProps> = ({
                   <Grid3X3 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
-            )}
+            )} */}
 
             {/* Buttons for Petty Cash */}
             {activeTab === 'pettycash' ? (
@@ -128,8 +126,8 @@ const CombinedHeader: React.FC<CombinedHeaderProps> = ({
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
                 className={`flex-shrink-0 py-3 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 {tab.label}

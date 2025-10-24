@@ -479,7 +479,7 @@ const CreateExpenseView: React.FC = () => {
             payload: { status: 'Rejected' },
           })
         ).unwrap();
-        navigate("/dashboard/vendor/my-expenses");
+        navigate("/dashboard/expenses");
       } catch (error) {
         console.error('Failed to reject expense:', error);
         alert('Failed to reject expense. Please try again.');
@@ -597,7 +597,7 @@ const CreateExpenseView: React.FC = () => {
               className="flex items-center gap-2 px-3 py-2 text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-sm">Back</span>
+              {/* <span className="text-sm">Back</span> */}
             </button>
 
             <div className="flex items-center gap-3 flex-1 min-w-0">

@@ -108,7 +108,7 @@ const OfficeManagement: React.FC = () => {
                 className="inline-flex items-center justify-center w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-auto md:h-auto md:gap-2 md:px-3 md:py-2 text-gray-600 bg-gray-50 md:bg-white rounded-full md:rounded-lg border-0 md:border md:border-gray-200 hover:bg-gray-100 md:hover:bg-gray-50 transition-all duration-200 active:scale-95 touch-manipulation"
               >
                 <ChevronLeft className="w-4 h-4 xs:w-5 xs:h-5 md:w-4 md:h-4" />
-                <span className="hidden md:inline text-sm">Back</span>
+                {/* <span className="hidden md:inline text-sm">Back</span> */}
               </button>
 
               <div className="flex items-center space-x-1 xs:space-x-2 sm:space-x-3 flex-1 min-w-0">

@@ -11,7 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-
+  const server = app.getHttpServer();
   // --- Core Services ---
   const configService = app.get(ConfigService);
   const logger = app.get(AppLogger);
@@ -75,6 +75,7 @@ async function bootstrap() {
 
   logger.log(`Server running on http://localhost:${PORT}`);
   logger.log(`Swagger docs available on http://localhost:${PORT}/api/docs`);
+  server.setTimeout(5 * 60 * 1000);
 }
 
 bootstrap();

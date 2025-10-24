@@ -160,7 +160,7 @@ const UserManagement: React.FC = () => {
                 className="inline-flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:gap-2 sm:px-3 sm:py-2 text-gray-600 bg-gray-50 sm:bg-white rounded-full sm:rounded-lg border-0 sm:border sm:border-gray-200 hover:bg-gray-100 sm:hover:bg-gray-50 transition-colors duration-200 active:scale-95"
               >
                 <ChevronLeft className="w-5 h-5 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline text-sm">Back</span>
+                {/* <span className="hidden sm:inline text-sm">Back</span> */}
               </button>
 
               <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
