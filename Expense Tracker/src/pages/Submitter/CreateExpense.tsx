@@ -125,7 +125,6 @@ const CreateExpenseView: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
-  const { loading: submitterLoading, } = useAppSelector((s: RootState) => s.submitter);
   //   const viewExpense = useAppSelector((s: RootState) =>
   //   s.submitter.expenses.find(e => e._id === id)
   // );
