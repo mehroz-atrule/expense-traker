@@ -222,9 +222,9 @@ const ExpenseSheetTable: React.FC<ExpenseSheetTableProps> = ({
                       <button
                         onClick={() => onEdit(record)}
                         className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
-                        title="Edit"
+                        title="Update"
                       >
-                        <Edit size={16} />
+                        <Edit  size={16} />
                       </button>
                       <button
                         onClick={() => onDelete(record)}

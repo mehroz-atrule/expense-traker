@@ -43,7 +43,7 @@ const getCurrentMonth = (): string => {
   const date = new Date();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
-  return `${year}-${month}`; // YYYY-MM format for input type="month"
+  return `${month}-${year}`; // YYYY-MM format for input type="month"
 };
 
 // Helper to convert month format for display
@@ -52,8 +52,8 @@ const getCurrentMonth = (): string => {
 // Helper to convert month format for API
 const formatMonthForAPI = (month: string): string => {
   if (!month) return getCurrentMonth();
-  const [year, monthNum] = month.split('-');
-  return `${monthNum}-${year}`;
+  const [monthName, year] = month.split('-');
+  return `${monthName}-${year}`;
 };
 
 const CombinedExpensesScreen: React.FC = () => {
@@ -190,21 +190,47 @@ const CombinedExpensesScreen: React.FC = () => {
   }, [dispatch, offices.length]);
 
   // Fetch data based on active tab and URL parameters
-  useEffect(() => {
-    if (activeTab === 'vendor') {
-      fetchVendorExpenses();
-    } else {
-      fetchPettyCashData();
-    }
-  }, [
-    activeTab,
-    searchTerm,
-    vendorFilters,
-    vendorPage,
-    pettyCashFilters,
-    pettyCashPage,
-    selectedOffice
-  ]);
+useEffect(() => {
+  const searchParams = new URLSearchParams(location.search);
+  
+  if (activeTab === 'vendor') {
+    // Direct URL params pass karo
+    const params: any = {
+      q: searchParams.get('search') || undefined,
+      office: searchParams.get('office') || undefined,
+      vendor: searchParams.get('vendor') || undefined,
+      status: searchParams.get('status') !== 'all' ? searchParams.get('status') : undefined,
+      category: searchParams.get('category') !== 'all' ? searchParams.get('category') : undefined,
+      startDate: searchParams.get('dateFrom') || undefined,
+      endDate: searchParams.get('dateTo') || undefined,
+      page: vendorPage,
+      limit,
+    };
+    console.log('Vendor Fetch from URL Params:', params);
+    dispatch(fetchExpenses(params) as any);
+    
+  } else {
+    // Direct URL params pass karo
+    const params: any = {
+      q: searchParams.get('search') || undefined,
+      page: pettyCashPage,
+      limit,
+      month: formatMonthForAPI(searchParams.get('month') || getCurrentMonth()),
+      office: selectedOffice || searchParams.get('office') || undefined,
+      transactionType: searchParams.get('transactionType') !== 'all' ? searchParams.get('transactionType') : undefined,
+      startDate: searchParams.get('dateFrom') || undefined,
+      endDate: searchParams.get('dateTo') || undefined,
+    };
+    console.log('Petty Cash Fetch from URL Params:', params);
+    dispatch(fetchPettyCash(params) as any);
+  }
+}, [
+  activeTab,
+  location.search, // ✅ Only depend on URL changes
+  vendorPage,
+  pettyCashPage,
+  selectedOffice
+]);
 
   // Update URL when filters change
   const updateURL = (filters: any, tab: string, page: number, search: string, office?: string) => {

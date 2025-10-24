@@ -2,7 +2,7 @@ import React, { useState, useEffect, type FormEvent } from "react";
 import { useNavigate , useSearchParams } from "react-router-dom";
 import SelectDropdown from "../../components/Forms/SelectionDropDown";
 import EnhancedInput from "../../components/Forms/EnhancedInput";
-import { Upload, ZoomIn, FileText } from "lucide-react";
+import { Upload, ZoomIn, FileText, ChevronLeft } from "lucide-react";
 import { useDispatch } from "react-redux";
 import {
   createPettyCashExpense,
@@ -219,17 +219,33 @@ const CreatePettycashExpense: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header with Back Button */}
       <div className="bg-white border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="flex items-center justify-between h-14 sm:h-16">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-lg font-semibold text-gray-900 max-sm:text-sm">
-                {isEditMode ? 'Edit Pettycash Expense' : 'Create Pettycash Expense'}
-              </h1>
-              <p className="text-sm text-gray-500 max-sm:hidden">
-                {isEditMode ? 'Update existing expense' : 'Add a new petty cash expense'}
-              </p>
+            <div className="flex items-center space-x-4">
+              {/* Back Button */}
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="text-sm">Back</span>
+              </button>
+
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-gray-900">
+                    {isEditMode ? 'Edit Pettycash Expense' : 'Create Pettycash Expense'}
+                  </h1>
+                  <p className="text-sm text-gray-500">
+                    {isEditMode ? 'Update existing expense' : 'Add a new petty cash expense'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

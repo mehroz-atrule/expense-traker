@@ -269,7 +269,7 @@ const AdminDashboard: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Petty Cash Expenses by Office</h2>
             <div className="space-y-4">
               {dashboardStats?.officeWisePettyCash?.map((pettyCash: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:shadow-md" onClick={() => navigate(`/dashboard/expenses?tab=pettyCash&page=1&office=${pettyCash.office?._id}&month=${new Date().getMonth() + 1}-${new Date().getFullYear()}`)}>
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:shadow-md" onClick={() => navigate(`/dashboard/expenses?tab=pettycash&page=1&office=${pettyCash.office?._id}&month=${new Date().getMonth() + 1}-${new Date().getFullYear()}`)}>
                   <div className="flex items-center space-x-3">
                     <Building2 className="w-5 h-5 text-gray-400" />
                     <span className="font-medium text-gray-700">{pettyCash.office?.name || 'Unknown Office'}</span>
