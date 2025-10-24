@@ -92,28 +92,36 @@ export class DashboardService {
               {
                 $group: {
                   _id: '$office',
-                  total: { $sum: '$amount' },
-                },
+                  total: { $sum: '$amount' }
+                }
               },
               {
                 $lookup: {
                   from: 'offices',
                   localField: '_id',
                   foreignField: '_id',
-                  as: 'officeData',
-                },
+                  as: 'office'
+                }
               },
-              { $unwind: { path: '$officeData', preserveNullAndEmptyArrays: true } },
+              {
+                $unwind: {
+                  path: '$office',
+                  preserveNullAndEmptyArrays: true
+                }
+              },
               {
                 $project: {
                   _id: 0,
                   office: {
-                    _id: '$officeData._id',
-                    name: '$officeData.name',
+                    _id: '$office._id',
+                    name: '$office.name'
                   },
-                  total: 1,
-                },
+                  total: { $ifNull: ['$total', 0] }
+                }
               },
+              {
+                $sort: { 'office.name': 1 }
+              }
             ],
             statusCounts: [
               {
@@ -143,33 +151,46 @@ export class DashboardService {
 
       // 👉 Office-wise petty cash totals for current month
       const pettyCashAgg = this.txnModel.aggregate([
-        { $match: pettyCashMatch },
+        {
+          $match: {
+            transactionType: 'expense',
+            month: formattedMonth
+          }
+        },
         {
           $group: {
             _id: '$office',
-            totalExpense: { $sum: '$amount' },
-          },
+            totalExpense: { $sum: '$amount' }
+          }
         },
         {
           $lookup: {
             from: 'offices',
             localField: '_id',
             foreignField: '_id',
-            as: 'officeData',
-          },
+            as: 'office'
+          }
         },
-        { $unwind: { path: '$officeData', preserveNullAndEmptyArrays: true } },
+        {
+          $unwind: {
+            path: '$office',
+            preserveNullAndEmptyArrays: true
+          }
+        },
         {
           $project: {
             _id: 0,
             office: {
-              _id: '$officeData._id',
-              name: '$officeData.name',
+              _id: '$office._id',
+              name: '$office.name'
             },
-            totalExpense: 1,
-            month: month,
-          },
+            totalExpense: { $ifNull: ['$totalExpense', 0] },
+            month: month
+          }
         },
+        {
+          $sort: { 'office.name': 1 }
+        }
       ]);
 
       // 👉 Total petty cash expense for current month

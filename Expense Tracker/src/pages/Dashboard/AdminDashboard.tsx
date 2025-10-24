@@ -259,7 +259,8 @@ const AdminDashboard: React.FC = () => {
                     Rs {office.total?.toLocaleString() || '0'}
                   </span>
                 </div>
-              ))}
+              ))
+              }
             </div>
           </div>
 
