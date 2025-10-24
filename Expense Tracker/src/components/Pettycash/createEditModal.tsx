@@ -173,7 +173,6 @@ const CreateEditModal: React.FC<CreateEditModalProps> = ({
 
   const handleSave = async () => {
     if (!form.amount || !form.dateOfPayment || !form.office) {
-      alert('Please fill in required fields: Office, Amount and Date of Payment');
       return;
     }
 

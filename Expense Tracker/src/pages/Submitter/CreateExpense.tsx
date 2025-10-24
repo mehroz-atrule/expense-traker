@@ -22,6 +22,7 @@ import CategoryDetailsSection from "../../components/ExpenseForm/CategoryDetails
 import ImageUploadSection from "../../components/ExpenseForm/ImageUploadSection";
 import ImageModal from "../../components/ImageViewModal";
 import Loader from "../../components/Loader";
+import { formatApiError, useToast } from "../../components/Toast";
 
 interface FormData {
   title: string;
@@ -69,7 +70,7 @@ const CATEGORY_OPTIONS: Option[] = [
   { value: "Computer Hardware", label: "Computer Hardware" },
   { value: "Salaries", label: "Salaries" },
   { value: "Salaries WHT", label: "Salaries WHT" },
-  { value: "EOBI Employer’s Share", label: "EOBI Employer’s Share" },
+  { value: "EOBI Employer's Share", label: "EOBI Employer's Share" },
   { value: "Others", label: "Others" },
   { value: "Misc.", label: "Misc." },
 ];
@@ -112,7 +113,6 @@ const CreateExpenseView: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  // const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [currentImageTitle, setCurrentImageTitle] = useState("");
@@ -120,19 +120,28 @@ const CreateExpenseView: React.FC = () => {
   // Hooks
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-
   const id = queryParams.get("id");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { showToast } = useToast(); // Use toast hook
+
+  // Get data from Redux store
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
-  // const { loading: submitterLoading, } = useAppSelector((s: RootState) => s.submitter);
-  //   const viewExpense = useAppSelector((s: RootState) =>
-  //   s.submitter.expenses.find(e => e._id === id)
-  // );
-  const { expenseDetails: viewExpense } = useAppSelector(
+  const { expenseDetails: viewExpense,  } = useAppSelector(
     (state: RootState) => state.submitter
   );
 
+  // Show error toast when there's an expense error
+  // useEffect(() => {
+  //   console.log("Expense Error:", expenseError);
+  //   if (expenseError && expenseLoading === false) {
+  //     showToast({
+  //       type: 'error',
+  //       title: 'Error',
+  //       message: formatApiError(expenseError)
+  //     });
+  //   }
+  // }, [expenseError, showToast , expenseLoading]);
 
   useEffect(() => {
     if (id) {
@@ -143,11 +152,7 @@ const CreateExpenseView: React.FC = () => {
     };
   }, [id, dispatch]);
 
-
-
   // Derived State
-
-  // const viewExpense = state?.expense;
   const isViewMode = !!viewExpense;
 
   const normalizeStatus = (s?: string) => (s || '').replace(/\s+/g, '').replace(/[^A-Za-z]/g, '');
@@ -207,6 +212,7 @@ const CreateExpenseView: React.FC = () => {
         setOfficeOptions(officeOpts);
       } catch (error) {
         setOfficeOptions([]);
+     
       }
     };
 
@@ -220,7 +226,6 @@ const CreateExpenseView: React.FC = () => {
   }, [vendors]);
 
   useEffect(() => {
-
     if (viewExpense) {
       const expenseData = {
         title: viewExpense.title || "",
@@ -264,7 +269,6 @@ const CreateExpenseView: React.FC = () => {
   };
 
   const handleEditClick = (type: "image" | "cheque" | "paymentSlip") => {
-    // Trigger file input click for the specified type
     const input = document.getElementById(`${type}Upload`) as HTMLInputElement | null;
     if (input) {
       input.click();
@@ -286,7 +290,6 @@ const CreateExpenseView: React.FC = () => {
         type === "cheque" ? "chequeImage" : "paymentSlip"]: file
     }));
 
-    // Update previews and cleanup previous URLs
     if (type === "image") {
       if (preview) URL.revokeObjectURL(preview);
       setPreview(url);
@@ -303,7 +306,6 @@ const CreateExpenseView: React.FC = () => {
     setFormData(prev => {
       const updated: any = { ...prev, [field]: value };
 
-      // Auto-calculate vendor WHT
       if (field === "vendor") {
         const selectedVendor = vendors.find(v => v._id === value);
         if (selectedVendor) {
@@ -311,7 +313,6 @@ const CreateExpenseView: React.FC = () => {
         }
       }
 
-      // Calculate amount after tax
       const amountNum = parseFloat(String(updated.amount || "0")) || 0;
       const whtNum = parseFloat(String(updated.WHT || "0")) || 0;
 
@@ -374,33 +375,40 @@ const CreateExpenseView: React.FC = () => {
     }
 
     try {
-      setIsSubmitting(true); // Add loading state
+      setIsSubmitting(true);
+      let result;
       if (viewExpense?._id) {
-        const result = await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
-        if (result) {
-          navigate("/dashboard/expenses");
-        }
+        result = await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
       } else {
-        const result = await dispatch(createExpense(dataToSend)).unwrap();
-        if (result) {
-          navigate("/dashboard/expenses");
-        }
+        result = await dispatch(createExpense(dataToSend)).unwrap();
+      }
+      
+      if (result) {
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: viewExpense?._id 
+            ? (isApprove ? 'Expense approved successfully!' : 'Expense updated successfully!')
+            : 'Expense created successfully!'
+        });
+        navigate("/dashboard/expenses");
       }
     } catch (error) {
       console.error("Failed to submit expense:", error);
-      // Show error to user
-      alert("Failed to save expense. Please try again.");
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: formatApiError(error) || 'Failed to save expense. Please try again.'
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-
   const handleCancel = () => {
     if (isEditing) {
       setIsEditing(false);
       if (viewExpense) {
-        // Reset form data to original expense data
         const resetData = {
           title: viewExpense.title || "",
           billDate: viewExpense.billDate?.split("T")[0] || "",
@@ -428,13 +436,28 @@ const CreateExpenseView: React.FC = () => {
   };
 
   const onDelete = () => setConfirmOpen(true);
-  const confirmDelete = () => {
+  
+  const confirmDelete = async () => {
     if (viewExpense?._id) {
-      dispatch(removeExpense(viewExpense._id));
+      try {
+        await dispatch(removeExpense(viewExpense._id)).unwrap();
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Expense deleted successfully!'
+        });
+        navigate("/dashboard/expenses");
+      } catch (error) {
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: formatApiError(error) || 'Failed to delete expense. Please try again.'
+        });
+      }
     }
     setConfirmOpen(false);
-    navigate(-1);
   };
+  
   const cancelDelete = () => setConfirmOpen(false);
 
   // Helper Components
@@ -479,16 +502,24 @@ const CreateExpenseView: React.FC = () => {
             payload: { status: 'Rejected' },
           })
         ).unwrap();
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Expense rejected successfully!'
+        });
         navigate("/dashboard/expenses");
       } catch (error) {
         console.error('Failed to reject expense:', error);
-        alert('Failed to reject expense. Please try again.');
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: formatApiError(error) || 'Failed to reject expense. Please try again.'
+        });
       } finally {
         setIsRejecting(false);
       }
     };
 
-    // Check if any button is in loading state
     const isAnyLoading = isApproving || isRejecting || isSubmitting;
 
     return (
@@ -587,6 +618,7 @@ const CreateExpenseView: React.FC = () => {
       </div>
     );
   };
+
   const Header = () => (
     <div className="bg-white border-b border-gray-200">
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -597,7 +629,6 @@ const CreateExpenseView: React.FC = () => {
               className="flex items-center gap-2 px-3 py-2 text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
-              {/* <span className="text-sm">Back</span> */}
             </button>
 
             <div className="flex items-center gap-3 flex-1 min-w-0">

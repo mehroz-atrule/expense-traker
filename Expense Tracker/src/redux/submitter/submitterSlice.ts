@@ -34,6 +34,7 @@ export const fetchExpenses = createAsyncThunk(
   'submitter/fetchExpenses',
   async (params: Record<string, unknown> = {}) => {
     const res = await listExpenses(params);
+    
     return res as ExpensesResponse; // ✅ Return full response
   }
 );
@@ -42,6 +43,7 @@ export const createExpense = createAsyncThunk(
   'submitter/createExpense',
   async (payload: Expense) => {
     const res = await postExpense(payload);
+    console.log("Created Expense:", res);
     return res as Expense;
   }
 );
