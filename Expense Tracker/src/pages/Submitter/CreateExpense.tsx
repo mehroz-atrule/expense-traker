@@ -125,7 +125,7 @@ const CreateExpenseView: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
-  // const { loading: submitterLoading, } = useAppSelector((s: RootState) => s.submitter);
+  const { loading: submitterLoading, } = useAppSelector((s: RootState) => s.submitter);
   //   const viewExpense = useAppSelector((s: RootState) =>
   //   s.submitter.expenses.find(e => e._id === id)
   // );
@@ -438,155 +438,155 @@ const CreateExpenseView: React.FC = () => {
   const cancelDelete = () => setConfirmOpen(false);
 
   // Helper Components
-  const ActionButtons = () => {
-    const [isApproving, setIsApproving] = useState(false);
-    const [isRejecting, setIsRejecting] = useState(false);
+const ActionButtons = () => {
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+  
+  const getApproveButtonText = () => {
+    if (isCashPayment) return "Mark as Paid";
 
-    const getApproveButtonText = () => {
-      if (isCashPayment) return "Mark as Paid";
+    if (formData.payment === "BankTransfer") {
+      if (currentStatusKey === "WaitingForApproval") return "Approve";
+      if (currentStatusKey === "Approved") return "Mark as Paid";
+    }
 
-      if (formData.payment === "BankTransfer") {
-        if (currentStatusKey === "WaitingForApproval") return "Approve";
-        if (currentStatusKey === "Approved") return "Mark as Paid";
-      }
+    switch (effectiveNextStatus) {
+      case "Approved": return "Approve";
+      case "ReviewedByFinance": return "Reviewed by Finance";
+      case "ReadyForPayment": return "Ready for Payment";
+      case "Paid": return "Mark as Paid";
+      default: return "Approve";
+    }
+  };
 
-      switch (effectiveNextStatus) {
-        case "Approved": return "Approve";
-        case "ReviewedByFinance": return "Reviewed by Finance";
-        case "ReadyForPayment": return "Ready for Payment";
-        case "Paid": return "Mark as Paid";
-        default: return "Approve";
-      }
-    };
+  const handleApproveWithLoader = async () => {
+    setIsApproving(true);
+    try {
+      await handleApprove();
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
-    const handleApproveWithLoader = async () => {
-      setIsApproving(true);
-      try {
-        await handleApprove();
-      } finally {
-        setIsApproving(false);
-      }
-    };
+  const handleReject = async () => {
+    if (!viewExpense?._id) return;
+    
+    setIsRejecting(true);
+    try {
+      await dispatch(
+        UpdateExpense({
+          id: viewExpense._id as string,
+          payload: { status: 'Rejected' },
+        })
+      ).unwrap();
+      navigate("/dashboard/vendor/my-expenses");
+    } catch (error) {
+      console.error('Failed to reject expense:', error);
+      alert('Failed to reject expense. Please try again.');
+    } finally {
+      setIsRejecting(false);
+    }
+  };
 
-    const handleReject = async () => {
-      if (!viewExpense?._id) return;
+  // Check if any button is in loading state
+  const isAnyLoading = isApproving || isRejecting || isSubmitting;
 
-      setIsRejecting(true);
-      try {
-        await dispatch(
-          UpdateExpense({
-            id: viewExpense._id as string,
-            payload: { status: 'Rejected' },
-          })
-        ).unwrap();
-        navigate("/dashboard/vendor/my-expenses");
-      } catch (error) {
-        console.error('Failed to reject expense:', error);
-        alert('Failed to reject expense. Please try again.');
-      } finally {
-        setIsRejecting(false);
-      }
-    };
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center sm:justify-end">
+      {/* Cancel Button */}
+      <button
+        type="button"
+        onClick={handleCancel}
+        disabled={isAnyLoading}
+        className="order-2 sm:order-1 px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        {isEditing ? "Cancel Changes" : "Cancel"}
+      </button>
 
-    // Check if any button is in loading state
-    const isAnyLoading = isApproving || isRejecting || isSubmitting;
-
-    return (
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center sm:justify-end">
-        {/* Cancel Button */}
-        <button
-          type="button"
-          onClick={handleCancel}
-          disabled={isAnyLoading}
-          className="order-2 sm:order-1 px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          {isEditing ? "Cancel Changes" : "Cancel"}
-        </button>
-
-        <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-3">
-          {/* Approve/Reject buttons */}
-          {isViewMode && !isEditing && !isRejected && !isPaid && effectiveNextStatus && (
-            <>
-              <button
-                type="button"
-                onClick={handleApproveWithLoader}
-                disabled={isAnyLoading}
-                className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2 min-w-[120px] justify-center"
-              >
-                {isApproving ? (
-                  <Loader size="sm" text="" className="!text-white" />
-                ) : (
-                  <>✓ {getApproveButtonText()}</>
-                )}
-              </button>
-
-              {effectiveNextStatus !== "Paid" && (
-                <button
-                  type="button"
-                  onClick={handleReject}
-                  disabled={isAnyLoading}
-                  className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] justify-center"
-                >
-                  {isRejecting ? (
-                    <Loader size="sm" text="" className="!text-white" />
-                  ) : (
-                    <>✗ Reject</>
-                  )}
-                </button>
-              )}
-            </>
-          )}
-
-          {/* Edit Button */}
-          {isViewMode && !isEditing && !isPaid && !isRejected && (
+      <div className="order-1 sm:order-2 flex flex-col sm:flex-row gap-3">
+        {/* Approve/Reject buttons */}
+        {isViewMode && !isEditing && !isRejected && !isPaid && effectiveNextStatus && (
+          <>
             <button
               type="button"
-              onClick={() => setIsEditing(true)}
+              onClick={handleApproveWithLoader}
               disabled={isAnyLoading}
-              className="px-4 py-3 sm:py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+              className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2 min-w-[120px] justify-center"
             >
-              <Edit3 className="w-4 h-4" />
-              Edit Expense
-            </button>
-          )}
-
-          {/* Submit/Update Button */}
-          {(isEditing || !isViewMode) && (
-            <button
-              type="submit"
-              disabled={isAnyLoading}
-              className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <Loader size="sm" text="Processing..." className="!text-white" />
+              {isApproving ? (
+                <Loader size="sm" text="" className="!text-white" />
               ) : (
-                <>
-                  {isEditing ? <Edit3 className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                  <span>{isEditing ? "Update Expense" : "Create Expense"}</span>
-                </>
+                <>✓ {getApproveButtonText()}</>
               )}
             </button>
-          )}
+            
+            {effectiveNextStatus !== "Paid" && (
+              <button
+                type="button"
+                onClick={handleReject}
+                disabled={isAnyLoading}
+                className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] justify-center"
+              >
+                {isRejecting ? (
+                  <Loader size="sm" text="" className="!text-white" />
+                ) : (
+                  <>✗ Reject</>
+                )}
+              </button>
+            )}
+          </>
+        )}
 
-          {/* Status Indicators */}
-          {isViewMode && !isEditing && isPaid && (
-            <div className="px-4 py-3 sm:py-2 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center gap-2">
-              <FileText className="w-4 h-4" />
-              Expense Paid (Read Only)
-            </div>
-          )}
+        {/* Edit Button */}
+        {isViewMode && !isEditing && !isPaid && !isRejected && (
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
+            disabled={isAnyLoading}
+            className="px-4 py-3 sm:py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <Edit3 className="w-4 h-4" />
+            Edit Expense
+          </button>
+        )}
 
-          {isViewMode && !isEditing && isRejected && (
-            <div className="px-4 py-3 sm:py-2 text-sm font-medium text-red-500 bg-red-50 border border-red-200 rounded-lg flex items-center justify-center gap-2">
-              <FileText className="w-4 h-4" />
-              Expense Rejected (Read Only)
-            </div>
-          )}
-        </div>
+        {/* Submit/Update Button */}
+        {(isEditing || !isViewMode) && (
+          <button
+            type="submit"
+            disabled={isAnyLoading}
+            className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <Loader size="sm" text="Processing..." className="!text-white" />
+            ) : (
+              <>
+                {isEditing ? <Edit3 className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                <span>{isEditing ? "Update Expense" : "Create Expense"}</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Status Indicators */}
+        {isViewMode && !isEditing && isPaid && (
+          <div className="px-4 py-3 sm:py-2 text-sm font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center gap-2">
+            <FileText className="w-4 h-4" />
+            Expense Paid (Read Only)
+          </div>
+        )}
+
+        {isViewMode && !isEditing && isRejected && (
+          <div className="px-4 py-3 sm:py-2 text-sm font-medium text-red-500 bg-red-50 border border-red-200 rounded-lg flex items-center justify-center gap-2">
+            <FileText className="w-4 h-4" />
+            Expense Rejected (Read Only)
+          </div>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
+};
   const Header = () => (
     <div className="bg-white border-b border-gray-200">
       <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
