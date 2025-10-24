@@ -378,12 +378,12 @@ const CreateExpenseView: React.FC = () => {
       if (viewExpense?._id) {
         const result = await dispatch(UpdateExpense({ id: viewExpense._id, payload: dataToSend })).unwrap();
         if (result) {
-          navigate("/dashboard/vendor/my-expenses");
+          navigate("/dashboard/expenses");
         }
       } else {
         const result = await dispatch(createExpense(dataToSend)).unwrap();
         if (result) {
-          navigate("/dashboard/vendor/my-expenses");
+          navigate("/dashboard/expenses");
         }
       }
     } catch (error) {

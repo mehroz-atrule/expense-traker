@@ -33,6 +33,27 @@ const DynamicFilters: React.FC<DynamicFiltersProps> = ({
     label: office.name
   }));
 
+  const categoryOptions = [
+    { value: "all", label: "All Categories" },
+    { value: "Internet Bill", label: "Internet Bill" },
+    { value: "Cloud Computing", label: "Cloud Computing" },
+    { value: "Dues and Subscriptions", label: "Dues and Subscriptions" },
+    { value: "Financial Services / Consultancy", label: "Financial Services / Consultancy" },
+    { value: "Electricity Bill", label: "Electricity Bill" },
+    { value: "Telephone Bill", label: "Telephone Bill" },
+    { value: "Office Rent", label: "Office Rent" },
+    { value: "Solar Plates Bill", label: "Solar Plates Bill" },
+    { value: "Office Maintenance", label: "Office Maintenance" },
+    { value: "FBR", label: "FBR" },
+    { value: "Pettycash", label: "Pettycash" },
+    { value: "Computer Hardware", label: "Computer Hardware" },
+    { value: "Salaries", label: "Salaries" },
+    { value: "Salaries WHT", label: "Salaries WHT" },
+    { value: "EOBI Employer’s Share", label: "EOBI Employer’s Share" },
+    { value: "Others", label: "Others" },
+    { value: "Misc.", label: "Misc." }
+  ];
+
   const renderVendorFilters = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {/* Office */}
@@ -73,13 +94,12 @@ const DynamicFilters: React.FC<DynamicFiltersProps> = ({
           onChange={(e) => onVendorFilterChange({ ...vendorFilters, category: e.target.value })} 
           className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value="all">All Categories</option>
-          <option value="Travel">Travel</option>
-          <option value="Office Supplies">Office Supplies</option>
-          <option value="Equipment">Equipment</option>
-          <option value="Software">Software</option>
-          <option value="Services">Services</option>
-          <option value="Other">Other</option>
+          {categoryOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+          
         </select>
       </div>
 

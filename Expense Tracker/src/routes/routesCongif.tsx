@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import {
   Home,
   FileText,
-  ClipboardList,
   CreditCard,
   Users,
   Settings,
@@ -28,9 +27,7 @@ import UserManagement from "../pages/Admin/UserManagement";
 import OfficeManagement from "../pages/Admin/OfficeManagement";
 import VendorManagement from "../pages/Admin/VendorManagement";
 import CreateExpense from "../pages/Submitter/CreateExpense";
-import MyExpenses from "../pages/Submitter/MyExpenses";
 import CreatePettycashExpense from "../pages/Submitter/CreatePettycashExpense";
-import PettycashExpense from "../pages/Submitter/PettycashExpense";
 import SystemSettings from "../pages/Admin/SystemSettings";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 import CombinedExpensesScreen from "../pages/Submitter/CombinedExpesnes";
@@ -58,10 +55,9 @@ const routesConfig = {
         title: "Expenses"
       },
     },
-    // 👇 These routes exist but won't show in sidebar
+    // 👇 Vendor routes - direct children routes without parent element
     {
       path: "vendor",
-      element: <MyExpenses />,
       label: "Vendor",
       icon: <Building2 size={18} />,
       tooltip: "Vendor Section",
@@ -76,12 +72,6 @@ const routesConfig = {
           icon: <FileText size={18} />,
         },
         {
-          path: "my-expenses",
-          element: <MyExpenses />,
-          label: "Vendor Expenses",
-          icon: <ClipboardList size={18} />,
-        },
-        {
           path: "manage",
           element: <VendorManagement />,
           label: "Manage Vendors",
@@ -89,9 +79,9 @@ const routesConfig = {
         },
       ],
     },
+    // 👇 Pettycash routes - direct children routes without parent element
     {
       path: "pettycash",
-      element: <PettycashExpense />,
       label: "PettyCash",
       icon: <CreditCard size={18} />,
       tooltip: "Manage petty cash",
@@ -104,12 +94,6 @@ const routesConfig = {
           element: <CreatePettycashExpense />,
           label: "Create Pettycash Expense",
           icon: <FileText size={18} />,
-        },
-        {
-          path: "expenses",
-          element: <PettycashExpense />,
-          label: "Pettycash Expenses",
-          icon: <ClipboardList size={18} />,
         },
       ],
     },

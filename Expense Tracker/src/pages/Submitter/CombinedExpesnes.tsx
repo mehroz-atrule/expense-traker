@@ -435,23 +435,39 @@ useEffect(() => {
     setConfirmDeleteOpen(true);
   };
 
-  const confirmDelete = async () => {
-    if (!selectedExpense?._id) return;
+const confirmDelete = async () => {
+  if (!selectedExpense?._id) return;
 
-    try {
-      if (activeTab === 'vendor') {
-        await dispatch(removeExpense(selectedExpense._id) as any);
-        fetchVendorExpenses();
+  try {
+    if (activeTab === 'vendor') {
+      await dispatch(removeExpense(selectedExpense._id) as any);
+      
+      // Check if this was the last item on the current page
+      if (expenses.length === 1 && vendorPage > 1) {
+        const newPage = vendorPage - 1;
+        setVendorPage(newPage);
+        updateURL(vendorFilters, 'vendor', newPage, searchTerm);
       } else {
-        await (dispatch(deletePettyCashExpenseById(selectedExpense._id) as any)).unwrap?.();
+        fetchVendorExpenses();
+      }
+    } else {
+      await (dispatch(deletePettyCashExpenseById(selectedExpense._id) as any)).unwrap?.();
+      
+      // Check if this was the last item on the current page
+      if (pettyCashRecords.length === 1 && pettyCashPage > 1) {
+        const newPage = pettyCashPage - 1;
+        setPettyCashPage(newPage);
+        updateURL(pettyCashFilters, 'pettycash', newPage, searchTerm, selectedOffice);
+      } else {
         fetchPettyCashData();
       }
-      setConfirmDeleteOpen(false);
-      setSelectedExpense(null);
-    } catch (error) {
-      console.error('Failed to delete expense:', error);
     }
-  };
+    setConfirmDeleteOpen(false);
+    setSelectedExpense(null);
+  } catch (error) {
+    console.error('Failed to delete expense:', error);
+  }
+};
 
   const handleImageClick = (imageUrl: string | null, title: string) => {
     if (!imageUrl) return;
