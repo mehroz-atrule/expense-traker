@@ -176,7 +176,7 @@ const AdminDashboard: React.FC = () => {
     const Icon = config.icon
 
     return (
-      <div className="flex items-center justify-between w-full space-x-2 bg-white rounded-lg px-4 py-3 shadow-sm cursor hover:shadow-md" onClick={() => navigate("/dashboard/expenses?tab=vendor&page=1&status=" + status)}>
+      <div className="flex items-center justify-between w-full space-x-2 bg-white rounded-lg px-4 py-3 shadow-sm cursor-pointer hover:shadow-md" onClick={() => navigate("/dashboard/expenses?tab=vendor&page=1&status=" + status)}>
 
         <div className='flex items-center gap-2'>
           <div className={`p-2 rounded-lg ${config.color}`}>
