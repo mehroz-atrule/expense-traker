@@ -7,7 +7,6 @@ import {
   Users,
   Settings,
   Building2,
-  DollarSign,
   BanknoteArrowDown
 } from "lucide-react";
 

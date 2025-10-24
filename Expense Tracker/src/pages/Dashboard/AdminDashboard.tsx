@@ -14,7 +14,6 @@ import {
   RefreshCw,
   Clock,
   XCircle,
-  DollarSignIcon,
   Store,
   Banknote
 } from 'lucide-react'
@@ -59,7 +58,7 @@ const AdminDashboard: React.FC = () => {
     const content = (
       <div className="p-6 space-y-6">
         <div className="text-center">
-         
+
           <h3 className="text-lg font-medium text-gray-900 mb-2">Create New Expense</h3>
           <p className="text-sm text-gray-500 mb-6">
             Choose how you want to create a new expense entry.
