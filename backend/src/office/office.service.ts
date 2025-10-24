@@ -9,12 +9,22 @@ import { Model } from 'mongoose';
 import { Office } from './schemas/office.schema';
 import { CreateOfficeDto } from './dto/create-office.dto';
 import { UpdateOfficeDto } from './dto/update-office.dto';
+import { Expense } from '../expense/schemas/expense.schema';
+import { PettyCashTransaction } from '../pettycash/schemas/pettycash.schema';
+import { PettyCashSummary, PettyCashSummaryDocument } from 'src/pettycash/schemas/pettycashsummary.schema';
 
 @Injectable()
 export class OfficeService {
   private readonly logger = new Logger(OfficeService.name);
 
-  constructor(@InjectModel(Office.name) private officeModel: Model<Office>) { }
+  constructor(
+    @InjectModel(Office.name) private officeModel: Model<Office>,
+    @InjectModel(Expense.name) private expenseModel: Model<Expense>,
+    @InjectModel(PettyCashTransaction.name) private pettyCashModel: Model<PettyCashTransaction>,
+    @InjectModel(PettyCashSummary.name)
+    private readonly summaryModel: Model<PettyCashSummaryDocument>,
+
+  ) { }
 
   async create(createOfficeDto: CreateOfficeDto): Promise<Office> {
 
@@ -104,7 +114,7 @@ export class OfficeService {
   }
 
   async remove(id: string): Promise<{ message: string }> {
-
+    console.log("start delete office");
     this.logger.log('Deleting office', { officeId: id });
 
     const office = await this.officeModel.findById(id);
@@ -112,8 +122,36 @@ export class OfficeService {
       throw new NotFoundException('Office not found');
     }
 
-    // Soft delete by setting isActive to false
-    await this.officeModel.findByIdAndDelete(id);
+    try {
+      // Start a session for transaction
+      const session = await this.officeModel.db.startSession();
+      console.log("session started");
+      await session.withTransaction(async () => {
+        // Delete all related expenses
+        await this.expenseModel.deleteMany({ office: id }).session(session);
+        this.logger.log('Deleted related expenses', { officeId: id });
+        console.log("deleted expenses");
+        // Delete all related petty cash transactions
+        await this.pettyCashModel.deleteMany({ office: id }).session(session);
+        console.log("deleted petty cash transactions");
+        this.logger.log('Deleted related petty cash transactions', { officeId: id });
+        await this.summaryModel.deleteMany({ office: id }).session(session);
+        console.log("deleted petty cash summaries");
+
+        this.logger.log('Deleted related petty cash summaries', { officeId: id });
+        // Finally delete the office
+        await this.officeModel.findByIdAndDelete(id).session(session);
+        console.log("office deleted");
+        this.logger.log('Office deleted', { officeId: id });
+      });
+      await session.endSession();
+    } catch (error) {
+      this.logger.error('Error during office deletion', {
+        officeId: id,
+        error: error.message
+      });
+      throw new Error(`Failed to delete office and related data: ${error.message}`);
+    }
 
     this.logger.log('Office deleted successfully', { officeId: id });
     return { message: 'Office deleted successfully' };
