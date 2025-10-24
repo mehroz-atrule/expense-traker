@@ -400,10 +400,7 @@ const CreatePettycashExpense: React.FC = () => {
             </button>
           </div>
 
-          {/* Required fields note */}
-          <div className="text-xs text-gray-500 text-center pt-2">
-            * Required fields must be filled
-          </div>
+         
         </form>
       </div>
     </div>
