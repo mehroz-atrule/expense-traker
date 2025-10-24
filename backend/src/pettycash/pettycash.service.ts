@@ -89,7 +89,7 @@ export class PettycashService {
     } catch (err) {
       await session.abortTransaction();
       console.error('Error creating transaction:', err);
-      throw new InternalServerErrorException('Failed to create transaction');
+      throw new Error('Failed to create transaction', err);
     } finally {
       await session.endSession();
     }
