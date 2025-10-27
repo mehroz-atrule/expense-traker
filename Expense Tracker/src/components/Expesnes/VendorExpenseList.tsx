@@ -1,6 +1,7 @@
 import React from 'react';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Trash2 } from 'lucide-react';
 import Pagination from '../../components/Pagination';
+import UpdateIcon from '../UpdateIcon';
 
 interface VendorExpensesListProps {
   expenses: any[];
@@ -164,7 +165,7 @@ const VendorExpensesList: React.FC<VendorExpensesListProps> = ({
                       className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                       title="Update"
                     >
-                      <Edit size={16} />
+      <UpdateIcon size={16} color="green" />
                     </button>
                     <button
                       onClick={(e) => {
@@ -248,7 +249,7 @@ const VendorExpensesList: React.FC<VendorExpensesListProps> = ({
                           className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded transition-colors"
                           title="Update "
                         >
-                          <Edit size={16} />
+      <UpdateIcon size={16} color="green" />
                         </button>
                         <button
                           onClick={() => onDelete(exp)}

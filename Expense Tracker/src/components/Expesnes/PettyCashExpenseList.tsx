@@ -1,6 +1,7 @@
 import React from 'react';
-import { Eye, Edit, Trash2, ImageIcon, MoreHorizontal } from 'lucide-react';
+import { Eye, Trash2, ImageIcon, MoreHorizontal } from 'lucide-react';
 import Pagination from '../../components/Pagination';
+import UpdateIcon from '../UpdateIcon';
 
 // Helpers
 const formatTableDate = (dateString: string): string => {
@@ -264,7 +265,7 @@ const PettyCashExpensesList: React.FC<PettyCashExpensesListProps> = ({
                         className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
                         title="Update"
                       >
-                        <Edit size={16} />
+      <UpdateIcon size={16} color="green" />
                       </button>
                       <button
                         onClick={() => onDelete(records[index])} // Use original record for delete
