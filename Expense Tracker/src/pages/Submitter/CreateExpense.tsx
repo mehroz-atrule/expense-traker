@@ -121,6 +121,7 @@ const CreateExpenseView: React.FC = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
 
 
+  const [loading, setLoading] = useState(false);
   // Hooks
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -131,7 +132,7 @@ const CreateExpenseView: React.FC = () => {
 
   // Get data from Redux store
   const vendors = useAppSelector((s: RootState) => s.vendor.dropdownVendors || []);
-  const { expenseDetails: viewExpense,  } = useAppSelector(
+  const { expenseDetails: viewExpense, } = useAppSelector(
     (state: RootState) => state.submitter
   );
 
@@ -147,9 +148,21 @@ const CreateExpenseView: React.FC = () => {
   //   }
   // }, [expenseError, showToast , expenseLoading]);
 
+
+  const fetchExpenses = async (id: string) => {
+    try {
+      setLoading(true);
+      await dispatch(getExpense(id));
+    } catch (error) {
+      console.error("Failed to fetch expense:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (id) {
-      dispatch(getExpense(id));
+      fetchExpenses(id);
     }
     return () => {
       dispatch(clearExpenseDetails());
@@ -216,7 +229,7 @@ const CreateExpenseView: React.FC = () => {
         setOfficeOptions(officeOpts);
       } catch (error) {
         setOfficeOptions([]);
-     
+
       }
     };
 
@@ -384,12 +397,12 @@ const CreateExpenseView: React.FC = () => {
       } else {
         result = await dispatch(createExpense(dataToSend)).unwrap();
       }
-      
+
       if (result) {
         showToast({
           type: 'success',
           title: 'Success',
-          message: viewExpense?._id 
+          message: viewExpense?._id
             ? (isApprove ? 'Expense approved successfully!' : 'Expense updated successfully!')
             : 'Expense created successfully!'
         });
@@ -438,7 +451,7 @@ const CreateExpenseView: React.FC = () => {
   };
 
   const onDelete = () => setConfirmOpen(true);
-  
+
   const confirmDelete = async () => {
     if (viewExpense?._id) {
       try {
@@ -459,7 +472,7 @@ const CreateExpenseView: React.FC = () => {
     }
     setConfirmOpen(false);
   };
-  
+
   const cancelDelete = () => setConfirmOpen(false);
 
   // Helper Components
@@ -713,7 +726,14 @@ const CreateExpenseView: React.FC = () => {
       </div>
     </div>
   );
-
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading expenses...</p>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
