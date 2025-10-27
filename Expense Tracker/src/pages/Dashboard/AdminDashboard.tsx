@@ -20,10 +20,17 @@ import {
 import type { RootState } from '../../app/store'
 import { getDashboardStats } from '../../redux/admin/adminSlice'
 import Popup from '../../components/Dashboard/Popup'
+import MonthYearPicker from '../../components/MonthYearPicker'
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const [selectedMonthYear, setSelectedMonthYear] = useState(() => {
+  const now = new Date()
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
+  const year = now.getFullYear()
+  return `${month}-${year}`
+})
   const { dashboardStats, loading } = useSelector((state: RootState) => state.admin)
 
   // State for popup
@@ -38,9 +45,9 @@ const AdminDashboard: React.FC = () => {
     size: 'md'
   })
 
-  useEffect(() => {
-    dispatch(getDashboardStats() as any)
-  }, [dispatch])
+useEffect(() => {
+  dispatch(getDashboardStats(selectedMonthYear) as any)
+}, [dispatch, selectedMonthYear])
 
   // Function to open popup
   const openPopup = (title: string, content: React.ReactNode, size?: 'sm' | 'md' | 'lg' | 'xl') => {
@@ -212,10 +219,14 @@ const AdminDashboard: React.FC = () => {
               Overview of your expenses and status
             </p>
           </div>
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <span>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-          </div>
+        <div className="flex items-center space-x-2">
+  <MonthYearPicker
+    selectedValue={selectedMonthYear}
+    onValueChange={(val) => setSelectedMonthYear(val)}
+    showLabel={false}
+    className="w-auto"
+  />
+</div>
         </div>
 
         {/* Financial Overview - Top Row */}
