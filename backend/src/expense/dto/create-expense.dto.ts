@@ -36,6 +36,10 @@ export class CreateExpenseDto {
   @IsEnum(Status)
   status: Status = Status.WaitingForApproval;
 
+  @ApiProperty()
+  @IsOptional()
+  rejectionReason: string = '';
+
   // image handled as file via multipart, not validated here
 
   @ApiProperty()
