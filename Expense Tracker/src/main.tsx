@@ -6,6 +6,7 @@ import App from './App'
 import { ToastProvider } from './components/Toast'
 import './main.css'
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')!).render(
       <ToastProvider>
         <App />
         <Analytics />
+        <SpeedInsights />
       </ToastProvider>
     </Provider>
   </StrictMode>,
