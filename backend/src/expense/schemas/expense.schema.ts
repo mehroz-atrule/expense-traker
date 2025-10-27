@@ -44,6 +44,9 @@ export class Expense extends Document {
   @Prop({ default: Status.WaitingForApproval, enum: Status })
   status: Status;
 
+  @Prop({ default: '', type: String })
+  rejectionReason: string;
+
   @Prop({ default: 0, type: Number })
   WHT: number;
 
@@ -55,7 +58,7 @@ export class Expense extends Document {
 
   @Prop()
   chequeImage?: string;
-  
+
   @Prop()
   paymentSlip?: string;
 

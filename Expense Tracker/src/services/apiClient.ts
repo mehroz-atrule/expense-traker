@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// export const API_BASE_URL = 'https://expense-traker-nod8.vercel.app/api';
-export const API_BASE_URL = 'http://localhost:4000/api';
+export const API_BASE_URL = 'https://expense-traker-nod8.vercel.app/api';
+// export const API_BASE_URL = 'http://localhost:4000/api';
 
 
 // Create axios instance

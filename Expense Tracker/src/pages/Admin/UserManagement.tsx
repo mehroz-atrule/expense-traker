@@ -479,7 +479,6 @@ const UserManagement: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Office</label>
                 <OfficeSelect value={editOfficeId} onChange={setEditOfficeId} offices={offices} />
               </div>
             </div>
