@@ -14,7 +14,8 @@ import {
   Clock,
   XCircle,
   Store,
-  Banknote
+  Banknote,
+  Info
 } from 'lucide-react'
 import type { RootState } from '../../app/store'
 import { getDashboardStats } from '../../redux/admin/adminSlice'
@@ -25,11 +26,11 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [selectedMonthYear, setSelectedMonthYear] = useState(() => {
-  const now = new Date()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
-  const year = now.getFullYear()
-  return `${month}-${year}`
-})
+    const now = new Date()
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
+    const year = now.getFullYear()
+    return `${month}-${year}`
+  })
   const { dashboardStats, loading } = useSelector((state: RootState) => state.admin)
 
   // State for popup
@@ -44,9 +45,9 @@ const AdminDashboard: React.FC = () => {
     size: 'md'
   })
 
-useEffect(() => {
-  dispatch(getDashboardStats(selectedMonthYear) as any)
-}, [dispatch, selectedMonthYear])
+  useEffect(() => {
+    dispatch(getDashboardStats(selectedMonthYear) as any)
+  }, [dispatch, selectedMonthYear])
 
   // Function to open popup
   const openPopup = (title: string, content: React.ReactNode, size?: 'sm' | 'md' | 'lg' | 'xl') => {
@@ -218,21 +219,32 @@ useEffect(() => {
               Overview of your expenses and status
             </p>
           </div>
-        <div className="flex items-center space-x-2">
-  <MonthYearPicker
-    selectedValue={selectedMonthYear}
-    onValueChange={(val) => setSelectedMonthYear(val)}
-    showLabel={false}
-    className="w-auto"
-  />
-</div>
+          <div className="flex items-center space-x-2">
+            <MonthYearPicker
+              selectedValue={selectedMonthYear}
+              onValueChange={(val) => setSelectedMonthYear(val)}
+              showLabel={false}
+              className="w-auto"
+            />
+          </div>
         </div>
 
         {/* Financial Overview - Top Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Vendor Expenses Card */}
           <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0 cursor-pointer hover:shadow-md" onClick={() => navigate("/dashboard/expenses?tab=vendor&page=1")}>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Vendor Expenses</h2>
+            <div className='flex justify-between align-center'>
+
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Vendor Expenses</h2>
+              <div className="relative group flex items-center">
+                <Info size={20} className='text-gray-600 cursor-pointer' />
+                <div className="absolute left-8 top-0 z-10 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-64 text-sm text-gray-700 transition-opacity duration-200">
+                  <span>
+                    Vendor expenses are payments made to external vendors according to the bill date
+                  </span>
+                </div>
+              </div>
+            </div>
             <StatCard
               title="Total Vendor Expenses"
               value={dashboardStats?.totalExpense}
@@ -244,7 +256,18 @@ useEffect(() => {
 
           {/* Office Expenses Card */}
           <div className="bg-white rounded-xl shadow-sm p-6 max-sm:p-0 cursor-pointer hover:shadow-md" onClick={() => navigate("/dashboard/expenses?tab=pettycash&page=1")}>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Office Expenses</h2>
+
+            <div className='flex justify-between align-center'>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 max-sm:hidden">Office Expenses</h2>
+              <div className="relative group flex items-center">
+                <Info size={20} className='text-gray-600 cursor-pointer' />
+                <div className="absolute right-8 top-0 z-10 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-64 text-sm text-gray-700 transition-opacity duration-200">
+                  <span>
+                    Office expenses are payments made for office-related expenses according to the month selected
+                  </span>
+                </div>
+              </div>
+            </div>
             <StatCard
               title="Total PettyCash Expense"
               value={dashboardStats?.totalPettyCashExpense}
