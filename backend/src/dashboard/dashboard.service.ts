@@ -63,7 +63,13 @@ export class DashboardService {
 
       // === 4️⃣ Expense Aggregation ===
       const expenseAgg = this.expenseModel.aggregate([
-        { $match: officeFilter },
+        {
+          $match: {
+            ...officeFilter,
+            billDate: { $gte: startOfMonth, $lt: startOfNextMonth },
+            status: { $ne: 'Rejected' }
+          }
+        },
         {
           $facet: {
             totals: [
@@ -76,19 +82,30 @@ export class DashboardService {
               },
             ],
             currentMonth: [
+              // Match documents created in the requested month and exclude rejected expenses
               {
                 $match: {
                   billDate: { $gte: startOfMonth, $lt: startOfNextMonth },
+                  status: { $ne: 'Rejected' },
                 },
               },
               {
                 $group: {
                   _id: null,
                   currentSum: { $sum: '$amount' },
+                  currentCount: { $sum: 1 },
                 },
               },
             ],
             officeWise: [
+              // First match current month and non-rejected expenses
+              {
+
+                $match: {
+                  billDate: { $gte: startOfMonth, $lt: startOfNextMonth },
+                  status: { $ne: 'Rejected' },
+                },
+              },
               {
                 $group: {
                   _id: '$office',
