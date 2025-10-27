@@ -15,6 +15,7 @@ const baseSteps = [
 
 const ExpenseStatusTracker: React.FC<ExpenseStatusTrackerProps> = ({
   currentStatus,
+  reason
 }) => {
 
   // Normalize status
@@ -162,10 +163,12 @@ const ExpenseStatusTracker: React.FC<ExpenseStatusTrackerProps> = ({
       </div>
 
       {/* Status Summary */}
-      <div className="mt-3 sm:mt-4 md:mt-6 p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+      {
+        isRejected &&
+         <div className="mt-3 sm:mt-4 md:mt-6 p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1 sm:gap-2">
           <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap">
-            Current Status:
+            Reason:  
           </span>
           <div className="flex flex-wrap items-center gap-1 sm:gap-2">
             <span
@@ -186,7 +189,16 @@ const ExpenseStatusTracker: React.FC<ExpenseStatusTrackerProps> = ({
             )}
           </div>
         </div>
+        <div className="pt-2  ">
+          <span className="text-sm text-gray-600"> 
+            {reason ? reason : "No additional details provided."}
+          </span>
+        </div>
       </div>
+        
+
+      }
+     
     </div>
   );
 };

@@ -23,6 +23,7 @@ import ImageUploadSection from "../../components/ExpenseForm/ImageUploadSection"
 import ImageModal from "../../components/ImageViewModal";
 import Loader from "../../components/Loader";
 import { formatApiError, useToast } from "../../components/Toast";
+import RejectReasonDialog from "../../components/ExpenseForm/RejectDialog";
 
 interface FormData {
   title: string;
@@ -44,6 +45,7 @@ interface FormData {
   chequeNumber: string;
   bankName: string;
   status?: string;
+
 }
 
 // Constants
@@ -116,6 +118,8 @@ const CreateExpenseView: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [currentImageTitle, setCurrentImageTitle] = useState("");
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+
 
   // Hooks
   const location = useLocation();
@@ -461,7 +465,6 @@ const CreateExpenseView: React.FC = () => {
   // Helper Components
   const ActionButtons = () => {
     const [isApproving, setIsApproving] = useState(false);
-    const [isRejecting, setIsRejecting] = useState(false);
 
     const getApproveButtonText = () => {
       if (isCashPayment) return "Mark as Paid";
@@ -489,36 +492,40 @@ const CreateExpenseView: React.FC = () => {
       }
     };
 
-    const handleReject = async () => {
-      if (!viewExpense?._id) return;
+   const handleReject = () => {
+  setRejectDialogOpen(true);
+};
+  const handleConfirmReject = async (reason: string) => {
+  if (!viewExpense?._id) return;
 
-      setIsRejecting(true);
-      try {
-        await dispatch(
-          UpdateExpense({
-            id: viewExpense._id as string,
-            payload: { status: 'Rejected' },
-          })
-        ).unwrap();
-        showToast({
-          type: 'success',
-          title: 'Success',
-          message: 'Expense rejected successfully!'
-        });
-        navigate("/dashboard/expenses");
-      } catch (error) {
-        console.error('Failed to reject expense:', error);
-        showToast({
-          type: 'error',
-          title: 'Error',
-          message: formatApiError(error) || 'Failed to reject expense. Please try again.'
-        });
-      } finally {
-        setIsRejecting(false);
-      }
-    };
+  try {
+    await dispatch(
+      UpdateExpense({
+        id: viewExpense._id,
+        payload: { status: "Rejected", rejectionReason: reason },
+      })
+    ).unwrap();
 
-    const isAnyLoading = isApproving || isRejecting || isSubmitting;
+    showToast({
+      type: "success",
+      title: "Rejected",
+      message: "Expense rejected successfully!",
+    });
+    navigate("/dashboard/expenses");
+  } catch (error) {
+    console.error("Reject failed:", error);
+    showToast({
+      type: "error",
+      title: "Error",
+      message: formatApiError(error) || "Failed to reject expense.",
+    });
+  } finally {
+    setRejectDialogOpen(false);
+  }
+};
+
+
+    const isAnyLoading = isApproving  || isSubmitting;
 
     return (
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center sm:justify-end">
@@ -557,11 +564,9 @@ const CreateExpenseView: React.FC = () => {
                   disabled={isAnyLoading}
                   className="px-4 py-3 sm:py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] justify-center"
                 >
-                  {isRejecting ? (
-                    <Loader size="sm" text="" className="!text-white" />
-                  ) : (
+                
                     <>✗ Reject</>
-                  )}
+                 
                 </button>
               )}
             </>
@@ -613,6 +618,11 @@ const CreateExpenseView: React.FC = () => {
             </div>
           )}
         </div>
+        <RejectReasonDialog
+  open={rejectDialogOpen}
+  onCancel={() => setRejectDialogOpen(false)}
+  onConfirm={handleConfirmReject}
+/>
       </div>
     );
   };
@@ -714,7 +724,7 @@ const CreateExpenseView: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <ExpenseStatusTracker
               currentStatus={viewExpense?.status || "New"}
-              reason={viewExpense?.title}
+              reason={viewExpense?.rejectionReason}
             />
           </div>
         </div>

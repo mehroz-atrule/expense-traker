@@ -23,6 +23,7 @@ export interface Expense {
   bankName?: string;   // new: bank name if payment is by cheque
   expenseDate?: string; // new: date when the expense was incurred
   paymentMethod?: string; // new: method of payment (e.g., Credit Card, Cheque, etc.)
+  rejectionReason?: string; // reason for rejection if status is 'rejected'
 }
 
 export interface CreateExpensePayload extends Omit<Expense, '_id' | 'createdAt' | 'updatedAt'> {}
