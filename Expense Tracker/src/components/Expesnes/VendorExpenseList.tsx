@@ -162,7 +162,7 @@ const VendorExpensesList: React.FC<VendorExpensesListProps> = ({
                         onEdit(exp);
                       }}
                       className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                      title="Edit"
+                      title="Update"
                     >
                       <Edit size={16} />
                     </button>
@@ -246,7 +246,7 @@ const VendorExpensesList: React.FC<VendorExpensesListProps> = ({
                         <button
                           onClick={() => onEdit(exp)}
                           className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded transition-colors"
-                          title="Edit"
+                          title="Update "
                         >
                           <Edit size={16} />
                         </button>
