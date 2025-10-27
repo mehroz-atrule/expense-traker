@@ -262,7 +262,7 @@ const PettyCashExpensesList: React.FC<PettyCashExpensesListProps> = ({
                       <button
                         onClick={() => onEdit(records[index])} // Use original record for edit
                         className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors"
-                        title="Edit"
+                        title="Update"
                       >
                         <Edit size={16} />
                       </button>

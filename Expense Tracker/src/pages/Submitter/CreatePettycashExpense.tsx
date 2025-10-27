@@ -296,7 +296,7 @@ const CreatePettycashExpense: React.FC = () => {
             <Loader size="sm" text="Loading offices..." />
           ) : (
             <SelectDropdown
-              label="Office *"
+              label="Office "
               options={officeOptions}
               value={officeOptions.find((o) => o.value === form.office) || null}
               onChange={(opt: any) => handleChange("office", opt?.value)}
@@ -307,7 +307,7 @@ const CreatePettycashExpense: React.FC = () => {
           {/* Month Field - Required */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
-              Month *
+              Month 
             </label>
             <MonthYearPicker
               selectedValue={form.month}
@@ -318,7 +318,7 @@ const CreatePettycashExpense: React.FC = () => {
 
           {/* Title - Required */}
           <EnhancedInput
-            label="Title *"
+            label="Title"
             value={form.title}
             onChange={(v) => handleChange("title", v)}
             placeholder="Expense title"
@@ -342,14 +342,14 @@ const CreatePettycashExpense: React.FC = () => {
           {/* Date + Amount - Both Required */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <EnhancedInput
-              label="Payment Date *"
+              label="Payment Date"
               type="date"
               value={form.dateOfPayment}
               onChange={(v) => handleChange("dateOfPayment", v)}
               required
             />
             <EnhancedInput
-              label="Amount *"
+              label="Amount"
               type="number"
               value={form.amount}
               onChange={(v) => handleChange("amount", v)}
