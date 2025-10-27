@@ -5,12 +5,14 @@ import store from './app/store'
 import App from './App'
 import { ToastProvider } from './components/Toast'
 import './main.css'
+import { Analytics } from "@vercel/analytics/next"
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <ToastProvider>
         <App />
+        <Analytics />
       </ToastProvider>
     </Provider>
   </StrictMode>,
