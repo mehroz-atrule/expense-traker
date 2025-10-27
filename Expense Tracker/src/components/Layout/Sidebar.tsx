@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
         />
       )}
       <aside
-        className={`bg-white text-black p-4 transition-all duration-300 ease-in-out fixed top-0 left-0 z-50 shadow-2xl rounded-br-lg rounded-tr-lg md:static md:z-30 md:shadow-lg h-screen ${
+        className={`bg-white text-black p-4  fixed top-0 left-0 z-50 shadow-2xl rounded-br-lg rounded-tr-lg md:static md:z-30 md:shadow-lg h-screen ${
           open ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 ${collapsed ? "w-20" : "w-64"}`}
       >
