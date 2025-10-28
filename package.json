@@ -5,7 +5,6 @@
     "build-check": "cross-env npm run build:frontend && npm run build:backend"
   },
   "devDependencies": {
-    "cross-env": "^10.1.0",
-    "husky": "^9.1.7"
+    "cross-env": "^10.1.0"
   }
 }

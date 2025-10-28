@@ -32,6 +32,7 @@ async function bootstrap() {
 
   // --- CORS ---
   // const clientUrl = configService.get<string>('CLIENT_URL') || 'http://localhost:5173';
+  
   app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
